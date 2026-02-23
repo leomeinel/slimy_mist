@@ -9,8 +9,6 @@
  * Heavily inspired by: https://github.com/TheBevyFlock/bevy_new_2d
  */
 
-// FIXME: Reduce duplicated code
-
 //! Helper functions for creating common widgets.
 
 use std::borrow::Cow;
@@ -33,61 +31,154 @@ pub(crate) struct ButtonBase;
 #[reflect(Component)]
 pub(crate) struct ButtonText;
 
-/// A [`Bundle`] containing a root UI [`Node`] that fills the window and centers its content.
+/// A builder for creating [`Button`]s with customizable appearance, text, and interaction behavior.
+struct ButtonBuilder {
+    name: &'static str,
+    base_background: Color,
+    surface_background: Color,
+    hovered_background: Color,
+    text: &'static str,
+    font: Handle<Font>,
+    font_size: f32,
+}
+impl ButtonBuilder {
+    fn new(
+        name: &'static str,
+        base_background: Color,
+        surface_background: Color,
+        hovered_background: Color,
+        text: &'static str,
+        font: Handle<Font>,
+        font_size: f32,
+    ) -> Self {
+        Self {
+            name,
+            base_background,
+            surface_background,
+            hovered_background,
+            text,
+            font,
+            font_size,
+        }
+    }
+
+    /// Builds the [`Button`] and attaches an [`Observer`].
+    ///
+    /// ## Traits
+    ///
+    /// - `E` must implement [`EntityEvent`].
+    /// - `B` must implement [`Bundle`].
+    fn build_with<E, B, M>(
+        self,
+        action: impl IntoObserverSystem<E, B, M>,
+        base_bundle: impl Bundle,
+        surface_bundle: impl Bundle,
+    ) -> impl Bundle
+    where
+        E: EntityEvent,
+        B: Bundle,
+    {
+        let system = IntoObserverSystem::into_system(action);
+        (
+            Name::new(self.name),
+            Node::default(),
+            Children::spawn(SpawnWith(move |parent: &mut ChildSpawner| {
+                parent
+                    .spawn((
+                        Name::new(format!("{} Base", self.name)),
+                        ButtonBase,
+                        BackgroundColor(self.base_background),
+                        base_bundle,
+                        ZIndex(0),
+                    ))
+                    .with_children(|base| {
+                        base.spawn((
+                            Name::new(format!("{} Surface", self.name)),
+                            Button,
+                            BackgroundColor(self.surface_background),
+                            InteractionPalette {
+                                none: self.surface_background,
+                                hovered: self.hovered_background,
+                                pressed: BUTTON_PRESSED_BACKGROUND,
+                            },
+                            InteractionOverride::default(),
+                            AutoDirectionalNavigation::default(),
+                            surface_bundle,
+                            ZIndex(1),
+                            children![(
+                                Name::new(format!("{} Text", self.name)),
+                                ButtonText,
+                                Text(self.text.to_uppercase()),
+                                TextFont::from(self.font).with_font_size(self.font_size),
+                                TextColor(BUTTON_TEXT.into()),
+                                // Don't bubble picking events from the text up to the button.
+                                Pickable::IGNORE,
+                                ZIndex(2),
+                            )],
+                        ))
+                        .observe(system);
+                    });
+            })),
+        )
+    }
+}
+
+/// A non-scrolling root UI [`Bundle`] that fills the window and centers its content.
 pub(crate) fn ui_root(name: impl Into<Cow<'static, str>>) -> impl Bundle {
+    ui_root_bundle(name, Overflow::DEFAULT)
+}
+
+/// An auto-scrolling root UI [`Bundle`] that fills the window and centers its content.
+pub(crate) fn ui_root_auto_scroll(name: impl Into<Cow<'static, str>>) -> impl Bundle {
     (
-        Name::new(name),
-        ui_root_node(),
-        // Don't block picking events for other UI roots.
-        Pickable::IGNORE,
+        ui_root_bundle(name, Overflow::scroll_y()),
+        AutoScroll(Vec2::new(0., BODY_FONT_SIZE / 100.)),
     )
 }
 
-/// A [`Bundle`] containing a scrollable root UI [`Node`] that fills the window and centers its content.
-pub(crate) fn ui_root_auto_scroll(name: impl Into<Cow<'static, str>>) -> impl Bundle {
+/// A root UI [`Bundle`] that fills the window and centers its content.
+fn ui_root_bundle(name: impl Into<Cow<'static, str>>, overflow: Overflow) -> impl Bundle {
     (
         Name::new(name),
         Node {
-            overflow: Overflow::scroll_y(),
-            ..ui_root_node()
+            position_type: PositionType::Absolute,
+            width: percent(100),
+            height: percent(100),
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::Center,
+            flex_direction: FlexDirection::Column,
+            row_gap: px(20),
+            overflow,
+            ..default()
         },
-        AutoScroll(Vec2::new(0., BODY_FONT_SIZE / 100.)),
         // Don't block picking events for other UI roots.
         Pickable::IGNORE,
     )
-}
-
-/// A root UI [`Node`] that fills the window and centers its content.
-fn ui_root_node() -> Node {
-    Node {
-        position_type: PositionType::Absolute,
-        width: percent(100),
-        height: percent(100),
-        align_items: AlignItems::Center,
-        justify_content: JustifyContent::Center,
-        flex_direction: FlexDirection::Column,
-        row_gap: px(20),
-        ..default()
-    }
 }
 
 /// A simple header label. Bigger than [`label`].
 pub(crate) fn header(text: impl Into<String>, font: Handle<Font>) -> impl Bundle {
-    (
-        Name::new("Header"),
-        Text(text.into()),
-        TextFont::from(font).with_font_size(HEADER_FONT_SIZE),
-        TextColor(HEADER_TEXT.into()),
-    )
+    styled_text("Header", HEADER_TEXT.into(), text, font, HEADER_FONT_SIZE)
 }
 
 /// A simple text label.
 pub(crate) fn label(text: impl Into<String>, font: Handle<Font>) -> impl Bundle {
+    styled_text("Label", LABEL_TEXT.into(), text, font, BODY_FONT_SIZE)
+}
+
+/// A simple styled text
+fn styled_text(
+    name: &'static str,
+    color: Color,
+    text: impl Into<String>,
+    font: Handle<Font>,
+    font_size: f32,
+) -> impl Bundle {
     (
-        Name::new("Label"),
+        Name::new(name),
         Text(text.into()),
-        TextFont::from(font).with_font_size(BODY_FONT_SIZE),
-        TextColor(LABEL_TEXT.into()),
+        TextFont::from(font).with_font_size(font_size),
+        TextColor(color),
     )
 }
 
@@ -97,151 +188,23 @@ pub(crate) fn label(text: impl Into<String>, font: Handle<Font>) -> impl Bundle 
 ///
 /// - `E` must implement [`EntityEvent`].
 /// - `B` must implement [`Bundle`].
-/// - `I` must implement [`IntoObserverSystem<E, B, M>`].
-pub(crate) fn button_large<E, B, M, I>(
-    text: impl Into<String>,
+pub(crate) fn button_large<E, B, M>(
+    text: &'static str,
     font: Handle<Font>,
-    action: I,
+    action: impl IntoObserverSystem<E, B, M>,
 ) -> impl Bundle
 where
     E: EntityEvent,
     B: Bundle,
-    I: IntoObserverSystem<E, B, M>,
 {
-    let offset = 8;
-    let node = Node {
-        width: px(400),
-        aspect_ratio: Some(4.5),
-        align_items: AlignItems::Center,
-        justify_content: JustifyContent::Center,
-        border_radius: BorderRadius::all(px(30)),
-        ..default()
-    };
     button(
         text,
         font,
         action,
-        Node {
-            overflow: Overflow::visible(),
-            ..node.clone()
-        },
-        (
-            Node {
-                bottom: px(offset),
-                position_type: PositionType::Absolute,
-                ..node
-            },
-            NodeOffset(IVec2::new(0, offset)),
-        ),
-    )
-}
-
-/// A small [`Button`] button with text and an action defined as an [`Observer`].
-///
-/// ## Traits
-///
-/// - `E` must implement [`EntityEvent`].
-/// - `B` must implement [`Bundle`].
-/// - `I` must implement [`IntoObserverSystem<E, B, M>`].
-pub(crate) fn button_small<E, B, M, I>(
-    text: impl Into<String>,
-    font: Handle<Font>,
-    action: I,
-) -> impl Bundle
-where
-    E: EntityEvent,
-    B: Bundle,
-    I: IntoObserverSystem<E, B, M>,
-{
-    let offset = 4;
-    let node = Node {
-        width: px(30),
-        aspect_ratio: Some(1.),
-        align_items: AlignItems::Center,
-        justify_content: JustifyContent::Center,
-        border_radius: BorderRadius::MAX,
-        ..default()
-    };
-    button(
-        text,
-        font,
-        action,
-        Node {
-            overflow: Overflow::visible(),
-            ..node.clone()
-        },
-        (
-            Node {
-                bottom: px(offset),
-                position_type: PositionType::Absolute,
-                ..node
-            },
-            NodeOffset(IVec2::new(0, offset)),
-        ),
-    )
-}
-
-/// A [`Button`] with text and an action defined as an [`Observer`].
-///
-/// ## Traits
-///
-/// - `E` must implement [`EntityEvent`].
-/// - `B` must implement [`Bundle`].
-/// - `I` must implement [`IntoObserverSystem<E, B, M>`].
-fn button<E, B, M, I>(
-    text: impl Into<String>,
-    font: Handle<Font>,
-    action: I,
-    base: impl Bundle,
-    surface: impl Bundle,
-) -> impl Bundle
-where
-    E: EntityEvent,
-    B: Bundle,
-    I: IntoObserverSystem<E, B, M>,
-{
-    let text = text.into().to_uppercase();
-    let action = IntoObserverSystem::into_system(action);
-    (
-        Name::new("Button"),
-        Node::default(),
-        Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
-            parent
-                .spawn((
-                    Name::new("Button Base"),
-                    ButtonBase,
-                    BackgroundColor(BUTTON_BASE_BACKGROUND.into()),
-                    base,
-                    ZIndex(0),
-                ))
-                .with_children(|base| {
-                    base.spawn((
-                        Name::new("Button Surface"),
-                        Button,
-                        BackgroundColor(BUTTON_BACKGROUND.into()),
-                        InteractionPalette {
-                            none: BUTTON_BACKGROUND.into(),
-                            hovered: BUTTON_HOVERED_BACKGROUND.into(),
-                            pressed: BUTTON_PRESSED_BACKGROUND,
-                        },
-                        InteractionOverride::default(),
-                        AutoDirectionalNavigation::default(),
-                        surface,
-                        ZIndex(1),
-                        children![(
-                            Name::new("Button Text"),
-                            ButtonText,
-                            Text(text),
-                            TextFont::from(font).with_font_size(HEADER_FONT_SIZE),
-                            TextColor(BUTTON_TEXT.into()),
-                            // Don't bubble picking events from the text up to the button.
-                            Pickable::IGNORE,
-                            ZIndex(2),
-                        )],
-                    ))
-                    .observe(action);
-                });
-        })),
+        px(400),
+        Some(4.5),
+        BorderRadius::all(px(30)),
+        8,
     )
 }
 
@@ -251,43 +214,74 @@ where
 ///
 /// - `E` must implement [`EntityEvent`].
 /// - `B` must implement [`Bundle`].
-/// - `I` must implement [`IntoObserverSystem<E, B, M>`].
-pub(crate) fn switch_medium<E, B, M, I>(
-    text: impl Into<String>,
+pub(crate) fn switch_medium<E, B, M>(
+    text: &'static str,
     font: Handle<Font>,
-    action: I,
+    action: impl IntoObserverSystem<E, B, M>,
 ) -> impl Bundle
 where
     E: EntityEvent,
     B: Bundle,
-    I: IntoObserverSystem<E, B, M>,
 {
-    let offset = 4;
-    let node = Node {
-        width: px(60),
-        aspect_ratio: Some(2.),
-        align_items: AlignItems::Center,
-        justify_content: JustifyContent::Center,
-        border_radius: BorderRadius::all(px(30)),
-        ..default()
-    };
     switch(
         text,
         font,
         action,
-        Node {
-            overflow: Overflow::visible(),
-            ..node.clone()
-        },
-        (
-            Node {
-                bottom: px(offset),
-                position_type: PositionType::Absolute,
-                ..node
-            },
-            NodeOffset(IVec2::new(0, offset)),
-        ),
+        px(60),
+        Some(2.),
+        BorderRadius::all(px(30)),
+        4,
     )
+}
+
+/// A small [`Button`] button with text and an action defined as an [`Observer`].
+///
+/// ## Traits
+///
+/// - `E` must implement [`EntityEvent`].
+/// - `B` must implement [`Bundle`].
+pub(crate) fn button_small<E, B, M>(
+    text: &'static str,
+    font: Handle<Font>,
+    action: impl IntoObserverSystem<E, B, M>,
+) -> impl Bundle
+where
+    E: EntityEvent,
+    B: Bundle,
+{
+    button(text, font, action, px(30), Some(1.), BorderRadius::MAX, 4)
+}
+
+/// A [`Button`] with text and an action defined as an [`Observer`].
+///
+/// ## Traits
+///
+/// - `E` must implement [`EntityEvent`].
+/// - `B` must implement [`Bundle`].
+fn button<E, B, M>(
+    text: &'static str,
+    font: Handle<Font>,
+    action: impl IntoObserverSystem<E, B, M>,
+    width: Val,
+    aspect_ratio: Option<f32>,
+    border_radius: BorderRadius,
+    offset: i32,
+) -> impl Bundle
+where
+    E: EntityEvent,
+    B: Bundle,
+{
+    let builder = ButtonBuilder::new(
+        "Button",
+        BUTTON_BASE_BACKGROUND.into(),
+        BUTTON_BACKGROUND.into(),
+        BUTTON_HOVERED_BACKGROUND.into(),
+        text,
+        font,
+        HEADER_FONT_SIZE,
+    );
+    let (base_bundle, surface_bundle) = button_bundles(width, aspect_ratio, border_radius, offset);
+    builder.build_with(action, base_bundle, surface_bundle)
 }
 
 /// A switch [`Button`] with text and an action defined as an [`Observer`].
@@ -296,60 +290,60 @@ where
 ///
 /// - `E` must implement [`EntityEvent`].
 /// - `B` must implement [`Bundle`].
-/// - `I` must implement [`IntoObserverSystem<E, B, M>`].
-fn switch<E, B, M, I>(
-    text: impl Into<String>,
+fn switch<E, B, M>(
+    text: &'static str,
     font: Handle<Font>,
-    action: I,
-    base: impl Bundle,
-    surface: impl Bundle,
+    action: impl IntoObserverSystem<E, B, M>,
+    width: Val,
+    aspect_ratio: Option<f32>,
+    border_radius: BorderRadius,
+    offset: i32,
 ) -> impl Bundle
 where
     E: EntityEvent,
     B: Bundle,
-    I: IntoObserverSystem<E, B, M>,
 {
-    let text = text.into().to_uppercase();
-    let action = IntoObserverSystem::into_system(action);
+    let builder = ButtonBuilder::new(
+        "Switch",
+        SWITCH_BASE_OFF_BACKGROUND.into(),
+        SWITCH_OFF_BACKGROUND.into(),
+        SWITCH_OFF_HOVERED_BACKGROUND.into(),
+        text,
+        font,
+        BODY_FONT_SIZE,
+    );
+    let (base_bundle, surface_bundle) = button_bundles(width, aspect_ratio, border_radius, offset);
+    builder.build_with(action, base_bundle, surface_bundle)
+}
+
+/// Tuples meant to be used as [`Bundle`]s for [`Button`]
+fn button_bundles(
+    width: Val,
+    aspect_ratio: Option<f32>,
+    border_radius: BorderRadius,
+    offset: i32,
+) -> (Node, (Node, NodeOffset)) {
+    let common_node = Node {
+        width,
+        aspect_ratio,
+        align_items: AlignItems::Center,
+        justify_content: JustifyContent::Center,
+        border_radius,
+        ..default()
+    };
+
     (
-        Name::new("Switch"),
-        Node::default(),
-        Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
-            parent
-                .spawn((
-                    Name::new("Switch Base"),
-                    ButtonBase,
-                    BackgroundColor(SWITCH_BASE_OFF_BACKGROUND.into()),
-                    base,
-                    ZIndex(0),
-                ))
-                .with_children(|base| {
-                    base.spawn((
-                        Name::new("Switch Surface"),
-                        Button,
-                        BackgroundColor(SWITCH_OFF_BACKGROUND.into()),
-                        InteractionPalette {
-                            none: SWITCH_OFF_BACKGROUND.into(),
-                            hovered: SWITCH_OFF_HOVERED_BACKGROUND.into(),
-                            pressed: BUTTON_PRESSED_BACKGROUND,
-                        },
-                        InteractionOverride::default(),
-                        AutoDirectionalNavigation::default(),
-                        surface,
-                        ZIndex(1),
-                        children![(
-                            Name::new("Switch Text"),
-                            ButtonText,
-                            Text(text),
-                            TextFont::from(font).with_font_size(BODY_FONT_SIZE),
-                            TextColor(BUTTON_TEXT.into()),
-                            // Don't bubble picking events from the text up to the button.
-                            Pickable::IGNORE,
-                            ZIndex(2),
-                        )],
-                    ))
-                    .observe(action);
-                });
-        })),
+        Node {
+            overflow: Overflow::visible(),
+            ..common_node.clone()
+        },
+        (
+            Node {
+                bottom: px(offset),
+                position_type: PositionType::Absolute,
+                ..common_node
+            },
+            NodeOffset(IVec2::new(0, offset)),
+        ),
     )
 }

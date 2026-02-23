@@ -240,6 +240,10 @@ jobs:
         if: ${{ env.is_platform_enabled == 'true' }}
         uses: cargo-bins/cargo-binstall@main
 
+      - name: Add README.md and LICENSE to app
+        if: ${{ env.is_platform_enabled == 'true' }}
+        run: cp ./{README.md,LICENSE} '${{ env.app }}' || true
+
       - name: Set up JDK (Android)
         if: ${{ env.is_platform_enabled == 'true' && matrix.platform == 'android' }}
         uses: actions/setup-java@v5
@@ -247,10 +251,6 @@ jobs:
           distribution: "temurin"
           java-version: "17"
           cache: "gradle"
-
-      - name: Copy README.md and LICENSE to assets
-        if: ${{ env.is_platform_enabled == 'true' }}
-        run: cp ./{README.md,LICENSE} ./'${{ env.assets_path }}' || true
 
       - name: Build and add binaries to app (Android)
         if: ${{ env.is_platform_enabled == 'true' && matrix.platform == 'android' }}

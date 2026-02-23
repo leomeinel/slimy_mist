@@ -58,8 +58,12 @@ pub(super) fn plugin(app: &mut App) {
         PreUpdate,
         (
             process_inputs.run_if(component_is_present::<AutoDirectionalNavigation>),
-            reset_override.run_if(in_state(OverrideInteraction(true))),
-            (override_interaction_on_focus, navigate)
+            (
+                reset_override,
+                override_interaction_on_release,
+                override_interaction_on_focus,
+                navigate,
+            )
                 .run_if(in_state(OverrideInteraction(true)))
                 .chain(),
         )
@@ -71,8 +75,8 @@ pub(super) fn plugin(app: &mut App) {
         (hover_focused, click_focused).run_if(in_state(OverrideInteraction(true))),
     );
 
-    // Set `OverrideInteraction` to false
     app.add_observer(reset_override_on_remove_nav);
+    app.add_observer(override_interaction_on_click);
 }
 
 /// Action for directional navigation.
@@ -82,7 +86,7 @@ pub(crate) enum DirectionalNavAction {
     Down,
     Left,
     Right,
-    Select,
+    Select(bool),
 }
 impl DirectionalNavAction {
     fn variants() -> Vec<Self> {
@@ -91,7 +95,8 @@ impl DirectionalNavAction {
             DirectionalNavAction::Down,
             DirectionalNavAction::Left,
             DirectionalNavAction::Right,
-            DirectionalNavAction::Select,
+            DirectionalNavAction::Select(true),
+            DirectionalNavAction::Select(false),
         ]
     }
     fn keycode(&self) -> KeyCode {
@@ -100,7 +105,7 @@ impl DirectionalNavAction {
             DirectionalNavAction::Down => KeyCode::ArrowDown,
             DirectionalNavAction::Left => KeyCode::ArrowLeft,
             DirectionalNavAction::Right => KeyCode::ArrowRight,
-            DirectionalNavAction::Select => KeyCode::Enter,
+            DirectionalNavAction::Select(_) => KeyCode::Enter,
         }
     }
     fn gamepad_button(&self) -> GamepadButton {
@@ -109,7 +114,7 @@ impl DirectionalNavAction {
             DirectionalNavAction::Down => GamepadButton::DPadDown,
             DirectionalNavAction::Left => GamepadButton::DPadLeft,
             DirectionalNavAction::Right => GamepadButton::DPadRight,
-            DirectionalNavAction::Select => GamepadButton::South,
+            DirectionalNavAction::Select(_) => GamepadButton::South,
         }
     }
 }
@@ -123,7 +128,7 @@ fn reset_interaction_overrides(
     query: Query<&mut InteractionOverride, With<AutoDirectionalNavigation>>,
 ) {
     for mut interaction_override in query {
-        interaction_override.set_if_neq(InteractionOverride::None);
+        (*interaction_override).set_new(Interaction::None);
     }
 }
 
@@ -140,11 +145,17 @@ fn process_inputs(
 
     let mut any_pressed = false;
     for action in DirectionalNavAction::variants() {
-        if keyboard_input.just_pressed(action.keycode())
+        let on_just_pressed = action != DirectionalNavAction::Select(false);
+        let just_pressed = keyboard_input.just_pressed(action.keycode())
             || gamepad_input
                 .iter()
-                .any(|g| g.just_pressed(action.gamepad_button()))
-        {
+                .any(|g| g.just_pressed(action.gamepad_button()));
+        let just_released = keyboard_input.just_released(action.keycode())
+            || gamepad_input
+                .iter()
+                .any(|g| g.just_released(action.gamepad_button()));
+
+        if (on_just_pressed && just_pressed) || (!on_just_pressed && just_released) {
             action_set.0.insert(action);
             any_pressed = true;
         }
@@ -165,18 +176,49 @@ fn reset_override(
     }
 }
 
-/// Set correct [`InteractionOverride`] for [`AutoDirectionalNavigation`]s.
+/// Set correct [`InteractionOverride`] for focused [`AutoDirectionalNavigation`]s.
 fn override_interaction_on_focus(
     query: Query<(Entity, &mut InteractionOverride), With<AutoDirectionalNavigation>>,
     input_focus: Res<InputFocus>,
     input_focus_visible: Res<InputFocusVisible>,
 ) {
+    if !input_focus_visible.0 {
+        return;
+    }
     for (entity, mut interaction_override) in query {
-        if input_focus.0 == Some(entity) && input_focus_visible.0 {
-            interaction_override.set_if_neq(InteractionOverride::Hovered);
+        if input_focus.0 == Some(entity) {
+            interaction_override.set_new_if_current(Interaction::None, Interaction::Hovered);
         } else {
-            interaction_override.set_if_neq(InteractionOverride::None);
+            interaction_override.set_new_if_current(Interaction::Hovered, Interaction::None);
         }
+    }
+}
+
+/// Set correct [`InteractionOverride`] for selected [`AutoDirectionalNavigation`]s on press.
+fn override_interaction_on_click(
+    event: On<Pointer<Click>>,
+    mut query: Query<&mut InteractionOverride, With<AutoDirectionalNavigation>>,
+    input_focus_visible: Res<InputFocusVisible>,
+) {
+    if !input_focus_visible.0 {
+        return;
+    }
+    if let Ok(mut interaction_override) = query.get_mut(event.entity) {
+        interaction_override.set_new_if_current(Interaction::Hovered, Interaction::Pressed);
+    };
+}
+
+/// Set correct [`InteractionOverride`] for selected [`AutoDirectionalNavigation`]s on release.
+fn override_interaction_on_release(
+    query: Query<&mut InteractionOverride, With<AutoDirectionalNavigation>>,
+    action_set: Res<DirectionalNavActionSet>,
+    input_focus_visible: Res<InputFocusVisible>,
+) {
+    if !input_focus_visible.0 || !action_set.0.contains(&DirectionalNavAction::Select(false)) {
+        return;
+    }
+    for mut interaction_override in query {
+        interaction_override.set_new_if_current(Interaction::Pressed, Interaction::None);
     }
 }
 
@@ -239,7 +281,7 @@ fn click_focused(
     action_set: Res<DirectionalNavActionSet>,
     input_focus: Res<InputFocus>,
 ) {
-    if action_set.0.contains(&DirectionalNavAction::Select)
+    if action_set.0.contains(&DirectionalNavAction::Select(true))
         && let Some(entity) = input_focus.0
     {
         // NOTE: Since we only need to trigger the pointer click for the entity,

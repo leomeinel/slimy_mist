@@ -44,14 +44,20 @@ pub(super) fn plugin(app: &mut App) {
 #[derive(States, Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
 pub(crate) struct OverrideInteraction(pub(crate) bool);
 
-/// A custom [`Interaction`] that overrides if [`OverrideInteraction`] is true.
+/// Wrapper for [`Interaction`] that overrides [`Interaction`] if [`OverrideInteraction`] is true.
 #[derive(Component, Default, PartialEq)]
-pub(crate) enum InteractionOverride {
-    /// Nothing has happened
-    #[default]
-    None,
-    /// The node has been hovered over
-    Hovered,
+pub(crate) struct InteractionOverride(pub(crate) Interaction);
+impl InteractionOverride {
+    pub(crate) fn set_new(&mut self, new: Interaction) {
+        if self.0 != new {
+            self.0 = new;
+        }
+    }
+    pub(crate) fn set_new_if_current(&mut self, current: Interaction, new: Interaction) {
+        if self.0 == current {
+            self.set_new(new);
+        }
+    }
 }
 
 /// Palette for widget interactions. Add this to an entity that supports
@@ -103,9 +109,10 @@ pub(crate) fn apply_palette(
 ) {
     for (interaction, interaction_override, palette, mut background) in query {
         *background = match interaction {
-            Interaction::None => match interaction_override {
-                InteractionOverride::Hovered => palette.hovered,
-                InteractionOverride::None => palette.none,
+            Interaction::None => match interaction_override.0 {
+                Interaction::None => palette.none,
+                Interaction::Hovered => palette.hovered,
+                Interaction::Pressed => palette.pressed,
             },
             Interaction::Hovered => palette.hovered,
             Interaction::Pressed => palette.pressed,

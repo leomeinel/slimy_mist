@@ -194,9 +194,9 @@ pub(crate) struct AnimationCache {
 }
 impl AnimationCache {
     /// Sets a new [`AnimationState`] if it has not already been set.
-    pub(crate) fn set_new_state(&mut self, new_state: AnimationState) {
-        if self.state != new_state {
-            self.state = new_state;
+    pub(crate) fn set_new_state(&mut self, new: AnimationState) {
+        if self.state != new {
+            self.state = new;
         }
     }
 }

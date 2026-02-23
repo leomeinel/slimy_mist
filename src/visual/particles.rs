@@ -58,12 +58,12 @@ where
 }
 
 trait ParticleSpawnerExt {
-    fn set_new_active(&mut self, new_active: bool);
+    fn set_new_active(&mut self, new: bool);
 }
 impl ParticleSpawnerExt for ParticleSpawnerState {
-    fn set_new_active(&mut self, new_active: bool) {
-        if self.active != new_active {
-            self.active = new_active;
+    fn set_new_active(&mut self, new: bool) {
+        if self.active != new {
+            self.active = new;
         }
     }
 }

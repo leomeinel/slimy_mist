@@ -43,7 +43,7 @@ impl AttackType for MeleeAttack {}
 /// Relevant data for an attack.
 #[derive(Default, PartialEq, Eq, Hash)]
 pub(crate) struct AttackData {
-    pub(crate) name: String,
+    pub(crate) name: &'static str,
     pub(crate) damage: OrderedFloat<f32>,
     /// Attack range in pixels.
     ///
@@ -92,7 +92,7 @@ pub(crate) struct AttackTimer(pub(crate) Timer);
 /// Simple punch [`Attack`] with short range
 pub(crate) fn punch() -> AttackData {
     AttackData {
-        name: "punch".to_string(),
+        name: "punch",
         damage: OrderedFloat(1.),
         range: (OrderedFloat(8.), OrderedFloat(16.)),
         cooldown_secs: OrderedFloat(0.5),

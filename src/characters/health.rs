@@ -17,7 +17,7 @@ pub(super) fn plugin(app: &mut App) {
 #[derive(Component, Default)]
 pub(crate) struct Health(pub(crate) f32);
 
-/// Damage applied to [`Health`].
+/// Apply damage to [`Health`].
 #[derive(Event)]
 pub(crate) struct Damage {
     pub(crate) targets: Vec<Entity>,

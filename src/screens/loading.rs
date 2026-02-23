@@ -336,5 +336,5 @@ fn cache_tile_data_and_related<T>(
 
 /// Enter splash screen
 fn enter_splash_screen(mut next_state: ResMut<NextState<Screen>>) {
-    next_state.set(Screen::Splash);
+    (*next_state).set_if_neq(Screen::Splash);
 }

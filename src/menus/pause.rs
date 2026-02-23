@@ -43,20 +43,20 @@ fn spawn_pause_menu(mut commands: Commands, font: Res<UiFontHandle>) {
 
 /// Open settings
 fn open_settings_menu(_: On<Pointer<Click>>, mut next_state: ResMut<NextState<Menu>>) {
-    next_state.set(Menu::Settings);
+    (*next_state).set_if_neq(Menu::Settings);
 }
 
 /// Close menu via on click
 fn close_menu(_: On<Pointer<Click>>, mut next_state: ResMut<NextState<Menu>>) {
-    next_state.set(Menu::None);
+    (*next_state).set_if_neq(Menu::None);
 }
 
 /// Close menu manually
 fn go_back(mut next_state: ResMut<NextState<Menu>>) {
-    next_state.set(Menu::None);
+    (*next_state).set_if_neq(Menu::None);
 }
 
 /// Quit to title
-fn quit_to_title(_: On<Pointer<Click>>, mut next_screen: ResMut<NextState<Screen>>) {
-    next_screen.set(Screen::Title);
+fn quit_to_title(_: On<Pointer<Click>>, mut next_state: ResMut<NextState<Screen>>) {
+    (*next_state).set_if_neq(Screen::Title);
 }

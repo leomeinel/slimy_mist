@@ -352,7 +352,7 @@ pub(crate) fn collect_to_despawn<T, A, const PROCEED: bool>(
 
     // Transition state if required
     if PROCEED && (!cache.to_despawn.is_empty() || query.is_empty()) {
-        next_state.set(ProcGenState::Spawn);
+        (*next_state).set_if_neq(ProcGenState::Spawn);
     }
 }
 
@@ -375,7 +375,7 @@ fn despawn<T>(
         commands.entity(entity).despawn();
     }
 
-    next_state.set(ProcGenDespawning(false));
+    (*next_state).set_if_neq(ProcGenDespawning(false));
 }
 
 /// Set state [`ProcGenDespawning`] to true if [`ProcGenCache<T>::to_despawn`] is not empty
@@ -390,21 +390,21 @@ fn set_despawning<T>(
     T: ProcGenerated,
 {
     if !cache.to_despawn.is_empty() {
-        next_state.set(ProcGenDespawning(true));
+        (*next_state).set_if_neq(ProcGenDespawning(true));
     }
 }
 
 /// Reset [`ProcGenState`]
 fn reset_procgen_state(mut next_state: ResMut<NextState<ProcGenState>>) {
-    next_state.set(ProcGenState::default());
+    (*next_state).set_if_neq(ProcGenState::default());
 }
 
 /// Reset [`ProcGenInit`]
 fn reset_procgen_init(mut next_state: ResMut<NextState<ProcGenInit>>) {
-    next_state.set(ProcGenInit::default());
+    (*next_state).set_if_neq(ProcGenInit::default());
 }
 
 /// Reset [`ProcGenDespawning`]
 fn reset_procgen_despawning(mut next_state: ResMut<NextState<ProcGenDespawning>>) {
-    next_state.set(ProcGenDespawning::default());
+    (*next_state).set_if_neq(ProcGenDespawning::default());
 }

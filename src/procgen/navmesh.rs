@@ -88,7 +88,6 @@ pub(crate) fn move_navmesh<T>(
     cache: Res<ProcGenCache<T>>,
     mut next_init_state: ResMut<NextState<ProcGenInit>>,
     mut next_state: ResMut<NextState<ProcGenState>>,
-    init_state: Res<State<ProcGenInit>>,
     tile_data: Res<TileDataCache<T>>,
 ) where
     T: ProcGenerated,
@@ -110,8 +109,6 @@ pub(crate) fn move_navmesh<T>(
     *mode = NavMeshUpdateMode::OnDemand(true);
 
     // Proceed to next state
-    next_state.set(ProcGenState::Despawn);
-    if init_state.get() != &ProcGenInit(true) {
-        next_init_state.set(ProcGenInit(true));
-    }
+    (*next_state).set_if_neq(ProcGenState::Despawn);
+    (*next_init_state).set_if_neq(ProcGenInit(true));
 }

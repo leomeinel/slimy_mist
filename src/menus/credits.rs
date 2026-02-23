@@ -115,12 +115,12 @@ fn grid(content: Vec<[String; 2]>, font: Handle<Font>) -> impl Bundle {
 
 /// Go back to main menu on click
 fn go_back_on_click(_: On<Pointer<Click>>, mut next_state: ResMut<NextState<Menu>>) {
-    next_state.set(Menu::Main);
+    (*next_state).set_if_neq(Menu::Main);
 }
 
 /// Go back to main menu if a menu switch is initialized
 fn go_back(mut next_state: ResMut<NextState<Menu>>) {
-    next_state.set(Menu::Main);
+    (*next_state).set_if_neq(Menu::Main);
 }
 
 /// Play music for credits

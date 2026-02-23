@@ -126,24 +126,16 @@ fn update_global_volume_label(
     label.0 = format!("{percent:3.0}%");
 }
 
-/// Go back on pointer click
+/// Call [`go_back`] on pointer click.
 fn go_back_on_click(
     _: On<Pointer<Click>>,
-    screen: Res<State<Screen>>,
-    mut next_state: ResMut<NextState<Menu>>,
+    next_state: ResMut<NextState<Menu>>,
+    state: Res<State<Screen>>,
 ) {
-    next_state.set(if screen.get() == &Screen::Title {
-        Menu::Main
-    } else {
-        Menu::Pause
-    });
+    go_back(next_state, state);
 }
 
-/// Go back manually
-fn go_back(screen: Res<State<Screen>>, mut next_state: ResMut<NextState<Menu>>) {
-    next_state.set(if screen.get() == &Screen::Title {
-        Menu::Main
-    } else {
-        Menu::Pause
-    });
+/// Go back.
+fn go_back(mut next_state: ResMut<NextState<Menu>>, state: Res<State<Screen>>) {
+    (*next_state).set_if_neq(state.back_menu());
 }

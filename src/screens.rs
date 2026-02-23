@@ -18,6 +18,8 @@ mod title;
 
 use bevy::prelude::*;
 
+use crate::menus::Menu;
+
 pub(super) fn plugin(app: &mut App) {
     // Add child plugins
     app.add_plugins((
@@ -40,4 +42,12 @@ pub(crate) enum Screen {
     Splash,
     Title,
     Gameplay,
+}
+impl Screen {
+    pub(crate) fn back_menu(&self) -> Menu {
+        match self {
+            Screen::Title => Menu::Main,
+            _ => Menu::Pause,
+        }
+    }
 }

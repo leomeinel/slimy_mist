@@ -79,24 +79,21 @@ const TOGGLE_KEY: KeyCode = KeyCode::Backquote;
 struct Debugging(bool);
 
 /// Toggle debugging
-fn toggle_debugging(
-    mut next_state: ResMut<NextState<Debugging>>,
-    debug_state: Res<State<Debugging>>,
-) {
-    next_state.set(Debugging(!debug_state.0));
+fn toggle_debugging(mut next_state: ResMut<NextState<Debugging>>, state: Res<State<Debugging>>) {
+    next_state.set(Debugging(!state.0));
 }
 
 /// Toggle debug overlay for UI
-fn toggle_debug_ui(mut options: ResMut<UiDebugOptions>, debug_state: Res<State<Debugging>>) {
-    options.enabled = debug_state.0;
+fn toggle_debug_ui(mut options: ResMut<UiDebugOptions>, state: Res<State<Debugging>>) {
+    options.enabled = state.0;
 }
 
 /// Toggle debug overlay for rapier colliders
 fn toggle_debug_colliders(
     mut render_context: ResMut<DebugRenderContext>,
-    debug_state: Res<State<Debugging>>,
+    state: Res<State<Debugging>>,
 ) {
-    render_context.enabled = debug_state.0;
+    render_context.enabled = state.0;
 }
 
 /// Toggle debug navmeshes

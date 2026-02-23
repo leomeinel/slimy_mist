@@ -130,13 +130,13 @@ fn apply_fade_in_out(mut query: Query<(&ImageNodeFadeInOut, &mut ImageNode)>) {
 
 /// Enter title screen
 fn enter_title_screen(mut next_state: ResMut<NextState<Screen>>) {
-    next_state.set(Screen::Title);
+    (*next_state).set_if_neq(Screen::Title);
 }
 
 /// Check status of [`SplashTimer`]
-fn check_splash_timer(timer: ResMut<SplashTimer>, mut next_state: ResMut<NextState<Screen>>) {
+fn check_splash_timer(mut next_state: ResMut<NextState<Screen>>, timer: Res<SplashTimer>) {
     if timer.0.just_finished() {
-        next_state.set(Screen::Title);
+        (*next_state).set_if_neq(Screen::Title);
     }
 }
 

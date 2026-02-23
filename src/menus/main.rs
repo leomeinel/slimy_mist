@@ -45,17 +45,17 @@ fn spawn_main_menu(mut commands: Commands, font: Res<UiFontHandle>) {
 
 /// Enter the gameplay screen
 fn enter_gameplay_screen(_: On<Pointer<Click>>, mut next_state: ResMut<NextState<Screen>>) {
-    next_state.set(Screen::Gameplay);
+    (*next_state).set_if_neq(Screen::Gameplay);
 }
 
 /// Open settings
 fn open_settings_menu(_: On<Pointer<Click>>, mut next_state: ResMut<NextState<Menu>>) {
-    next_state.set(Menu::Settings);
+    (*next_state).set_if_neq(Menu::Settings);
 }
 
 /// Open credits
 fn open_credits_menu(_: On<Pointer<Click>>, mut next_state: ResMut<NextState<Menu>>) {
-    next_state.set(Menu::Credits);
+    (*next_state).set_if_neq(Menu::Credits);
 }
 
 /// Exit the app

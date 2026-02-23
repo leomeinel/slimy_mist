@@ -133,7 +133,6 @@ fn process_inputs(
     mut next_state: ResMut<NextState<OverrideInteraction>>,
     mut action_set: ResMut<DirectionalNavActionSet>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
-    state: Res<State<OverrideInteraction>>,
 ) {
     action_set.0.clear();
 
@@ -149,8 +148,8 @@ fn process_inputs(
         }
     }
 
-    if *state != OverrideInteraction(true) && any_pressed {
-        next_state.set(OverrideInteraction(true));
+    if any_pressed {
+        (*next_state).set_if_neq(OverrideInteraction(true));
     }
 }
 
@@ -160,7 +159,7 @@ fn reset_override(
     mut next_state: ResMut<NextState<OverrideInteraction>>,
 ) {
     if query.iter().any(|i| *i != Interaction::None) {
-        next_state.set(OverrideInteraction(false));
+        (*next_state).set_if_neq(OverrideInteraction(false));
     }
 }
 
@@ -291,9 +290,6 @@ fn set_input_focus(
 fn reset_override_on_remove_nav(
     _: On<Remove, AutoDirectionalNavigation>,
     mut next_state: ResMut<NextState<OverrideInteraction>>,
-    state: Res<State<OverrideInteraction>>,
 ) {
-    if *state != OverrideInteraction(false) {
-        next_state.set(OverrideInteraction(false));
-    }
+    (*next_state).set_if_neq(OverrideInteraction(false));
 }

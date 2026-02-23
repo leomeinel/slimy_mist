@@ -139,22 +139,22 @@ fn spawn_pause_overlay(mut commands: Commands) {
 
 /// Open pause menu
 fn open_pause_menu(mut next_state: ResMut<NextState<Menu>>) {
-    next_state.set(Menu::Pause);
+    (*next_state).set_if_neq(Menu::Pause);
 }
 
 /// Close pause menu
 fn close_menu(mut next_state: ResMut<NextState<Menu>>) {
-    next_state.set(Menu::None);
+    (*next_state).set_if_neq(Menu::None);
 }
 
 /// Unpause the game
 fn unpause(mut next_state: ResMut<NextState<Pause>>) {
-    next_state.set(Pause(false));
+    (*next_state).set_if_neq(Pause(false));
 }
 
 /// Pause the game
 fn pause(mut next_state: ResMut<NextState<Pause>>) {
-    next_state.set(Pause(true));
+    (*next_state).set_if_neq(Pause(true));
 }
 
 /// Insert [`DisplayImage`].

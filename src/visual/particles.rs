@@ -82,6 +82,7 @@ impl Particle for ParticleWalkingDust {
 pub(crate) struct ParticleMeleeAttack;
 impl Particle for ParticleMeleeAttack {}
 
+/// Spawn a [`Particle`] once
 #[derive(Event)]
 pub(crate) struct SpawnParticleOnce {
     pub(crate) pos: Vec3,

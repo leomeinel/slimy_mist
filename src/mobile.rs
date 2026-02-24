@@ -8,7 +8,6 @@
  * -----
  * Heavily inspired by:
  * - https://github.com/bevyengine/bevy/tree/main/examples/mobile
- * - https://github.com/SergioRibera/virtual_joystick
  */
 
 #[cfg(target_os = "android")]

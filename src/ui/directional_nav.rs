@@ -128,7 +128,7 @@ fn reset_interaction_overrides(
     query: Query<&mut InteractionOverride, With<AutoDirectionalNavigation>>,
 ) {
     for mut interaction_override in query {
-        (*interaction_override).set_new(Interaction::None);
+        interaction_override.set_new(Interaction::None);
     }
 }
 

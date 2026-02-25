@@ -61,7 +61,7 @@ pub(super) fn plugin(app: &mut App) {
     // Init states
     app.init_state::<ProcGenState>();
     app.init_state::<ProcGenInit>();
-    app.init_state::<ProcGenDespawning>();
+    app.init_state::<DespawnProcGen>();
     // Reset states
     app.add_systems(
         OnExit(Screen::Gameplay),
@@ -87,7 +87,7 @@ pub(super) fn plugin(app: &mut App) {
             .in_set(AppSystems::Update)
             .in_set(PausableSystems),
     );
-    // NOTE: Since we are running despawing in `PostUpdate`, `ProcGenDespawning` is not necessary.
+    // NOTE: Since we are running despawing in `PostUpdate`, `DespawnProcGen` is not necessary.
     //       It will however allow other systems to verify that state in the future.
     app.add_systems(
         PostUpdate,
@@ -102,7 +102,7 @@ pub(super) fn plugin(app: &mut App) {
                 despawn::<StreetLight>,
                 despawn::<OverworldProcGen>,
             )
-                .run_if(in_state(ProcGenDespawning(true)))
+                .run_if(in_state(DespawnProcGen(true)))
                 .chain(),
         )
             .run_if(in_state(Screen::Gameplay)),
@@ -148,7 +148,7 @@ pub(crate) enum ProcGenState {
 
 /// Tracks whether we are currently despawning
 #[derive(States, Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
-pub(crate) struct ProcGenDespawning(pub(crate) bool);
+pub(crate) struct DespawnProcGen(pub(crate) bool);
 
 /// Tracks the proc gen has been initialized fully at least once
 #[derive(States, Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
@@ -364,7 +364,7 @@ pub(crate) fn collect_to_despawn<T, A, const PROCEED: bool>(
 fn despawn<T>(
     mut commands: Commands,
     mut cache: ResMut<ProcGenCache<T>>,
-    mut next_state: ResMut<NextState<ProcGenDespawning>>,
+    mut next_state: ResMut<NextState<DespawnProcGen>>,
 ) where
     T: ProcGenerated,
 {
@@ -375,22 +375,20 @@ fn despawn<T>(
         commands.entity(entity).despawn();
     }
 
-    (*next_state).set_if_neq(ProcGenDespawning(false));
+    (*next_state).set_if_neq(DespawnProcGen(false));
 }
 
-/// Set state [`ProcGenDespawning`] to true if [`ProcGenCache<T>::to_despawn`] is not empty
+/// Enable [`DespawnProcGen`] if [`ProcGenCache<T>::to_despawn`] is not empty.
 ///
 /// ## Traits
 ///
 /// - `T` must implement [`ProcGenerated`] and is used as the procedurally generated item associated with a [`ProcGenCache<T>`].
-fn set_despawning<T>(
-    mut next_state: ResMut<NextState<ProcGenDespawning>>,
-    cache: Res<ProcGenCache<T>>,
-) where
+fn set_despawning<T>(mut next_state: ResMut<NextState<DespawnProcGen>>, cache: Res<ProcGenCache<T>>)
+where
     T: ProcGenerated,
 {
     if !cache.to_despawn.is_empty() {
-        (*next_state).set_if_neq(ProcGenDespawning(true));
+        (*next_state).set_if_neq(DespawnProcGen(true));
     }
 }
 
@@ -404,7 +402,7 @@ fn reset_procgen_init(mut next_state: ResMut<NextState<ProcGenInit>>) {
     (*next_state).set_if_neq(ProcGenInit::default());
 }
 
-/// Reset [`ProcGenDespawning`]
-fn reset_procgen_despawning(mut next_state: ResMut<NextState<ProcGenDespawning>>) {
-    (*next_state).set_if_neq(ProcGenDespawning::default());
+/// Reset [`DespawnProcGen`]
+fn reset_procgen_despawning(mut next_state: ResMut<NextState<DespawnProcGen>>) {
+    (*next_state).set_if_neq(DespawnProcGen::default());
 }

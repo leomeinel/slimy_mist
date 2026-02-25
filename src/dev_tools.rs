@@ -26,7 +26,7 @@ use crate::{
     characters::nav::Path,
     input::joystick::{JoystickID, JoystickState},
     menus::Menu,
-    procgen::{ProcGenDespawning, ProcGenInit, ProcGenState},
+    procgen::{DespawnProcGen, ProcGenInit, ProcGenState},
     screens::Screen,
     ui::{interaction::OverrideInteraction, prelude::*},
 };
@@ -71,7 +71,7 @@ pub(super) fn plugin(app: &mut App) {
             log_transitions::<Menu>,
             log_transitions::<OverrideInteraction>,
             log_transitions::<Pause>,
-            log_transitions::<ProcGenDespawning>,
+            log_transitions::<DespawnProcGen>,
             log_transitions::<ProcGenInit>,
             log_transitions::<ProcGenState>,
             log_transitions::<Screen>,

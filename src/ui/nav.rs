@@ -9,8 +9,6 @@
  * Heavily inspired by: https://github.com/bevyengine/bevy/blob/latest/examples/ui/auto_directional_navigation.rs
  */
 
-// FIXME: Suppress warning if InputScroll is present
-
 use core::time::Duration;
 
 use bevy::{

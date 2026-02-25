@@ -1148,13 +1148,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "bevy_lit"
-version = "0.9.1"
-source = "git+https://github.com/leomeinel/bevy_lit.git?branch=bevy-0-18-webgl#05ad158e62edf2ba737b4738789ab59b06eccce0"
+name = "bevy_light_2d"
+version = "0.9.0"
+source = "git+https://github.com/leomeinel/bevy_light_2d.git?branch=update-bevy-0-18#80d7d4f3d2d00c32f09c551fd022af133b18e5f3"
 dependencies = [
  "bevy",
- "bytemuck",
- "fixedbitset",
+ "smallvec",
 ]
 
 [[package]]
@@ -1351,9 +1350,9 @@ dependencies = [
 
 [[package]]
 name = "bevy_prng"
-version = "0.14.0"
+version = "0.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2edb2d4095d4193d8cc6c79521f498b8169aac0aab9a1d423e2dd75121a3b84a"
+checksum = "7527d13bb0a8b4cccd970efdfae1433a43d8a6b37623526f259a0e0d922cef11"
 dependencies = [
  "bevy_ecs",
  "bevy_reflect",
@@ -1375,9 +1374,9 @@ checksum = "4f98cbc6d34bbdb58240b72ed1731931b4991a893b3a3238bb7c42ae054aa676"
 
 [[package]]
 name = "bevy_rand"
-version = "0.14.0"
+version = "0.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "41e6e263026d08a4ca27c83257ed582939162534e6658ead164886d610df9b13"
+checksum = "c76e5db2c274081fdff32a525609436bd7ac2c24b91c1a5d3bc04e43d7558ddf"
 dependencies = [
  "bevy_app",
  "bevy_ecs",
@@ -5382,7 +5381,7 @@ dependencies = [
  "bevy_ecs_tilemap",
  "bevy_enhanced_input",
  "bevy_enoki",
- "bevy_lit",
+ "bevy_light_2d",
  "bevy_prng",
  "bevy_rand",
  "bevy_rapier2d",

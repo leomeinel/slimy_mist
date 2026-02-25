@@ -7,12 +7,8 @@
  * URL: https://www.apache.org/licenses/LICENSE-2.0
  */
 
-// FIXME: For some reason, even though all point lights are despawned, their lighting still affects
-//        the splash screen after exiting Gameplay.
-//        Also see: https://github.com/malbernaz/bevy_lit/issues/24
-
 use bevy::{color::palettes::tailwind, prelude::*};
-use bevy_lit::prelude::*;
+use bevy_light_2d::prelude::*;
 
 use crate::{
     AppSystems, PausableSystems,
@@ -25,13 +21,13 @@ use crate::{
 
 pub(super) fn plugin(app: &mut App) {
     // Add ambient light after entering `Screen::Gameplay` and reset when exiting.
-    app.add_systems(OnEnter(Screen::Gameplay), add_settings);
-    app.add_systems(OnExit(Screen::Gameplay), remove_settings);
+    app.add_systems(OnEnter(Screen::Gameplay), add_ambient);
+    app.add_systems(OnExit(Screen::Gameplay), reset_ambient);
 
-    // Update ambient intensity to simulate a Day/Night cycle.
+    // Update ambient brightness to simulate a Day/Night cycle.
     app.add_systems(
         Update,
-        update_ambient_intensity
+        update_ambient_brightness
             .run_if(in_state(Screen::Gameplay))
             .in_set(PausableSystems),
     );
@@ -77,7 +73,7 @@ impl Default for StreetLight {
         Self(PointLight2d {
             color: tailwind::AMBER_500.into(),
             intensity: 1.,
-            outer_radius: 128.,
+            radius: 128.,
             falloff: 4.,
             ..default()
         })
@@ -105,34 +101,30 @@ impl Default for DayTimer {
     }
 }
 
-/// Insert [`Lighting2dSettings`] into [`CanvasCamera`].
-fn add_settings(camera: Single<Entity, With<CanvasCamera>>, mut commands: Commands) {
-    commands
-        .entity(*camera)
-        .insert(Lighting2dSettings::default());
+/// Insert [`Light2d`] into [`CanvasCamera`].
+fn add_ambient(camera: Single<Entity, With<CanvasCamera>>, mut commands: Commands) {
+    commands.entity(*camera).insert(Light2d {
+        ambient_light: AmbientLight2d::default(),
+    });
 }
 
-/// Remove [`Lighting2dSettings`] and [`AmbientLight2d`] attached to [`CanvasCamera`].
-fn remove_settings(
-    light: Single<(&mut Lighting2dSettings, &mut AmbientLight2d), With<CanvasCamera>>,
-) {
-    let (mut settings, mut ambient) = light.into_inner();
-    *settings = Lighting2dSettings::default();
-    *ambient = AmbientLight2d::default();
+/// Reset [`Light2d`] attached to [`CanvasCamera`].
+fn reset_ambient(mut light: Single<&mut Light2d, With<CanvasCamera>>) {
+    light.ambient_light = AmbientLight2d::default();
 }
 
-/// Interval in seconds to run logic in [`update_ambient_intensity`].
+/// Interval in seconds to run logic in [`update_ambient_brightness`].
 const UPDATE_AMBIENT_INTERVAL_SECS: f32 = 5.;
 /// Minimum [`AmbientLight2d::intensity`].
 const MIN_AMBIENT: f32 = 0.01;
 /// Maximum [`AmbientLight2d::intensity`].
 const MAX_AMBIENT: f32 = 0.5;
 
-/// Update [`AmbientLight2d::intensity`] from [`EaseFunction::SmootherStep`].
+/// Update [`AmbientLight2d::brightness`] from [`EaseFunction::SmootherStep`].
 ///
 /// This is to simulate a Day/Night cycle.
-fn update_ambient_intensity(
-    mut light: Single<&mut AmbientLight2d, With<CanvasCamera>>,
+fn update_ambient_brightness(
+    mut light: Single<&mut Light2d, With<CanvasCamera>>,
     timer: Res<DayTimer>,
     mut last_update: Local<Option<f32>>,
 ) {
@@ -150,12 +142,12 @@ fn update_ambient_intensity(
 
     // NOTE: Using `SmootherStep` here is based on an approximation of the Clear-sky irradiance from https://re.jrc.ec.europa.eu/pvg_tools/en/#DR.
     //       It does not match the Clear-sky irradiance exactly but mimics it good enough for a game.
-    let intensity = EasingCurve::new(MAX_AMBIENT, MIN_AMBIENT, EaseFunction::SmootherStep)
+    let brightness = EasingCurve::new(MAX_AMBIENT, MIN_AMBIENT, EaseFunction::SmootherStep)
         .ping_pong()
         .expect(ERR_INVALID_DOMAIN_EASING);
     // NOTE: We are multiplying by 2 since `PingPongCurve` has a domain from 0 to 2.
-    let intensity = intensity.sample_clamped(timer.0.fraction() * 2.);
-    light.intensity = intensity;
+    let brightness = brightness.sample_clamped(timer.0.fraction() * 2.);
+    light.ambient_light.brightness = brightness;
 
     *last_update = Some(elapsed_secs);
 }

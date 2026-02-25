@@ -56,7 +56,10 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         PreUpdate,
         (
-            override_interaction.run_if(component_is_present::<AutoDirectionalNavigation>),
+            override_interaction.run_if(
+                in_state(OverrideInteraction(false))
+                    .and(component_is_present::<AutoDirectionalNavigation>),
+            ),
             (
                 reset_override,
                 override_interaction_on_release,

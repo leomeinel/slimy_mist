@@ -13,7 +13,7 @@ use std::marker::PhantomData;
 
 use bevy::{asset::RenderAssetUsages, prelude::*};
 
-use crate::{logging::error::*, visual::Visible};
+use crate::{log::error::*, visual::Visible};
 
 /// Layer data deserialized from a ron file as a generic
 ///

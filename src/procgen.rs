@@ -43,7 +43,7 @@ use crate::{
         overworld::{Overworld, OverworldAssets, OverworldProcGen},
     },
     lighting::StreetLight,
-    logging::error::*,
+    log::error::*,
     procgen::{
         characters::spawn_on_procgen_characters,
         chunks::{spawn_chunks, spawn_on_procgen_chunks},

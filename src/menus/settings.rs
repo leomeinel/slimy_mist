@@ -17,7 +17,7 @@ use bevy::{audio::Volume, input::common_conditions::input_just_pressed, prelude:
 
 use crate::{
     input::joystick::{JoystickID, JoystickState},
-    logging::error::*,
+    log::error::*,
     menus::Menu,
     screens::Screen,
     ui::{

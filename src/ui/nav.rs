@@ -30,7 +30,7 @@ use bevy::{
 
 use crate::{
     input::ui::{UiNavAction, UiNavActionSet},
-    logging::warn::*,
+    log::warn::*,
     ui::interaction::{InteractionOverride, OverrideInteraction},
     utils::run_conditions::component_is_present,
 };

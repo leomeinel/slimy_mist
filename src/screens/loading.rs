@@ -29,7 +29,7 @@ use crate::{
     },
     input::joystick::JoystickAssets,
     levels::overworld::{OverworldAssets, OverworldProcGen},
-    logging::{error::*, warn::*},
+    log::{error::*, warn::*},
     menus::credits::{CreditsAssets, CreditsData, CreditsDataCache, CreditsHandle},
     procgen::{
         CHUNK_SIZE, PROCGEN_DISTANCE, ProcGenerated, TileData, TileDataCache, TileDataRelatedCache,

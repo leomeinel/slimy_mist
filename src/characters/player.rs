@@ -31,7 +31,7 @@ use crate::{
     },
     impl_character_assets,
     input::actions::player_input,
-    logging::error::*,
+    log::error::*,
     visual::Visible,
 };
 

@@ -32,7 +32,7 @@ use crate::{
         npc::{Slime, SlimeAssets},
         player::{Player, PlayerAssets},
     },
-    logging::{error::*, warn::*},
+    log::{error::*, warn::*},
     screens::Screen,
     utils::rng::{ForkedRng, setup_rng},
     visual::{TextureInfoCache, Visible, layers::DisplayImage},

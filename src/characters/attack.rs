@@ -21,7 +21,7 @@ use crate::{
         health::{Damage, Health},
         player::Player,
     },
-    logging::{error::*, warn::*},
+    log::{error::*, warn::*},
     visual::particles::{ParticleHandle, ParticleMeleeAttack, SpawnParticleOnce},
 };
 

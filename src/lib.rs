@@ -25,7 +25,7 @@ mod dev_tools;
 mod input;
 mod levels;
 mod lighting;
-mod logging;
+mod log;
 mod menus;
 #[cfg(any(target_os = "android", target_os = "ios"))]
 mod mobile;

@@ -20,7 +20,7 @@ use crate::{
     animations::{AnimationCache, AnimationState},
     characters::Movement,
     levels::overworld::OverworldProcGen,
-    logging::error::*,
+    log::error::*,
     procgen::{DespawnProcGen, ProcGenInit, ProcGenerated, TileDataCache},
     screens::Screen,
 };

@@ -120,23 +120,24 @@ local function outlineImage(sprite, image, color)
     return outline
 end
 
---- Creates an outline in `layer` at `frame`.
+--- Creates an outline in `layer` fo each Frame.
 ---
 --- @param sprite (Sprite) The relevant sprite.
---- @param frame (Frame) The relevant target frame.
 --- @param color (Color) The outline color.
 --- @param layer (Layer) The relevant target pixel layer.
-local function drawOutlineImage(sprite, frame, color, layer)
-    local cel = sprite:newCel(layer, frame.frameNumber)
-    local rawImage = Image(sprite.width, sprite.height, sprite.colorMode)
-    rawImage:drawSprite(sprite, frame.frameNumber)
-    cel.image = outlineImage(sprite, rawImage, color)
+local function drawOutlineImage(sprite, color, layer)
+    for _,frame in ipairs(sprite.frames) do
+        local cel = sprite:newCel(layer, frame.frameNumber)
+        local rawImage = Image(sprite.width, sprite.height, sprite.colorMode)
+        rawImage:drawSprite(sprite, frame.frameNumber)
+        cel.image = outlineImage(sprite, rawImage, color)
+    end
 end
 
 --- Invoke a callback with `settingsCallback()` used as settings.
 ---
 --- @param settingsCallback() that returns `Dialog().data`.
---- @param callback(sprite, frame, settings) called for each selected frame.
+--- @param callback(sprite, settings) that contains script logic.
 local function invoke(settingsCallback, callback)
     if app.apiVersion < 3 then
         return app.alert("ERROR: This script requires API version 3.")
@@ -147,18 +148,12 @@ local function invoke(settingsCallback, callback)
         return app.alert("ERROR: Active Sprite does not exist.")
     end
 
-    if app.range.type ~= RangeType.FRAMES then
-        return app.alert("ERROR: No frames selected.")
-    end
-
     local settings = settingsCallback()
     if not settings.ok then return 0 end
 
     app.transaction(
         function()
-            for i,frame in ipairs(app.range.frames) do
-                callback(sprite, frame, settings)
-            end
+            callback(sprite, settings)
         end
     )
 end
@@ -180,15 +175,15 @@ invoke(
         return dialog.data
     end,
 
-    function(sprite, frame, settings)
+    function(sprite, settings)
         local layers = createLayers(sprite)
 
         showOnlyFloating(sprite, false)
-        drawOutlineImage(sprite, frame, settings.borderColor, layers.fixed)
+        drawOutlineImage(sprite, settings.borderColor, layers.fixed)
 
         if layers.floating ~= nil then
             showOnlyFloating(sprite, true)
-            drawOutlineImage(sprite, frame, settings.borderColor, layers.floating)
+            drawOutlineImage(sprite, settings.borderColor, layers.floating)
         end
 
         showAll(sprite)

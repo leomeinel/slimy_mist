@@ -959,11 +959,12 @@ dependencies = [
 
 [[package]]
 name = "bevy_fast_light"
-version = "0.2.1"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "90606b72628bb414aa49217adad1876c95a3dfc0ed5f088d3258a8a2a457385f"
+checksum = "ba9a1c6dfd4e2c50fffc3e0a1c18aec671576d817cbda071f6fd512c6280072a"
 dependencies = [
  "bevy",
+ "smallvec",
 ]
 
 [[package]]
@@ -1399,9 +1400,9 @@ dependencies = [
 
 [[package]]
 name = "bevy_prng"
-version = "0.14.1"
+version = "0.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7527d13bb0a8b4cccd970efdfae1433a43d8a6b37623526f259a0e0d922cef11"
+checksum = "6c7f82969910be95e576a6a5c851d476302890a23274619d918b01c407ce4e94"
 dependencies = [
  "bevy_ecs",
  "bevy_reflect",
@@ -1423,9 +1424,9 @@ checksum = "c7a9329e8dc4e01ced480eeec4902e6d7cb56e56ec37f6fbc4323e5c937290a7"
 
 [[package]]
 name = "bevy_rand"
-version = "0.14.1"
+version = "0.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c76e5db2c274081fdff32a525609436bd7ac2c24b91c1a5d3bc04e43d7558ddf"
+checksum = "526ba09324b96fb64f275a0cb4f6112d36b6c916ce2f14e38d5a8739dd2ac7f9"
 dependencies = [
  "bevy_app",
  "bevy_ecs",
@@ -3520,9 +3521,9 @@ dependencies = [
 
 [[package]]
 name = "inotify"
-version = "0.11.0"
+version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f37dccff2791ab604f9babef0ba14fbe0be30bd368dc541e2b08d07c8aa908f3"
+checksum = "bd5b3eaf1a28b758ac0faa5a4254e8ab2705605496f1b1f3fbbc3988ad73d199"
 dependencies = [
  "bitflags 2.11.0",
  "inotify-sys",
@@ -3738,9 +3739,9 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.2.182"
+version = "0.2.183"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6800badb6cb2082ffd7b6a67e6125bb39f18782f793520caee8cb8846be06112"
+checksum = "b5b646652bf6661599e1da8901b3b9522896f01e736bad5f723fe7a3a27f899d"
 
 [[package]]
 name = "libloading"
@@ -7297,18 +7298,18 @@ checksum = "6df3dc4292935e51816d896edcd52aa30bc297907c26167fec31e2b0c6a32524"
 
 [[package]]
 name = "zerocopy"
-version = "0.8.40"
+version = "0.8.42"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a789c6e490b576db9f7e6b6d661bcc9799f7c0ac8352f56ea20193b2681532e5"
+checksum = "f2578b716f8a7a858b7f02d5bd870c14bf4ddbbcf3a4c05414ba6503640505e3"
 dependencies = [
  "zerocopy-derive",
 ]
 
 [[package]]
 name = "zerocopy-derive"
-version = "0.8.40"
+version = "0.8.42"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f65c489a7071a749c849713807783f70672b28094011623e200cb86dcb835953"
+checksum = "7e6cc098ea4d3bd6246687de65af3f920c430e236bee1e3bf2e441463f08a02f"
 dependencies = [
  "proc-macro2",
  "quote",

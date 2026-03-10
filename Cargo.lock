@@ -959,9 +959,9 @@ dependencies = [
 
 [[package]]
 name = "bevy_fast_light"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba9a1c6dfd4e2c50fffc3e0a1c18aec671576d817cbda071f6fd512c6280072a"
+checksum = "3baa06970cb511420ccf7e4b3f76074e2f53412693baf21cefa4674405fd6b8f"
 dependencies = [
  "bevy",
  "smallvec",
@@ -5509,7 +5509,7 @@ checksum = "0c790de23124f9ab44544d7ac05d60440adc586479ce501c1d6d7da3cd8c9cf5"
 
 [[package]]
 name = "slimy_mist"
-version = "0.20.2"
+version = "0.20.3"
 dependencies = [
  "bevy",
  "bevy-inspector-egui",

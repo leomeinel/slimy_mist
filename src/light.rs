@@ -20,9 +20,8 @@ use crate::{
 };
 
 pub(super) fn plugin(app: &mut App) {
-    // Add ambient light after entering `Screen::Gameplay` and reset when exiting.
-    app.add_systems(OnEnter(Screen::Gameplay), add_ambient);
-    app.add_systems(OnExit(Screen::Gameplay), remove_ambient);
+    // Reset ambient light after exiting `Screen::Gameplay`.
+    app.add_systems(OnExit(Screen::Gameplay), reset_ambient);
 
     // Update ambient brightness to simulate a Day/Night cycle.
     app.add_systems(
@@ -69,7 +68,6 @@ impl Default for StreetLight {
     fn default() -> Self {
         Self(PointLight2d {
             color: tailwind::AMBER_500.into(),
-            intensity: 0.2,
             inner_radius: 16.,
             outer_radius: 64.,
             ..default()
@@ -98,20 +96,15 @@ impl Default for DayTimer {
     }
 }
 
-/// Insert [`AmbientLight2d`] into [`CanvasCamera`].
-fn add_ambient(camera: Single<Entity, With<CanvasCamera>>, mut commands: Commands) {
+/// Reset [`AmbientLight2d`] in [`CanvasCamera`].
+fn reset_ambient(camera: Single<Entity, With<CanvasCamera>>, mut commands: Commands) {
     commands.entity(*camera).insert(AmbientLight2d::default());
-}
-
-/// Reset [`AmbientLight2d`] attached to [`CanvasCamera`].
-fn remove_ambient(camera: Single<Entity, With<CanvasCamera>>, mut commands: Commands) {
-    commands.entity(*camera).remove::<AmbientLight2d>();
 }
 
 /// Interval in seconds to run logic in [`update_ambient_brightness`].
 const UPDATE_AMBIENT_INTERVAL_SECS: f32 = 5.;
 /// Minimum [`AmbientLight2d::intensity`].
-const MIN_AMBIENT: f32 = 0.01;
+const MIN_AMBIENT: f32 = 0.1;
 /// Maximum [`AmbientLight2d::intensity`].
 const MAX_AMBIENT: f32 = 0.5;
 

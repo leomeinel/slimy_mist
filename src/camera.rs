@@ -10,6 +10,7 @@
 pub(crate) mod ysort;
 
 use bevy::{prelude::*, window::WindowResized};
+use bevy_fast_light::prelude::*;
 
 use crate::{AppSystems, PausableSystems, characters::player::Player, screens::Screen};
 
@@ -73,6 +74,7 @@ fn spawn_camera(mut commands: Commands) {
         Camera2d,
         Msaa::Off,
         CanvasCamera,
+        AmbientLight2d::default(),
     ));
 }
 

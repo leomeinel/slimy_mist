@@ -91,7 +91,7 @@ impl Plugin for AppPlugin {
         // Add library plugins
         app.add_plugins((
             EntropyPlugin::<WyRand>::default(),
-            FastLightPlugin,
+            FastLightPlugin::default(),
             RapierPhysicsPlugin::<()>::default(),
             TilemapPlugin,
         ));

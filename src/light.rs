@@ -21,19 +21,20 @@ use crate::{
 
 pub(super) fn plugin(app: &mut App) {
     // Reset ambient light after exiting `Screen::Gameplay`.
+    app.add_systems(OnEnter(Screen::Gameplay), init_ambient);
     app.add_systems(OnExit(Screen::Gameplay), reset_ambient);
 
     // Update ambient brightness to simulate a Day/Night cycle.
     app.add_systems(
         Update,
-        update_ambient_brightness
+        update_ambient_intensity
             .run_if(in_state(Screen::Gameplay))
             .in_set(PausableSystems),
     );
     // Tick day timer
     app.add_systems(
         Update,
-        tick_day_timer
+        (tick_day_timer, tick_day_update_timer)
             .in_set(AppSystems::TickTimers)
             .run_if(in_state(Screen::Gameplay))
             .in_set(PausableSystems),
@@ -68,7 +69,6 @@ impl Default for StreetLight {
     fn default() -> Self {
         Self(PointLight2d {
             color: tailwind::AMBER_500.into(),
-            inner_radius: 16.,
             outer_radius: 64.,
             ..default()
         })
@@ -96,39 +96,44 @@ impl Default for DayTimer {
     }
 }
 
-/// Reset [`AmbientLight2d`] in [`CanvasCamera`].
-fn reset_ambient(camera: Single<Entity, With<CanvasCamera>>, mut commands: Commands) {
-    commands.entity(*camera).insert(AmbientLight2d::default());
+/// Interval in seconds to update ambient light.
+const DAY_UPDATE_SECS: f32 = 5.;
+
+/// Timer that tracks splash screen
+#[derive(Resource, Debug, Clone, PartialEq, Reflect)]
+#[reflect(Resource)]
+pub(crate) struct DayUpdateTimer(Timer);
+impl Default for DayUpdateTimer {
+    fn default() -> Self {
+        Self(Timer::from_seconds(DAY_UPDATE_SECS, TimerMode::Repeating))
+    }
 }
 
-/// Interval in seconds to run logic in [`update_ambient_brightness`].
-const UPDATE_AMBIENT_INTERVAL_SECS: f32 = 5.;
 /// Minimum [`AmbientLight2d::intensity`].
-const MIN_AMBIENT: f32 = 0.1;
+const MIN_AMBIENT: f32 = 0.01;
 /// Maximum [`AmbientLight2d::intensity`].
 const MAX_AMBIENT: f32 = 0.5;
+
+/// Initialize [`AmbientLight2d`].
+fn init_ambient(mut ambient: Single<&mut AmbientLight2d, With<CanvasCamera>>) {
+    ambient.intensity = MAX_AMBIENT;
+}
+
+/// Reset [`AmbientLight2d`].
+fn reset_ambient(mut ambient: Single<&mut AmbientLight2d, With<CanvasCamera>>) {
+    **ambient = AmbientLight2d::default();
+}
 
 /// Update [`AmbientLight2d::intensity`] from [`EaseFunction::SmootherStep`].
 ///
 /// This is to simulate a Day/Night cycle.
-fn update_ambient_brightness(
+fn update_ambient_intensity(
     mut light: Single<&mut AmbientLight2d, With<CanvasCamera>>,
-    timer: Res<DayTimer>,
-    mut last_update: Local<Option<f32>>,
+    day_timer: Res<DayTimer>,
+    day_update_timer: Res<DayUpdateTimer>,
 ) {
-    // Restrict to run only on `UPDATE_INTERVAL_SECS`
-    let elapsed_secs = timer.0.elapsed_secs();
-    // FIXME: Checking elapsed_secs > 1. is a hack to make sure this triggers when reentering gameplay.
-    if elapsed_secs > 1.
-        && let Some(inner) = *last_update
-    {
-        if inner > elapsed_secs {
-            *last_update = None;
-            return;
-        }
-        if elapsed_secs - inner < UPDATE_AMBIENT_INTERVAL_SECS {
-            return;
-        }
+    if !day_update_timer.0.just_finished() {
+        return;
     }
 
     // NOTE: Using `SmootherStep` here is based on an approximation of the Clear-sky irradiance from https://re.jrc.ec.europa.eu/pvg_tools/en/#DR.
@@ -137,13 +142,16 @@ fn update_ambient_brightness(
         .ping_pong()
         .expect(ERR_INVALID_DOMAIN_EASING);
     // NOTE: We are multiplying by 2 since `PingPongCurve` has a domain from 0 to 2.
-    let intensity = intensity.sample_clamped(timer.0.fraction() * 2.);
+    let intensity = intensity.sample_clamped(day_timer.0.fraction() * 2.);
     light.intensity = intensity;
-
-    *last_update = Some(elapsed_secs);
 }
 
-/// Tick [`DayTimer`]
+/// Tick [`DayTimer`].
 fn tick_day_timer(time: Res<Time>, mut timer: ResMut<DayTimer>) {
+    timer.0.tick(time.delta());
+}
+
+/// Tick [`DayUpdateTimer`].
+fn tick_day_update_timer(time: Res<Time>, mut timer: ResMut<DayUpdateTimer>) {
     timer.0.tick(time.delta());
 }

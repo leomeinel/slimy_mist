@@ -23,7 +23,7 @@ use crate::{
         pointer::{MouseDrag, PointerStartTimeSecs},
     },
     levels::overworld::{Overworld, OverworldProcGen, spawn_overworld},
-    light::{DayTimer, StreetLight},
+    light::{DayTimer, DayUpdateTimer, StreetLight},
     menus::Menu,
     procgen::{ProcGenCache, navmesh::spawn_navmesh},
     screens::Screen,
@@ -156,6 +156,7 @@ pub(crate) fn insert_display_image<T>(
 /// Insert [`Resource`]s
 fn insert_resources(mut commands: Commands) {
     commands.init_resource::<DayTimer>();
+    commands.init_resource::<DayUpdateTimer>();
     commands.init_resource::<JoystickMap>();
     commands.init_resource::<JoystickRect<{ JoystickID::Movement as u8 }>>();
     commands.init_resource::<MouseDrag>();
@@ -169,6 +170,7 @@ fn insert_resources(mut commands: Commands) {
 /// Remove [`Resource`]s
 fn remove_resources(mut commands: Commands) {
     commands.remove_resource::<DayTimer>();
+    commands.remove_resource::<DayUpdateTimer>();
     commands.remove_resource::<DisplayImage<Player>>();
     commands.remove_resource::<DisplayImage<Slime>>();
     commands.remove_resource::<JoystickMap>();

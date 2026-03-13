@@ -84,7 +84,7 @@ impl Visible for StreetLight {}
 /// Seconds in a day.
 const DAY_SECS: f32 = 600.;
 
-/// Timer that tracks splash screen
+/// Timer tracking progress of a day to simulate day/night cycle.
 #[derive(Resource, Debug, Clone, PartialEq, Reflect)]
 #[reflect(Resource)]
 pub(crate) struct DayTimer(Timer);
@@ -97,7 +97,7 @@ impl Default for DayTimer {
 /// Interval in seconds to update ambient light.
 const DAY_UPDATE_SECS: f32 = 5.;
 
-/// Timer that tracks splash screen
+/// Timer for updating [`AmbientLight2d`] to simulate day/night cycle.
 #[derive(Resource, Debug, Clone, PartialEq, Reflect)]
 #[reflect(Resource)]
 pub(crate) struct DayUpdateTimer(Timer);

@@ -149,10 +149,7 @@ fn add_walking_dust<T>(
         let particle = commands
             .spawn((
                 ParticleWalkingDust(AnimationState::Walk),
-                ParticleTimer(Timer::from_seconds(
-                    WALKING_DUST_SECS,
-                    TimerMode::Repeating,
-                )),
+                ParticleTimer(Timer::from_seconds(WALKING_DUST_SECS, TimerMode::Repeating)),
                 ParticleSpawner::default(),
                 NoAutoAabb,
                 ParticleSpawnerState {

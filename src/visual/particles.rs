@@ -128,7 +128,7 @@ where
 }
 
 /// Interval for [`ParticleWalkingDust`].
-const WALKING_DUST_INTERVAL_SECS: f32 = 0.5;
+const WALKING_DUST_SECS: f32 = 0.5;
 
 /// Add [`ParticleWalkingDust`].
 ///
@@ -150,7 +150,7 @@ fn add_walking_dust<T>(
             .spawn((
                 ParticleWalkingDust(AnimationState::Walk),
                 ParticleTimer(Timer::from_seconds(
-                    WALKING_DUST_INTERVAL_SECS,
+                    WALKING_DUST_SECS,
                     TimerMode::Repeating,
                 )),
                 ParticleSpawner::default(),

@@ -20,18 +20,16 @@ use crate::{
 };
 
 pub(super) fn plugin(app: &mut App) {
-    // Reset ambient light after exiting `Screen::Gameplay`.
     app.add_systems(OnEnter(Screen::Gameplay), init_ambient);
     app.add_systems(OnExit(Screen::Gameplay), reset_ambient);
 
-    // Update ambient brightness to simulate a Day/Night cycle.
     app.add_systems(
         Update,
         update_ambient_intensity
             .run_if(in_state(Screen::Gameplay))
             .in_set(PausableSystems),
     );
-    // Tick day timer
+
     app.add_systems(
         Update,
         (tick_day_timer, tick_day_update_timer)

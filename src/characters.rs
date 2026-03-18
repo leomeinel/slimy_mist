@@ -47,10 +47,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(Update, tick_jump_timer.in_set(AppSystems::TickTimers));
 
     // Update movement facing
-    app.add_systems(
-        PostUpdate,
-        update_movement_facing.run_if(in_state(Screen::Gameplay)),
-    );
+    app.add_systems(PostUpdate, update_facing.run_if(in_state(Screen::Gameplay)));
 
     // Spawn characters
     app.add_observer(on_spawn_character::<Player, Overworld>);
@@ -182,24 +179,24 @@ pub(crate) struct StaticShadow {
     pub(crate) material: Handle<ColorMaterial>,
 }
 
-/// Current data about movement
+// FIXME: This should be influenced by aiming direction and should determine sprite flip.
+//        Movement direction should be secondary.
+/// Direction the [`Character`] is facing.
 #[derive(Component)]
-pub(crate) struct Movement {
-    pub(crate) direction: Vec2,
-    old_direction: Vec2,
-    pub(crate) facing: Vec2,
-    jump_height: f32,
-}
-impl Default for Movement {
+pub(crate) struct FacingDirection(pub(crate) Vec2);
+impl Default for FacingDirection {
     fn default() -> Self {
-        Self {
-            direction: Vec2::default(),
-            old_direction: Vec2::default(),
-            facing: Vec2::X,
-            jump_height: f32::default(),
-        }
+        Self(Vec2::X)
     }
 }
+
+/// [`Character`] jump height.
+#[derive(Component, Default)]
+pub(crate) struct JumpHeight(pub(crate) f32);
+
+/// [`Character`] walking speed.
+#[derive(Component)]
+pub(crate) struct WalkSpeed(pub(crate) f32);
 
 /// [`EntityEvent`] for spawning a [`Character`].
 ///
@@ -288,18 +285,19 @@ pub(crate) fn character_collider(shape: String, width: f32, height: f32) -> Coll
     }
 }
 
-/// Update [`Movement::facing`] from [`Movement::direction`].
-///
-/// This will only set a new [`Movement::facing`] if [`Movement::direction`] is not near zero.
-/// This also updates [`Movement::old_direction`] from [`Movement::direction`].
-fn update_movement_facing(query: Query<&mut Movement>) {
-    for mut movement in query {
+/// Update [`FacingDirection`] from [`KinematicCharacterControllerOutput::desired_translation`].
+fn update_facing(
+    query: Query<
+        (&mut FacingDirection, &KinematicCharacterControllerOutput),
+        Changed<KinematicCharacterControllerOutput>,
+    >,
+) {
+    for (mut facing, controller_output) in query {
         // NOTE: This only checks for desired movement, not actual movement. This is to ensure that
         //       even if a character can't move, it can still change its' facing direction.
-        if movement.direction != Vec2::ZERO && movement.direction != movement.old_direction {
-            movement.facing = movement.direction.normalize_or_zero();
+        if controller_output.desired_translation != Vec2::ZERO {
+            facing.0 = controller_output.desired_translation.normalize_or_zero();
         }
-        movement.old_direction = movement.direction;
     }
 }
 

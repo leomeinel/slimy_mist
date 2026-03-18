@@ -22,7 +22,7 @@ use crate::{
     animations::{AnimationCache, AnimationTimer, Animations},
     camera::{FOREGROUND_Z, ysort::YSort},
     characters::{
-        Character, CharacterAssets, Movement,
+        Character, CharacterAssets, FacingDirection, WalkSpeed,
         attack::{AttackStats, punch},
         health::Health,
         nav::Navigator,
@@ -51,12 +51,12 @@ pub(crate) struct SlimeAssets {
 }
 impl_character_assets!(SlimeAssets);
 
-/// Npc marker
+/// Npc marker.
 #[derive(Component, Default, Reflect)]
 pub(crate) struct Npc;
 
-/// Walk speed of a [`Slime`]
-const SLIME_WALK_SPEED: f32 = 80.;
+/// Walk speed of a [`Slime`].
+const SLIME_WALK_SPEED: f32 = 60.;
 
 /// Slime marker
 #[derive(Component, Default, Reflect)]
@@ -78,9 +78,11 @@ impl Character for Slime {
             (
                 KinematicCharacterController::default(),
                 LockedAxes::ROTATION_LOCKED,
-                Movement::default(),
-                Navigator(SLIME_WALK_SPEED),
+                FacingDirection::default(),
+                WalkSpeed(SLIME_WALK_SPEED),
             ),
+            // Navigation
+            Navigator,
             // Attack
             (
                 Health(5.),

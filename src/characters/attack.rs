@@ -17,7 +17,7 @@ use crate::{
     AppSystems,
     camera::OVERLAY_Z,
     characters::{
-        Character, CollisionDataCache, Movement,
+        Character, CollisionDataCache, FacingDirection,
         health::{Damage, Health},
         player::Player,
     },
@@ -107,7 +107,7 @@ pub(crate) fn punch() -> AttackData {
 fn on_melee_attack<T>(
     event: On<Attack<MeleeAttack>>,
     target_query: Query<&Health>,
-    origin_query: Query<(&Transform, &Movement, &AttackStats), With<T>>,
+    origin_query: Query<(&Transform, &FacingDirection, &AttackStats), With<T>>,
     mut commands: Commands,
     collision_data: Res<CollisionDataCache<T>>,
     rapier_context: ReadRapierContext,
@@ -119,13 +119,13 @@ fn on_melee_attack<T>(
     let (width, height) = (collision_data.width, collision_data.height);
 
     let (origin, event_direction) = (event.entity, event.direction);
-    let (transform, movement, stats) = origin_query.get(origin).expect(ERR_INVALID_ATTACKER);
+    let (transform, facing, stats) = origin_query.get(origin).expect(ERR_INVALID_ATTACKER);
     let Some(melee) = &stats.melee else {
         warn_once!("{}", WARN_INVALID_ATTACK_DATA);
         return;
     };
     let direction = if event_direction == Vec2::ZERO {
-        movement.facing
+        facing.0
     } else {
         event_direction
     };

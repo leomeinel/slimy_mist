@@ -18,7 +18,7 @@ use vleue_navigator::prelude::*;
 use crate::{
     AppSystems, PausableSystems,
     animations::{AnimationCache, AnimationState},
-    characters::Movement,
+    characters::WalkSpeed,
     levels::overworld::OverworldProcGen,
     log::error::*,
     procgen::{DespawnProcGen, ProcGenInit, ProcGenerated, TileDataCache},
@@ -52,9 +52,9 @@ pub(crate) struct NavTargetPosMap(HashMap<Entity, Vec2>);
 #[derive(Component, Default)]
 pub(crate) struct NavTarget(pub(crate) u8);
 
-/// Navigator that will pathfind to [`NavTarget`]
+/// Marker [`Component`] for a navigator that will pathfind to [`NavTarget`]
 #[derive(Component)]
-pub(crate) struct Navigator(pub(crate) f32);
+pub(crate) struct Navigator;
 
 /// Path that is used for pathfinding to [`NavTarget`]
 #[derive(Component)]
@@ -233,35 +233,29 @@ const PATH_OVERSHOOT_THRESHOLD_DIVISOR: f32 = 50.;
 
 /// Apply [`Path`]
 fn apply_path(
-    navigator_query: Query<(
-        Entity,
-        &Transform,
-        &mut AnimationCache,
-        &mut KinematicCharacterController,
-        Option<&KinematicCharacterControllerOutput>,
-        &mut Movement,
-        &mut Path,
-        &Navigator,
-    )>,
+    navigator_query: Query<
+        (
+            Entity,
+            &Transform,
+            &mut AnimationCache,
+            &mut KinematicCharacterController,
+            Option<&KinematicCharacterControllerOutput>,
+            &mut Path,
+            &WalkSpeed,
+        ),
+        With<Navigator>,
+    >,
     mut commands: Commands,
     time: Res<Time>,
 ) {
-    for (
-        entity,
-        transform,
-        mut cache,
-        mut controller,
-        controller_output,
-        mut movement,
-        mut path,
-        navigator,
-    ) in navigator_query
+    for (entity, transform, mut cache, mut controller, controller_output, mut path, walk_speed) in
+        navigator_query
     {
         // Set movement direction to normalized vector and apply translation
         let navigator_pos = transform.translation.xy();
         let direction = path.current - navigator_pos;
-        movement.direction = direction.normalize_or_zero() * navigator.0 * time.delta_secs();
-        controller.translation = Some(movement.direction);
+        let direction = direction.normalize_or_zero() * walk_speed.0 * time.delta_secs();
+        controller.translation = Some(direction);
 
         // If `entity` collided with `path.target` stop applying path and return.
         // NOTE: This does not reliably determine whether the `entity` can not advance, just if it has collided with their target.
@@ -281,7 +275,7 @@ fn apply_path(
 
         // Loop while distance to `path.current` is smaller than threshold to allow multiple next
         while navigator_pos.distance_squared(path.current)
-            < (navigator.0 / PATH_OVERSHOOT_THRESHOLD_DIVISOR).squared()
+            < (walk_speed.0 / PATH_OVERSHOOT_THRESHOLD_DIVISOR).squared()
         {
             // Set `path.current` to `path.next` if it exists or stop applying path and break from loop.
             if let Some(next) = path.next.pop() {

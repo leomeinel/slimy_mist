@@ -11,7 +11,7 @@ use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_enhanced_input::prelude::*;
 use virtual_joystick::VirtualJoystickMessage;
 
-use crate::characters::player::PLAYER_WALK_SPEED;
+use crate::characters::WalkSpeed;
 use crate::input::InputSystems;
 use crate::input::actions::{Aim, Jump, Melee, Walk};
 use crate::input::joystick::{JoystickID, JoystickRect};
@@ -35,7 +35,7 @@ pub(super) fn plugin(app: &mut App) {
 /// Mock [`Walk`] from virtual [`VirtualJoystickMessage`].
 fn mock_walk_from_virtual_joystick(
     mut reader: MessageReader<VirtualJoystickMessage<u8>>,
-    walk: Single<Entity, With<Player>>,
+    player: Single<(Entity, &WalkSpeed), With<Player>>,
     mut commands: Commands,
 ) {
     for joystick in reader.read() {
@@ -47,9 +47,10 @@ fn mock_walk_from_virtual_joystick(
         if input == &Vec2::ZERO {
             continue;
         }
+        let (entity, walk_speed) = *player;
         commands
-            .entity(*walk)
-            .mock_once::<Player, Walk>(TriggerState::Fired, *input * PLAYER_WALK_SPEED);
+            .entity(entity)
+            .mock_once::<Player, Walk>(TriggerState::Fired, *input * walk_speed.0);
     }
 }
 

@@ -21,6 +21,7 @@ use std::{marker::PhantomData, ops::Range};
 
 use bevy::prelude::*;
 use bevy_prng::WyRand;
+use bevy_rapier2d::prelude::KinematicCharacterControllerOutput;
 use bevy_spritesheet_animation::prelude::*;
 use rand::seq::IndexedRandom as _;
 
@@ -28,7 +29,7 @@ use crate::{
     AppSystems, PausableSystems,
     audio::sound_effect,
     characters::{
-        Character, CharacterAssets, JUMP_DURATION_SECS, Movement,
+        Character, CharacterAssets, JUMP_DURATION_SECS, 
         npc::{Slime, SlimeAssets},
         player::{Player, PlayerAssets},
     },
@@ -354,13 +355,13 @@ fn animation_handle(
 ///
 /// - `T` must implement [`Character`].
 fn flip_sprites<T>(
-    character_query: Query<(&Movement, &Children), With<T>>,
+    character_query: Query<(&KinematicCharacterControllerOutput, &Children), With<T>>,
     mut sprite_query: Query<&mut Sprite, With<SpritesheetAnimation>>,
 ) where
     T: Character,
 {
-    for (movement, children) in character_query {
-        let direction = movement.direction;
+    for (controller_output, children) in character_query {
+        let direction = controller_output.desired_translation;
         if direction.x == 0. {
             continue;
         }

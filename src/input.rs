@@ -23,7 +23,7 @@ use crate::{
     Pause,
     animations::{AnimationCache, AnimationState},
     characters::{
-        JumpTimer, Movement,
+        JumpTimer, WalkSpeed,
         attack::{Attack, AttackTimer, MeleeAttack},
         player::Player,
     },
@@ -70,7 +70,7 @@ fn apply_walk(
         (
             &mut AnimationCache,
             &mut KinematicCharacterController,
-            &mut Movement,
+            &WalkSpeed,
         ),
         With<Player>,
     >,
@@ -82,11 +82,11 @@ fn apply_walk(
         return;
     }
 
-    let (mut cache, mut controller, mut movement) = player.into_inner();
+    let (mut cache, mut controller, walk_speed) = player.into_inner();
 
     // Apply movement from input
-    movement.direction = event.value * time.delta_secs();
-    controller.translation = Some(movement.direction);
+    let direction = event.value * walk_speed.0 * time.delta_secs();
+    controller.translation = Some(direction);
 
     // Set animation state if we are `Idle`
     if cache.state == AnimationState::Idle {
@@ -97,23 +97,14 @@ fn apply_walk(
 /// On a completed [`Walk`], set translation to zero.
 fn reset_walk(
     _: On<Complete<Walk>>,
-    player: Single<
-        (
-            &mut AnimationCache,
-            &mut KinematicCharacterController,
-            &mut Movement,
-        ),
-        With<Player>,
-    >,
+    player: Single<(&mut AnimationCache, &mut KinematicCharacterController), With<Player>>,
 ) {
-    let (mut cache, mut controller, mut movement) = player.into_inner();
-
-    // Reset `movement.direction`
-    movement.direction = Vec2::ZERO;
+    let (mut cache, mut controller) = player.into_inner();
 
     // Stop movement if we are not jumping or falling
     if !matches!(cache.state, AnimationState::Jump | AnimationState::Fall) {
-        controller.translation = Some(movement.direction);
+        let direction = Vec2::ZERO;
+        controller.translation = Some(direction);
         cache.set_new_state(AnimationState::Idle);
     }
 }

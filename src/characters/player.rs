@@ -24,7 +24,7 @@ use crate::{
     animations::{AnimationCache, AnimationState, AnimationTimer, Animations},
     camera::{FOREGROUND_Z, ysort::YSort},
     characters::{
-        Character, CharacterAssets, JumpTimer, Movement,
+        Character, CharacterAssets, FacingDirection, JumpHeight, JumpTimer, WalkSpeed,
         attack::{AttackStats, punch},
         health::Health,
         nav::NavTarget,
@@ -49,7 +49,7 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 /// Walk speed of [`Player`].
-pub(crate) const PLAYER_WALK_SPEED: f32 = 80.;
+const PLAYER_WALK_SPEED: f32 = 60.;
 
 /// Assets that are serialized from a ron file
 #[derive(AssetCollection, Resource, Reflect, Default)]
@@ -90,9 +90,11 @@ impl Character for Player {
                     ..default()
                 },
                 LockedAxes::ROTATION_LOCKED,
-                Movement::default(),
-                NavTarget(128),
+                FacingDirection::default(),
+                WalkSpeed(PLAYER_WALK_SPEED),
             ),
+            // Navigation
+            NavTarget(128),
             // Attack
             (
                 Health(10.),
@@ -118,10 +120,10 @@ const JUMP_HEIGHT: f32 = 12.;
 
 /// Apply jump
 fn apply_jump(
-    player: Single<(&AnimationCache, &mut Movement, &JumpTimer, &Children), With<Player>>,
+    player: Single<(&AnimationCache, &mut JumpHeight, &JumpTimer, &Children), With<Player>>,
     mut transform_query: Query<&mut Transform, With<SpritesheetAnimation>>,
 ) {
-    let (cache, mut movement, timer, children) = player.into_inner();
+    let (cache, mut jump_height, timer, children) = player.into_inner();
 
     // Return if we are not jumping or falling
     let state = cache.state;
@@ -143,16 +145,16 @@ fn apply_jump(
         .find(|e| transform_query.contains(*e))
         .expect(ERR_INVALID_CHILDREN);
     let mut transform = transform_query.get_mut(child).expect(ERR_INVALID_CHILDREN);
-    transform.translation.y += target - movement.jump_height;
-    movement.jump_height = target;
+    transform.translation.y += target - jump_height.0;
+    jump_height.0 = target;
 }
 
 /// Limit jump by setting fall after specific time and then switching to walk
 fn limit_jump(
-    player: Single<(Entity, &mut AnimationCache, &mut Movement, &JumpTimer), With<Player>>,
+    player: Single<(Entity, &mut AnimationCache, &mut JumpHeight, &JumpTimer), With<Player>>,
     mut commands: Commands,
 ) {
-    let (entity, mut cache, mut movement, timer) = player.into_inner();
+    let (entity, mut cache, mut jump_height, timer) = player.into_inner();
 
     // Return if timer has not finished
     if !timer.0.just_finished() {
@@ -160,7 +162,7 @@ fn limit_jump(
     }
 
     // Reset jump height
-    movement.jump_height = 0.;
+    jump_height.0 = 0.;
 
     // Set animation states
     match cache.state {

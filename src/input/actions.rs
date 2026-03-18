@@ -10,7 +10,7 @@
 use bevy::prelude::*;
 use bevy_enhanced_input::prelude::*;
 
-use crate::characters::player::{PLAYER_WALK_SPEED, Player};
+use crate::characters::player::Player;
 
 /// Walk [`InputAction`]
 #[derive(InputAction)]
@@ -45,7 +45,6 @@ pub(crate) fn player_input() -> impl Bundle {
                 },
                 DeadZone::default(),
                 SmoothNudge::default(),
-                Scale::splat(PLAYER_WALK_SPEED),
                 Bindings::spawn((
                     Cardinal::arrows(),
                     Cardinal::wasd_keys(),

@@ -18,7 +18,7 @@ use vleue_navigator::prelude::*;
 use crate::{
     AppSystems, PausableSystems,
     animations::{AnimationCache, AnimationState},
-    characters::WalkSpeed,
+    characters::movement::WalkSpeed,
     levels::overworld::OverworldProcGen,
     log::error::*,
     procgen::{DespawnProcGen, ProcGenInit, ProcGenerated, TileDataCache},

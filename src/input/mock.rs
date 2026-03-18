@@ -11,12 +11,14 @@ use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_enhanced_input::prelude::*;
 use virtual_joystick::VirtualJoystickMessage;
 
-use crate::characters::WalkSpeed;
-use crate::input::InputSystems;
-use crate::input::actions::{Aim, Jump, Melee, Walk};
-use crate::input::joystick::{JoystickID, JoystickRect};
-use crate::input::pointer::{MouseDrag, PointerStartTimeSecs, Swipe as _};
-use crate::{camera::CanvasCamera, characters::player::Player};
+use crate::{
+    characters::movement::WalkSpeed,
+    input::InputSystems,
+    input::actions::{Aim, Jump, Melee, Walk},
+    input::joystick::{JoystickID, JoystickRect},
+    input::pointer::{MouseDrag, PointerStartTimeSecs, Swipe as _},
+    {camera::CanvasCamera, characters::player::Player},
+};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(

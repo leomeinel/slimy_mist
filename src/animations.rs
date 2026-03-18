@@ -29,7 +29,8 @@ use crate::{
     AppSystems, PausableSystems,
     audio::sound_effect,
     characters::{
-        Character, CharacterAssets, JUMP_DURATION_SECS, 
+        Character, CharacterAssets,
+        movement::JUMP_DURATION_SECS,
         npc::{Slime, SlimeAssets},
         player::{Player, PlayerAssets},
     },

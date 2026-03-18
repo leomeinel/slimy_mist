@@ -11,6 +11,7 @@
 
 pub(crate) mod attack;
 pub(crate) mod health;
+pub(crate) mod movement;
 pub(crate) mod nav;
 pub(crate) mod npc;
 pub(crate) mod player;
@@ -25,12 +26,10 @@ use bevy_spritesheet_animation::prelude::SpritesheetAnimation;
 use rand::RngExt as _;
 
 use crate::{
-    AppSystems,
     animations::{ANIMATION_DELAY_RANGE_SECS, AnimationRng, Animations},
     camera::BACKGROUND_Z_DELTA,
     characters::{npc::Slime, player::Player},
     levels::{Level, overworld::Overworld},
-    screens::Screen,
 };
 
 pub(super) fn plugin(app: &mut App) {
@@ -39,23 +38,15 @@ pub(super) fn plugin(app: &mut App) {
         attack::plugin,
         health::plugin,
         nav::plugin,
+        movement::plugin,
         npc::plugin,
         player::plugin,
     ));
-
-    // Tick timers
-    app.add_systems(Update, tick_jump_timer.in_set(AppSystems::TickTimers));
-
-    // Update movement facing
-    app.add_systems(PostUpdate, update_facing.run_if(in_state(Screen::Gameplay)));
 
     // Spawn characters
     app.add_observer(on_spawn_character::<Player, Overworld>);
     app.add_observer(on_spawn_character::<Slime, Overworld>);
 }
-
-/// Jumping duration in seconds
-pub(crate) const JUMP_DURATION_SECS: f32 = 1.;
 
 /// Applies to anything that stores character assets
 pub(crate) trait CharacterAssets
@@ -179,25 +170,6 @@ pub(crate) struct StaticShadow {
     pub(crate) material: Handle<ColorMaterial>,
 }
 
-// FIXME: This should be influenced by aiming direction and should determine sprite flip.
-//        Movement direction should be secondary.
-/// Direction the [`Character`] is facing.
-#[derive(Component)]
-pub(crate) struct FacingDirection(pub(crate) Vec2);
-impl Default for FacingDirection {
-    fn default() -> Self {
-        Self(Vec2::X)
-    }
-}
-
-/// [`Character`] jump height.
-#[derive(Component, Default)]
-pub(crate) struct JumpHeight(pub(crate) f32);
-
-/// [`Character`] walking speed.
-#[derive(Component)]
-pub(crate) struct WalkSpeed(pub(crate) f32);
-
 /// [`EntityEvent`] for spawning a [`Character`].
 ///
 /// ## Traits
@@ -213,19 +185,6 @@ where
     pub(crate) entity: Entity,
     pub(crate) pos: Vec2,
     pub(crate) _phantom: PhantomData<(T, A)>,
-}
-
-/// Timer that tracks jumping
-#[derive(Component, Debug, Clone, PartialEq, Reflect)]
-#[reflect(Component)]
-pub(crate) struct JumpTimer(Timer);
-impl Default for JumpTimer {
-    fn default() -> Self {
-        Self(Timer::from_seconds(
-            JUMP_DURATION_SECS / 2.,
-            TimerMode::Once,
-        ))
-    }
 }
 
 /// Spawn a single [`Character`].
@@ -282,28 +241,5 @@ pub(crate) fn character_collider(shape: String, width: f32, height: f32) -> Coll
         "capsule_x" => Collider::capsule_x((height - width) / 2., height / 2.),
         "capsule_y" => Collider::capsule_y((width - height) / 2., width / 2.),
         _ => Collider::cuboid(width / 2., height / 2.),
-    }
-}
-
-/// Update [`FacingDirection`] from [`KinematicCharacterControllerOutput::desired_translation`].
-fn update_facing(
-    query: Query<
-        (&mut FacingDirection, &KinematicCharacterControllerOutput),
-        Changed<KinematicCharacterControllerOutput>,
-    >,
-) {
-    for (mut facing, controller_output) in query {
-        // NOTE: This only checks for desired movement, not actual movement. This is to ensure that
-        //       even if a character can't move, it can still change its' facing direction.
-        if controller_output.desired_translation != Vec2::ZERO {
-            facing.0 = controller_output.desired_translation.normalize_or_zero();
-        }
-    }
-}
-
-/// Tick [`JumpTimer`]
-fn tick_jump_timer(mut query: Query<&mut JumpTimer>, time: Res<Time>) {
-    for mut timer in &mut query {
-        timer.0.tick(time.delta());
     }
 }

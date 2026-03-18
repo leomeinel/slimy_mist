@@ -17,8 +17,9 @@ use crate::{
     AppSystems,
     camera::OVERLAY_Z,
     characters::{
-        Character, CollisionDataCache, FacingDirection,
+        Character, CollisionDataCache,
         health::{Damage, Health},
+        movement::FacingDirection,
         player::Player,
     },
     log::{error::*, warn::*},

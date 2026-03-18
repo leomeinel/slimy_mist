@@ -22,9 +22,10 @@ use crate::{
     animations::{AnimationCache, AnimationTimer, Animations},
     camera::{FOREGROUND_Z, ysort::YSort},
     characters::{
-        Character, CharacterAssets, FacingDirection, WalkSpeed,
+        Character, CharacterAssets,
         attack::{AttackStats, punch},
         health::Health,
+        movement::{FacingDirection, WalkSpeed},
         nav::Navigator,
     },
     impl_character_assets,

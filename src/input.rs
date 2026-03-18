@@ -13,23 +13,10 @@ mod mock;
 pub(crate) mod pointer;
 pub(crate) mod ui;
 
-use std::marker::PhantomData;
-
 use bevy::prelude::*;
 use bevy_enhanced_input::prelude::*;
-use bevy_rapier2d::prelude::*;
 
-use crate::{
-    Pause,
-    animations::{AnimationCache, AnimationState},
-    characters::{
-        JumpTimer, WalkSpeed,
-        attack::{Attack, AttackTimer, MeleeAttack},
-        player::Player,
-    },
-    input::actions::{Aim, Jump, Melee, Walk},
-    screens::Screen,
-};
+use crate::{characters::player::Player, screens::Screen};
 
 pub(super) fn plugin(app: &mut App) {
     // Add library plugins
@@ -49,11 +36,11 @@ pub(super) fn plugin(app: &mut App) {
 
     // Handle bevy_enhanced_input with input context and observers
     app.add_input_context::<Player>();
-    app.add_observer(apply_walk);
-    app.add_observer(reset_walk);
-    app.add_observer(set_jump);
-    app.add_observer(trigger_melee_attack);
-    app.add_observer(reset_aim);
+    app.add_observer(actions::apply_walk);
+    app.add_observer(actions::reset_walk);
+    app.add_observer(actions::set_jump);
+    app.add_observer(actions::trigger_melee_attack);
+    app.add_observer(actions::reset_aim);
 }
 
 /// A [`SystemSet`] for systems that initialize [`Screen::Gameplay`]
@@ -61,109 +48,4 @@ pub(super) fn plugin(app: &mut App) {
 pub(crate) enum InputSystems {
     Cache,
     Mock,
-}
-
-/// On a fired [`Walk`], set translation to the given input.
-fn apply_walk(
-    event: On<Fire<Walk>>,
-    player: Single<
-        (
-            &mut AnimationCache,
-            &mut KinematicCharacterController,
-            &WalkSpeed,
-        ),
-        With<Player>,
-    >,
-    pause: Res<State<Pause>>,
-    time: Res<Time>,
-) {
-    // Return if game is paused
-    if pause.get().0 {
-        return;
-    }
-
-    let (mut cache, mut controller, walk_speed) = player.into_inner();
-
-    // Apply movement from input
-    let direction = event.value * walk_speed.0 * time.delta_secs();
-    controller.translation = Some(direction);
-
-    // Set animation state if we are `Idle`
-    if cache.state == AnimationState::Idle {
-        cache.set_new_state(AnimationState::Walk);
-    }
-}
-
-/// On a completed [`Walk`], set translation to zero.
-fn reset_walk(
-    _: On<Complete<Walk>>,
-    player: Single<(&mut AnimationCache, &mut KinematicCharacterController), With<Player>>,
-) {
-    let (mut cache, mut controller) = player.into_inner();
-
-    // Stop movement if we are not jumping or falling
-    if !matches!(cache.state, AnimationState::Jump | AnimationState::Fall) {
-        let direction = Vec2::ZERO;
-        controller.translation = Some(direction);
-        cache.set_new_state(AnimationState::Idle);
-    }
-}
-
-/// On a fired [`Jump`], add [`JumpTimer`].
-fn set_jump(
-    _: On<Fire<Jump>>,
-    player: Single<(Entity, &mut AnimationCache), With<Player>>,
-    mut commands: Commands,
-    pause: Res<State<Pause>>,
-) {
-    // Return if game is paused
-    if pause.get().0 {
-        return;
-    }
-
-    let (entity, mut cache) = player.into_inner();
-
-    // Set state to jump if we are not jumping or falling
-    if !matches!(cache.state, AnimationState::Jump | AnimationState::Fall) {
-        commands.entity(entity).insert(JumpTimer::default());
-        cache.set_new_state(AnimationState::Jump);
-    }
-}
-
-/// On a fired [`Melee`], trigger [`Attack`].
-fn trigger_melee_attack(
-    _: On<Fire<Melee>>,
-    aim: Single<&Action<Aim>>,
-    player: Single<(Entity, Option<&AttackTimer>), With<Player>>,
-    mut commands: Commands,
-    pause: Res<State<Pause>>,
-) {
-    // Return if game is paused
-    if pause.get().0 {
-        return;
-    }
-    // Return if `timer` has not finished
-    let (entity, timer) = *player;
-    if let Some(timer) = timer
-        && !timer.0.is_finished()
-    {
-        return;
-    }
-
-    commands.trigger(Attack::<MeleeAttack> {
-        entity,
-        direction: ***aim,
-        _phantom: PhantomData,
-    });
-}
-
-/// On a completed [`Melee`], reset [`Aim`].
-fn reset_aim(_: On<Complete<Melee>>, aim: Single<(&mut Action<Aim>, Option<&mut ActionMock>)>) {
-    let (mut aim, mock) = aim.into_inner();
-
-    // Reset `aim` and `mock`
-    **aim = Vec2::ZERO;
-    if let Some(mut mock) = mock {
-        mock.enabled = false;
-    }
 }

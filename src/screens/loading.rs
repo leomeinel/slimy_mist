@@ -22,8 +22,10 @@ use iyes_progress::ProgressPlugin;
 use crate::{
     animations::{AnimationData, AnimationDataCache, AnimationHandle},
     characters::{
-        Character, CollisionData, CollisionDataCache, CollisionDataRelatedCache, CollisionHandle,
-        StaticShadow,
+        Character, StaticShadow,
+        collision::{
+            CollisionData, CollisionDataCache, CollisionDataRelatedCache, CollisionHandle,
+        },
         npc::{Slime, SlimeAssets},
         player::{Player, PlayerAssets},
     },

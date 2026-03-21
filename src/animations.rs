@@ -18,6 +18,7 @@
 //! - [Timers](https://github.com/bevyengine/bevy/blob/latest/examples/time/timers.rs)
 
 mod audio;
+mod jump;
 mod sprites;
 
 pub(crate) mod prelude {
@@ -30,6 +31,7 @@ pub(crate) mod prelude {
 use std::{marker::PhantomData, ops::Range};
 
 use bevy::prelude::*;
+use bevy_rapier2d::prelude::*;
 use bevy_spritesheet_animation::prelude::*;
 
 use crate::{characters::prelude::*, core::prelude::*, screens::prelude::*, utils::prelude::*};
@@ -65,6 +67,15 @@ impl Plugin for AnimationsPlugin {
                 .run_if(in_state(Screen::Gameplay))
                 .in_set(AppSystems::Update)
                 .in_set(PausableSystems),
+        );
+        app.add_systems(
+            Update,
+            (
+                jump::apply_jump.before(PhysicsSet::SyncBackend),
+                jump::limit_jump,
+            )
+                .chain()
+                .in_set(AppSystems::Update),
         );
         app.add_systems(
             Update,

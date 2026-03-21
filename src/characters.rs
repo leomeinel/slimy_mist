@@ -43,7 +43,6 @@ use std::marker::PhantomData;
 use bevy::{prelude::*, reflect::Reflectable};
 use bevy_asset_loader::asset_collection::AssetCollection;
 use bevy_prng::WyRand;
-use bevy_rapier2d::prelude::*;
 use bevy_spritesheet_animation::prelude::*;
 use rand::RngExt as _;
 
@@ -69,15 +68,6 @@ impl Plugin for CharactersPlugin {
                 nav::apply_path.in_set(PausableSystems),
             )
                 .run_if(in_state(ProcGenInit(true)).and(in_state(Screen::Gameplay)))
-                .in_set(AppSystems::Update),
-        );
-        app.add_systems(
-            Update,
-            (
-                player::apply_jump.before(PhysicsSet::SyncBackend),
-                player::limit_jump,
-            )
-                .chain()
                 .in_set(AppSystems::Update),
         );
         app.add_systems(

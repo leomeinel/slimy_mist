@@ -33,9 +33,6 @@ pub(crate) struct PlayerAssets {
 
     #[asset(key = "male.jump_sounds", collection(typed), optional)]
     pub(crate) jump_sounds: Option<Vec<Handle<AudioSource>>>,
-
-    #[asset(key = "male.fall_sounds", collection(typed), optional)]
-    pub(crate) fall_sounds: Option<Vec<Handle<AudioSource>>>,
 }
 impl_character_assets!(PlayerAssets);
 

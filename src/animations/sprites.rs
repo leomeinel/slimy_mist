@@ -76,22 +76,6 @@ pub(super) fn setup_animations<T>(
         })
         .unwrap_or_else(|| None);
 
-    // Fall animation
-    let fall = animation_data
-        .fall_frames
-        .as_ref()
-        .map(|frames| {
-            let interval_ms = (JUMP_DURATION_SECS * 500. / frames.len().max(1) as f32) as u32;
-            animation_handle(
-                &mut global_animations,
-                &sprite_sheet,
-                animation_data.fall_frames.as_ref(),
-                Some(interval_ms),
-                AnimationRepeat::Times(1),
-            )
-        })
-        .unwrap_or_else(|| None);
-
     let sprite_layout_id = sprite
         .texture_atlas
         .as_ref()
@@ -115,7 +99,6 @@ pub(super) fn setup_animations<T>(
         idle,
         walk,
         jump,
-        fall,
         ..default()
     });
 }
@@ -185,9 +168,6 @@ pub(super) fn update_animations<T>(
             }
             AnimationState::Jump => {
                 switch_to_new_animation(&mut animation, animations.jump.clone(), &mut cache)
-            }
-            AnimationState::Fall => {
-                switch_to_new_animation(&mut animation, animations.fall.clone(), &mut cache)
             }
         }
     }

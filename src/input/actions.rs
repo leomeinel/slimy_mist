@@ -114,8 +114,8 @@ pub(super) fn reset_walk(
 ) {
     let (mut cache, mut controller) = player.into_inner();
 
-    // Stop movement if we are not jumping or falling
-    if !matches!(cache.state, AnimationState::Jump | AnimationState::Fall) {
+    // Stop movement if we are not jumping
+    if cache.state != AnimationState::Jump {
         let direction = Vec2::ZERO;
         controller.translation = Some(direction);
         cache.set_new_state(AnimationState::Idle);
@@ -136,8 +136,8 @@ pub(super) fn set_jump(
 
     let (entity, mut cache) = player.into_inner();
 
-    // Set state to jump if we are not jumping or falling
-    if !matches!(cache.state, AnimationState::Jump | AnimationState::Fall) {
+    // Set state to jump if we are not jumping
+    if cache.state != AnimationState::Jump {
         commands.entity(entity).insert(JumpTimer::default());
         cache.set_new_state(AnimationState::Jump);
     }

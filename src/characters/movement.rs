@@ -38,10 +38,7 @@ pub(crate) const JUMP_DURATION_SECS: f32 = 1.;
 pub(crate) struct JumpTimer(pub(crate) Timer);
 impl Default for JumpTimer {
     fn default() -> Self {
-        Self(Timer::from_seconds(
-            JUMP_DURATION_SECS / 2.,
-            TimerMode::Once,
-        ))
+        Self(Timer::from_seconds(JUMP_DURATION_SECS, TimerMode::Once))
     }
 }
 

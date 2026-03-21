@@ -11,7 +11,4 @@
             "audio/sound-effects/movement/player-jump.ogg",
         ],
     ),
-    "male.fall_sounds": Files (
-        paths: [],
-    ),
 })

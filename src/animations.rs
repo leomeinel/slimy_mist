@@ -71,8 +71,8 @@ impl Plugin for AnimationsPlugin {
         app.add_systems(
             Update,
             (
-                jump::apply_jump.before(PhysicsSet::SyncBackend),
-                jump::limit_jump,
+                jump::move_sprite.before(PhysicsSet::SyncBackend),
+                jump::switch_animation,
             )
                 .chain()
                 .in_set(AppSystems::Update),
@@ -119,10 +119,6 @@ where
     pub(crate) jump_frames: Option<Vec<(usize, usize)>>,
     #[serde(default)]
     pub(crate) jump_sound_frames: Option<Vec<usize>>,
-    #[serde(default)]
-    pub(crate) fall_frames: Option<Vec<(usize, usize)>>,
-    #[serde(default)]
-    pub(crate) fall_sound_frames: Option<Vec<usize>>,
     #[serde(skip)]
     pub(crate) _phantom: PhantomData<T>,
 }
@@ -162,8 +158,6 @@ where
     pub(crate) _run_sound_frames: Option<Vec<usize>>,
     pub(crate) jump_frames: Option<Vec<(usize, usize)>>,
     pub(crate) jump_sound_frames: Option<Vec<usize>>,
-    pub(crate) fall_frames: Option<Vec<(usize, usize)>>,
-    pub(crate) fall_sound_frames: Option<Vec<usize>>,
     pub(crate) _phantom: PhantomData<T>,
 }
 
@@ -183,7 +177,6 @@ where
     pub(crate) idle: Handle<Animation>,
     pub(crate) walk: Option<Handle<Animation>>,
     pub(crate) jump: Option<Handle<Animation>>,
-    pub(crate) fall: Option<Handle<Animation>>,
     _phantom: PhantomData<T>,
 }
 
@@ -194,7 +187,6 @@ pub(crate) enum AnimationState {
     Idle,
     Walk,
     Jump,
-    Fall,
 }
 
 /// Cache for animations

@@ -34,7 +34,6 @@ pub(super) fn update_animation_sounds<T, A>(
     let frame_set = (
         animation_data.walk_sound_frames.clone(),
         animation_data.jump_sound_frames.clone(),
-        animation_data.fall_sound_frames.clone(),
     );
 
     for (mut cache, children) in character_query {
@@ -60,9 +59,6 @@ pub(super) fn update_animation_sounds<T, A>(
             AnimationState::Jump => {
                 choose_sound(&mut rng, &current_frame, &frame_set.1, assets.jump_sounds())
             }
-            AnimationState::Fall => {
-                choose_sound(&mut rng, &current_frame, &frame_set.2, assets.fall_sounds())
-            }
             _ => None,
         }) else {
             cache.sound_frame = None;
@@ -77,8 +73,8 @@ pub(super) fn update_animation_sounds<T, A>(
 
 /// Choose a random sound customized via parameters for current frame.
 ///
-/// Returns [`Some`] if current frame is a fall sound frame.
-/// Returns [`None`] if current frame is not a fall sound frame or on missing data.
+/// Returns [`Some`] if current frame is a sound frame.
+/// Returns [`None`] if current frame is not a sound frame or on missing data.
 fn choose_sound(
     rng: &mut WyRand,
     current_frame: &usize,

@@ -99,7 +99,6 @@ where
 {
     fn walk_sounds(&self) -> &Option<Vec<Handle<AudioSource>>>;
     fn jump_sounds(&self) -> &Option<Vec<Handle<AudioSource>>>;
-    fn fall_sounds(&self) -> &Option<Vec<Handle<AudioSource>>>;
 }
 macro_rules! impl_character_assets {
     ($type: ty) => {
@@ -109,9 +108,6 @@ macro_rules! impl_character_assets {
             }
             fn jump_sounds(&self) -> &Option<Vec<Handle<AudioSource>>> {
                 &self.jump_sounds
-            }
-            fn fall_sounds(&self) -> &Option<Vec<Handle<AudioSource>>> {
-                &self.fall_sounds
             }
         }
     };

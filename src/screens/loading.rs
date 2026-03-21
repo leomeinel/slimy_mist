@@ -177,8 +177,6 @@ fn cache_animation_data<T>(
         _run_sound_frames: data.run_sound_frames,
         jump_frames: data.jump_frames,
         jump_sound_frames: data.jump_sound_frames,
-        fall_frames: data.fall_frames,
-        fall_sound_frames: data.fall_sound_frames,
         ..default()
     });
 

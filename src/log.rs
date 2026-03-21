@@ -7,5 +7,10 @@
  * URL: https://www.apache.org/licenses/LICENSE-2.0
  */
 
-pub(crate) mod error;
-pub(crate) mod warn;
+mod error;
+mod warn;
+
+pub(crate) mod prelude {
+    pub(crate) use super::error::*;
+    pub(crate) use super::warn::*;
+}

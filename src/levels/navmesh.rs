@@ -13,20 +13,25 @@ use bevy::prelude::*;
 use polyanya::Triangulation;
 use vleue_navigator::prelude::*;
 
-use crate::{
-    levels::Level,
-    procgen::{
-        CHUNK_SIZE, PROCGEN_DISTANCE, ProcGenCache, ProcGenInit, ProcGenState, ProcGenerated,
-        TileDataCache,
-    },
-};
+use crate::{images::prelude::*, levels::prelude::*, procgen::prelude::*, screens::prelude::*};
 
-pub(super) fn plugin(app: &mut App) {
-    // Add library plugins
-    app.add_plugins((
-        VleueNavigatorPlugin,
-        NavmeshUpdaterPlugin::<PrimitiveObstacle>::default(),
-    ));
+pub(super) struct NavMeshPlugin;
+impl Plugin for NavMeshPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_plugins((
+            VleueNavigatorPlugin,
+            NavmeshUpdaterPlugin::<PrimitiveObstacle>::default(),
+        ));
+
+        app.add_systems(
+            OnEnter(Screen::Gameplay),
+            spawn_navmesh::<OverworldProcGen, Overworld>.in_set(EnterGameplaySystems::NavMesh),
+        );
+        app.add_systems(
+            OnEnter(ProcGenState::MoveNavMesh),
+            move_navmesh::<OverworldProcGen>.run_if(in_state(Screen::Gameplay)),
+        );
+    }
 }
 
 /// Number of horizontal/vertical chunks in a straight line

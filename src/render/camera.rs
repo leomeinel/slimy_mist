@@ -7,59 +7,17 @@
  * URL: https://www.apache.org/licenses/LICENSE-2.0
  */
 
-pub(crate) mod ysort;
-
 use bevy::{prelude::*, window::WindowResized};
 use bevy_fast_light::prelude::*;
 
-use crate::{AppSystems, PausableSystems, characters::player::Player, screens::Screen};
-
-pub(super) fn plugin(app: &mut App) {
-    // Add child plugins
-    app.add_plugins(ysort::plugin);
-
-    // Spawn the main camera.
-    app.add_systems(Startup, spawn_camera);
-
-    // Update the main camera
-    app.add_systems(
-        Update,
-        (
-            fit_canvas,
-            // NOTE: Having `update_camera` in `PausableSystems` is not the only thing that causes the camera to be
-            //       offset when pausing while moving. I do however deem that behavior to be acceptable.
-            update_camera
-                .run_if(in_state(Screen::Gameplay))
-                .in_set(PausableSystems),
-        )
-            .in_set(AppSystems::Update),
-    );
-}
-
-/// Z-level for the level
-pub(crate) const LEVEL_Z: f32 = 1.;
-/// Z-level for any foreground object
-///
-/// The value is chosen so that there is a very reasonable distance to [`OrthographicProjection::far`]
-/// while considering relative y-sorting.
-pub(crate) const FOREGROUND_Z: f32 = 5.;
-/// Z-level for any overlay object
-pub(crate) const OVERLAY_Z: f32 = 10.;
-/// Z-level for light
-pub(crate) const LIGHT_Z: f32 = 10.;
-
-/// Z-level delta for background objects
-///
-/// This is set to a delta compatible with relative y-sorting that should never subtract more than 1
-/// from [`crate::camera::ysort::YSort`]'s field.
-pub(crate) const BACKGROUND_Z_DELTA: f32 = -1.;
+use crate::characters::prelude::*;
 
 /// Main camera that renders the world to the canvas.
 #[derive(Component)]
 pub(crate) struct CanvasCamera;
 
 /// Center the camera on [`Player`]
-pub(crate) fn center_camera_on_player(
+pub(super) fn center_camera_on_player(
     mut camera: Single<&mut Transform, (With<CanvasCamera>, Without<Player>)>,
     player: Single<&Transform, (With<Player>, Without<CanvasCamera>)>,
 ) {
@@ -68,7 +26,7 @@ pub(crate) fn center_camera_on_player(
 }
 
 /// Spawn [`Camera2d`]
-fn spawn_camera(mut commands: Commands) {
+pub(super) fn spawn_camera(mut commands: Commands) {
     commands.spawn((
         Name::new("Canvas Camera"),
         Camera2d,
@@ -86,7 +44,7 @@ const SCALE_THRESHOLD: f32 = 500.;
 /// Scales camera projection to fit the window (integer multiples only).
 ///
 /// Heavily inspired by: <https://bevy.org/examples/2d-rendering/pixel-grid-snap/>
-fn fit_canvas(
+pub(super) fn fit_canvas(
     mut reader: MessageReader<WindowResized>,
     mut projection: Single<&mut Projection, With<CanvasCamera>>,
 ) {
@@ -114,7 +72,7 @@ const CAMERA_DECAY_RATE: f32 = 3.;
 /// Update the camera position by tracking the player.
 ///
 /// Heavily inspired by: <https://bevy.org/examples/camera/2d-top-down-camera/>
-fn update_camera(
+pub(super) fn update_camera(
     mut camera: Single<&mut Transform, (With<CanvasCamera>, Without<Player>)>,
     player: Single<&Transform, (Changed<Transform>, With<Player>, Without<CanvasCamera>)>,
     time: Res<Time>,

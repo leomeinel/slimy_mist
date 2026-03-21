@@ -20,104 +20,83 @@ use bevy_common_assets::ron::RonAssetPlugin;
 use iyes_progress::ProgressPlugin;
 
 use crate::{
-    animations::{AnimationData, AnimationDataCache, AnimationHandle},
-    characters::{
-        Character, StaticShadow,
-        collision::{
-            CollisionData, CollisionDataCache, CollisionDataRelatedCache, CollisionHandle,
-        },
-        npc::{Slime, SlimeAssets},
-        player::{Player, PlayerAssets},
-    },
-    input::joystick::JoystickAssets,
-    levels::overworld::{OverworldAssets, OverworldProcGen},
-    log::{error::*, warn::*},
-    menus::credits::{CreditsAssets, CreditsData, CreditsDataCache, CreditsHandle},
-    procgen::{
-        CHUNK_SIZE, PROCGEN_DISTANCE, ProcGenerated, TileData, TileDataCache, TileDataRelatedCache,
-        TileHandle,
-    },
-    screens::{Screen, splash::SplashAssets},
-    ui::{interaction::InteractionAssets, prelude::*},
-    visual::{
-        Visible,
-        layers::{LayerData, LayerDataRelatedCache, LayerHandle},
-        particles::{ParticleHandle, ParticleMeleeAttack, ParticleWalkingDust},
-    },
+    animations::prelude::*, characters::prelude::*, images::prelude::*, input::prelude::*,
+    levels::prelude::*, log::prelude::*, procgen::prelude::*, render::prelude::*,
+    screens::prelude::*, ui::prelude::*,
 };
 
-pub(super) fn plugin(app: &mut App) {
-    // Add library plugins
-    app.add_plugins((
-        // Progress tracking
-        // NOTE: This advances to `Screen::LoadingCache` to cache data
-        ProgressPlugin::<Screen>::new()
-            .with_state_transition(Screen::Loading, Screen::LoadingCache),
-        RonAssetPlugin::<AnimationData<Player>>::new(&["animation.ron"]),
-        RonAssetPlugin::<AnimationData<Slime>>::new(&["animation.ron"]),
-        RonAssetPlugin::<CollisionData<Player>>::new(&["collision.ron"]),
-        RonAssetPlugin::<CollisionData<Slime>>::new(&["collision.ron"]),
-        RonAssetPlugin::<CreditsData>::new(&["credits.ron"]),
-        RonAssetPlugin::<LayerData<Player>>::new(&["layers.ron"]),
-        RonAssetPlugin::<LayerData<Slime>>::new(&["layers.ron"]),
-        RonAssetPlugin::<TileData<OverworldProcGen>>::new(&["tiles.ron"]),
-    ));
+pub(super) struct LoadingPlugin;
+impl Plugin for LoadingPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_plugins((
+            // NOTE: This advances to `Screen::LoadingCache` to cache data
+            ProgressPlugin::<Screen>::new()
+                .with_state_transition(Screen::Loading, Screen::LoadingCache),
+            RonAssetPlugin::<AnimationData<Player>>::new(&["animation.ron"]),
+            RonAssetPlugin::<AnimationData<Slime>>::new(&["animation.ron"]),
+            RonAssetPlugin::<CollisionData<Player>>::new(&["collision.ron"]),
+            RonAssetPlugin::<CollisionData<Slime>>::new(&["collision.ron"]),
+            RonAssetPlugin::<CreditsData>::new(&["credits.ron"]),
+            RonAssetPlugin::<LayerData<Player>>::new(&["layers.ron"]),
+            RonAssetPlugin::<LayerData<Slime>>::new(&["layers.ron"]),
+            RonAssetPlugin::<TileData<OverworldProcGen>>::new(&["tiles.ron"]),
+        ));
 
-    // Add loading states via bevy_asset_loader
-    let loading_state = LoadingState::new(Screen::Loading)
-        .load_collection::<InteractionAssets>()
-        .load_collection::<SplashAssets>()
-        .load_collection::<CreditsAssets>()
-        .with_dynamic_assets_file::<StandardDynamicAssetCollection>(
-            "data/levels/overworld.assets.ron",
-        )
-        .load_collection::<OverworldAssets>()
-        .with_dynamic_assets_file::<StandardDynamicAssetCollection>(
-            "data/characters/player/male.assets.ron",
-        )
-        .load_collection::<PlayerAssets>()
-        .with_dynamic_assets_file::<StandardDynamicAssetCollection>(
-            "data/characters/npc/slime.assets.ron",
-        )
-        .load_collection::<SlimeAssets>()
-        .load_collection::<JoystickAssets>();
-    app.add_loading_state(loading_state);
+        app.add_loading_state(
+            LoadingState::new(Screen::Loading)
+                .load_collection::<InteractionAssets>()
+                .load_collection::<SplashAssets>()
+                .load_collection::<CreditsAssets>()
+                .with_dynamic_assets_file::<StandardDynamicAssetCollection>(
+                    "data/levels/overworld.assets.ron",
+                )
+                .load_collection::<OverworldAssets>()
+                .with_dynamic_assets_file::<StandardDynamicAssetCollection>(
+                    "data/characters/player/male.assets.ron",
+                )
+                .load_collection::<PlayerAssets>()
+                .with_dynamic_assets_file::<StandardDynamicAssetCollection>(
+                    "data/characters/npc/slime.assets.ron",
+                )
+                .load_collection::<SlimeAssets>()
+                .load_collection::<JoystickAssets>(),
+        );
 
-    // Spawn loading screen and load custom resources
-    app.add_systems(
-        OnEnter(Screen::Loading),
-        (
-            // After initial `LoadingState<Screen::Loading>` insert resources with handles for data
-            insert_handle_resources.after(LoadingStateSet(Screen::Loading)),
-            spawn_loading_screen,
-        )
-            .chain(),
-    );
-    app.add_systems(
-        OnEnter(Screen::LoadingCache),
-        (
+        app.add_systems(
+            OnEnter(Screen::Loading),
             (
-                cache_animation_data::<Player>,
-                cache_animation_data::<Slime>,
-                cache_collision_data_and_related::<Player>,
-                cache_collision_data_and_related::<Slime>,
-                cache_credits_data,
-                cache_layer_data_related::<Player>,
-                cache_layer_data_related::<Slime>,
-                cache_tile_data_and_related::<OverworldProcGen>,
-            ),
-            enter_splash_screen,
-        )
-            .chain(),
-    );
+                // After initial `LoadingState<Screen::Loading>` insert resources with handles for data
+                insert_handle_resources.after(LoadingStateSet(Screen::Loading)),
+                spawn_loading_screen,
+            )
+                .chain(),
+        );
+        app.add_systems(
+            OnEnter(Screen::LoadingCache),
+            (
+                (
+                    cache_animation_data::<Player>,
+                    cache_animation_data::<Slime>,
+                    cache_collision_data_and_related::<Player>,
+                    cache_collision_data_and_related::<Slime>,
+                    cache_credits_data,
+                    cache_layer_data_related::<Player>,
+                    cache_layer_data_related::<Slime>,
+                    cache_tile_data_and_related::<OverworldProcGen>,
+                ),
+                enter_splash_screen,
+            )
+                .chain(),
+        );
+    }
 }
 
 /// Display loading screen
 fn spawn_loading_screen(mut commands: Commands, font: Res<UiFontHandle>) {
     commands.spawn((
-        widgets::ui_root("Loading Screen"),
+        root_widget("Loading Screen"),
         DespawnOnExit(Screen::Loading),
-        children![widgets::label("Loading...", font.0.clone())],
+        children![label_widget("Loading...", font.0.clone())],
     ));
 }
 

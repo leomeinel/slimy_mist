@@ -11,32 +11,34 @@ use bevy::{color::palettes::tailwind, prelude::*};
 use bevy_fast_light::prelude::*;
 
 use crate::{
-    AppSystems, PausableSystems,
-    camera::{CanvasCamera, LIGHT_Z},
-    log::error::*,
-    procgen::ProcGenerated,
-    screens::Screen,
-    visual::Visible,
+    core::prelude::*, log::prelude::*, procgen::prelude::*, render::prelude::*,
+    screens::prelude::*, utils::prelude::*,
 };
 
-pub(super) fn plugin(app: &mut App) {
-    app.add_systems(OnEnter(Screen::Gameplay), init_ambient);
-    app.add_systems(OnExit(Screen::Gameplay), reset_ambient);
+pub(super) struct LightPlugin;
+impl Plugin for LightPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_plugins(FastLightPlugin::default());
 
-    app.add_systems(
-        Update,
-        update_ambient_intensity
-            .run_if(in_state(Screen::Gameplay))
-            .in_set(PausableSystems),
-    );
-
-    app.add_systems(
-        Update,
-        (tick_day_timer, tick_day_update_timer)
-            .in_set(AppSystems::TickTimers)
-            .run_if(in_state(Screen::Gameplay))
-            .in_set(PausableSystems),
-    );
+        app.add_systems(OnEnter(Screen::Gameplay), init_ambient);
+        app.add_systems(OnExit(Screen::Gameplay), reset_ambient);
+        app.add_systems(
+            Update,
+            update_ambient_intensity
+                .run_if(in_state(Screen::Gameplay))
+                .in_set(PausableSystems),
+        );
+        app.add_systems(
+            Update,
+            (
+                tick_resource_timer::<DayTimer>,
+                tick_resource_timer::<DayUpdateTimer>,
+            )
+                .in_set(AppSystems::TickTimers)
+                .run_if(in_state(Screen::Gameplay))
+                .in_set(PausableSystems),
+        );
+    }
 }
 
 /// Wrapper for lights.
@@ -85,7 +87,7 @@ impl Visible for StreetLight {}
 const DAY_SECS: f32 = 600.;
 
 /// Timer tracking progress of a day to simulate day/night cycle.
-#[derive(Resource, Debug, Clone, PartialEq, Reflect)]
+#[derive(Resource, Debug, Clone, PartialEq, Reflect, Deref, DerefMut)]
 #[reflect(Resource)]
 pub(crate) struct DayTimer(Timer);
 impl Default for DayTimer {
@@ -98,7 +100,7 @@ impl Default for DayTimer {
 const DAY_UPDATE_SECS: f32 = 5.;
 
 /// Timer for updating [`AmbientLight2d`] to simulate day/night cycle.
-#[derive(Resource, Debug, Clone, PartialEq, Reflect)]
+#[derive(Resource, Debug, Clone, PartialEq, Reflect, Deref, DerefMut)]
 #[reflect(Resource)]
 pub(crate) struct DayUpdateTimer(Timer);
 impl Default for DayUpdateTimer {
@@ -142,14 +144,4 @@ fn update_ambient_intensity(
     // NOTE: We are multiplying by 2 since `PingPongCurve` has a domain from 0 to 2.
     let intensity = intensity.sample_clamped(day_timer.0.fraction() * 2.);
     light.intensity = intensity;
-}
-
-/// Tick [`DayTimer`].
-fn tick_day_timer(time: Res<Time>, mut timer: ResMut<DayTimer>) {
-    timer.0.tick(time.delta());
-}
-
-/// Tick [`DayUpdateTimer`].
-fn tick_day_update_timer(time: Res<Time>, mut timer: ResMut<DayUpdateTimer>) {
-    timer.0.tick(time.delta());
 }

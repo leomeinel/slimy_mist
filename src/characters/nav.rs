@@ -16,31 +16,9 @@ use bevy_rapier2d::prelude::*;
 use vleue_navigator::prelude::*;
 
 use crate::{
-    AppSystems, PausableSystems,
-    animations::{AnimationCache, AnimationState},
-    characters::movement::WalkSpeed,
-    levels::overworld::OverworldProcGen,
-    log::error::*,
-    procgen::{DespawnProcGen, ProcGenInit, ProcGenerated, TileDataCache},
-    screens::Screen,
+    animations::prelude::*, characters::prelude::*, images::prelude::*, log::prelude::*,
+    procgen::prelude::*,
 };
-
-pub(super) fn plugin(app: &mut App) {
-    // Update pathfinding
-    app.add_systems(
-        Update,
-        (
-            (
-                find_path::<OverworldProcGen>,
-                refresh_path::<OverworldProcGen>,
-            )
-                .run_if(in_state(DespawnProcGen(false))),
-            apply_path.in_set(PausableSystems),
-        )
-            .run_if(in_state(ProcGenInit(true)).and(in_state(Screen::Gameplay)))
-            .in_set(AppSystems::Update),
-    );
-}
 
 /// Map of target entities mapped to their last updated position.
 #[derive(Resource, Default)]
@@ -69,7 +47,7 @@ pub(crate) struct Path {
 /// ## Traits
 ///
 /// - `T` must implement [`ProcGenerated`]' and is used as the procedurally generated level.
-fn find_path<T>(
+pub(super) fn find_path<T>(
     navmesh: Single<(&ManagedNavMesh, Ref<NavMeshStatus>)>,
     target_query: Query<(Entity, &Transform, &NavTarget), Without<Navigator>>,
     navigator_query: Query<
@@ -143,7 +121,7 @@ fn find_path<T>(
 }
 
 /// Refresh [`Path`]
-fn refresh_path<T>(
+pub(super) fn refresh_path<T>(
     navmesh: Single<(&ManagedNavMesh, Ref<NavMeshStatus>)>,
     navigator_query: Query<(Entity, &Transform, &mut Path), With<Navigator>>,
     target_transforms: Query<&Transform, With<NavTarget>>,
@@ -232,7 +210,7 @@ fn next_path_step(navmesh: &mut NavMesh, start: Vec3, end: Vec3) -> Option<(Vec2
 const PATH_OVERSHOOT_THRESHOLD_DIVISOR: f32 = 50.;
 
 /// Apply [`Path`]
-fn apply_path(
+pub(super) fn apply_path(
     navigator_query: Query<
         (
             Entity,

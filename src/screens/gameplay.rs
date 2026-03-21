@@ -14,93 +14,64 @@
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 
 use crate::{
-    Pause,
-    animations::setup_animations,
-    camera::center_camera_on_player,
-    characters::{nav::NavTargetPosMap, npc::Slime, player::Player},
-    input::{
-        joystick::{JoystickID, JoystickMap, JoystickRect},
-        pointer::{MouseDrag, PointerStartTimeSecs},
-    },
-    levels::overworld::{Overworld, OverworldProcGen, spawn_overworld},
-    light::{DayTimer, DayUpdateTimer, StreetLight},
-    menus::Menu,
-    procgen::{ProcGenCache, navmesh::spawn_navmesh},
-    screens::Screen,
-    ui::prelude::*,
-    utils::run_conditions::window_unfocused,
-    visual::{
-        Visible,
-        layers::{DisplayImage, LayerDataRelatedCache},
-    },
+    characters::prelude::*, core::prelude::*, images::prelude::*, input::prelude::*,
+    levels::prelude::*, procgen::prelude::*, render::prelude::*, screens::prelude::*,
+    ui::prelude::*, utils::prelude::*,
 };
 
-pub(super) fn plugin(app: &mut App) {
-    // Order new `InitGameplaySystems` variants by adding them here:
-    app.configure_sets(
-        OnEnter(Screen::Gameplay),
-        (
-            InitGameplaySystems::Resources,
-            InitGameplaySystems::Finalize,
-        )
-            .chain(),
-    );
+pub(super) struct GameplayPlugin;
+impl Plugin for GameplayPlugin {
+    fn build(&self, app: &mut App) {
+        app.configure_sets(
+            OnEnter(Screen::Gameplay),
+            (
+                EnterGameplaySystems::Resources,
+                EnterGameplaySystems::Sprites,
+                EnterGameplaySystems::Animations,
+                EnterGameplaySystems::Levels,
+                EnterGameplaySystems::Camera,
+                EnterGameplaySystems::NavMesh,
+            )
+                .chain(),
+        );
 
-    // Run `InitGameplaySystems::Resources`
-    app.add_systems(
-        OnEnter(Screen::Gameplay),
-        (
-            insert_resources,
-            insert_display_image::<Player>,
-            insert_display_image::<Slime>,
-        )
-            .in_set(InitGameplaySystems::Resources),
-    );
-    app.add_systems(OnExit(Screen::Gameplay), remove_resources);
+        app.add_systems(
+            OnEnter(Screen::Gameplay),
+            insert_resources.in_set(EnterGameplaySystems::Resources),
+        );
+        app.add_systems(OnExit(Screen::Gameplay), remove_resources);
+        app.add_systems(OnExit(Screen::Gameplay), (close_menu, unpause));
+        app.add_systems(
+            OnEnter(Menu::None),
+            unpause.run_if(in_state(Screen::Gameplay)),
+        );
 
-    // Exit pause menu that was used to exit and unpause game
-    app.add_systems(OnExit(Screen::Gameplay), (close_menu, unpause));
-    // Unpause if in no menu and in gameplay screen
-    app.add_systems(
-        OnEnter(Menu::None),
-        unpause.run_if(in_state(Screen::Gameplay)),
-    );
-
-    // Run `InitGameplaySystems::Finalize`
-    app.add_systems(
-        OnEnter(Screen::Gameplay),
-        (
-            (setup_animations::<Player>, setup_animations::<Slime>),
-            spawn_overworld,
-            center_camera_on_player,
-            spawn_navmesh::<OverworldProcGen, Overworld>,
-        )
-            .in_set(InitGameplaySystems::Finalize)
-            .chain(),
-    );
-
-    // Open pause on pressing P or Escape and pause game
-    app.add_systems(
-        Update,
-        (
-            (pause, spawn_pause_overlay, open_pause_menu).run_if(
-                in_state(Menu::None).and(
-                    input_just_pressed(KeyCode::KeyP)
-                        .or(input_just_pressed(KeyCode::Escape))
-                        .or(window_unfocused),
+        app.add_systems(
+            Update,
+            (
+                (pause, spawn_pause_overlay, open_pause_menu).run_if(
+                    in_state(Menu::None).and(
+                        input_just_pressed(KeyCode::KeyP)
+                            .or(input_just_pressed(KeyCode::Escape))
+                            .or(window_unfocused),
+                    ),
                 ),
-            ),
-            close_menu.run_if(not(in_state(Menu::None)).and(input_just_pressed(KeyCode::KeyP))),
-        )
-            .run_if(in_state(Screen::Gameplay)),
-    );
+                close_menu.run_if(not(in_state(Menu::None)).and(input_just_pressed(KeyCode::KeyP))),
+            )
+                .run_if(in_state(Screen::Gameplay)),
+        );
+    }
 }
 
 /// A [`SystemSet`] for systems that initialize [`Screen::Gameplay`]
 #[derive(SystemSet, Copy, Clone, Eq, PartialEq, Hash, Debug)]
-pub(crate) enum InitGameplaySystems {
+pub(crate) enum EnterGameplaySystems {
     Resources,
-    Finalize,
+    Sprites,
+    Animations,
+    Levels,
+    Camera,
+    NavMesh,
 }
 
 /// Spawn pause overlay
@@ -136,21 +107,6 @@ fn unpause(mut next_state: ResMut<NextState<Pause>>) {
 /// Pause the game
 fn pause(mut next_state: ResMut<NextState<Pause>>) {
     (*next_state).set_if_neq(Pause(true));
-}
-
-/// Insert [`DisplayImage`].
-///
-/// ## Traits
-///
-/// - `T` must implement [`Visible`].
-pub(crate) fn insert_display_image<T>(
-    mut commands: Commands,
-    mut images: ResMut<Assets<Image>>,
-    data: Res<LayerDataRelatedCache<T>>,
-) where
-    T: Visible,
-{
-    commands.insert_resource(data.to_display_image(&mut images));
 }
 
 /// Insert [`Resource`]s

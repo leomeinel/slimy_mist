@@ -11,24 +11,10 @@
 
 //! The credits menu.
 
-use bevy::{ecs::spawn::SpawnIter, input::common_conditions::input_just_pressed, prelude::*};
+use bevy::{ecs::spawn::SpawnIter, prelude::*};
 use bevy_asset_loader::prelude::*;
 
-use crate::{audio::music, menus::Menu, ui::prelude::*};
-
-pub(super) fn plugin(app: &mut App) {
-    // Open credits menu and start music
-    app.add_systems(
-        OnEnter(Menu::Credits),
-        (spawn_credits_menu, start_credits_music),
-    );
-
-    // Exit credits menu on pressing Escape
-    app.add_systems(
-        Update,
-        go_back.run_if(in_state(Menu::Credits).and(input_just_pressed(KeyCode::Escape))),
-    );
-}
+use crate::{audio::prelude::*, ui::prelude::*};
 
 /// Credits data deserialized from a ron file as a generic.
 #[derive(serde::Deserialize, Asset, TypePath, Default)]
@@ -63,24 +49,33 @@ pub(crate) struct CreditsAssets {
 }
 
 /// Spawn menu with credits for assets and creators of the game
-fn spawn_credits_menu(
+pub(super) fn spawn_credits_menu(
     mut commands: Commands,
     credits_data: Res<CreditsDataCache>,
     font: Res<UiFontHandle>,
 ) {
     commands.spawn((
-        widgets::ui_root_auto_scroll("Credits Menu"),
+        root_auto_scroll_widget("Credits Menu"),
         GlobalZIndex(2),
         DespawnOnExit(Menu::Credits),
         children![
-            widgets::header("Created by", font.0.clone()),
+            header_widget("Created by", font.0.clone()),
             grid(credits_data.created_by.clone(), font.0.clone()),
-            widgets::header("Assets", font.0.clone()),
+            header_widget("Assets", font.0.clone()),
             grid(credits_data.assets.clone(), font.0.clone()),
-            widgets::header("Code", font.0.clone()),
+            header_widget("Code", font.0.clone()),
             grid(credits_data.code.clone(), font.0.clone()),
-            widgets::button_large("Back", font.0.clone(), go_back_on_click),
+            button_large("Back", font.0.clone(), go_back_on_click),
         ],
+    ));
+}
+
+/// Play music for credits
+pub(super) fn start_credits_music(mut commands: Commands, credits_music: Res<CreditsAssets>) {
+    commands.spawn((
+        Name::new("Credits Music"),
+        DespawnOnExit(Menu::Credits),
+        music(credits_music.music.clone()),
     ));
 }
 
@@ -98,7 +93,7 @@ fn grid(content: Vec<[String; 2]>, font: Handle<Font>) -> impl Bundle {
         Children::spawn(SpawnIter(content.into_iter().flatten().enumerate().map(
             move |(i, text)| {
                 (
-                    widgets::label(text, font.clone()),
+                    label_widget(text, font.clone()),
                     Node {
                         justify_self: if i.is_multiple_of(2) {
                             JustifySelf::End
@@ -113,21 +108,12 @@ fn grid(content: Vec<[String; 2]>, font: Handle<Font>) -> impl Bundle {
     )
 }
 
+/// Go back to [`Menu::Main`].
+pub(super) fn go_back(mut next_state: ResMut<NextState<Menu>>) {
+    (*next_state).set_if_neq(Menu::Main);
+}
+
 /// Go back to main menu on click
-fn go_back_on_click(_: On<Pointer<Click>>, mut next_state: ResMut<NextState<Menu>>) {
-    (*next_state).set_if_neq(Menu::Main);
-}
-
-/// Go back to main menu if a menu switch is initialized
-fn go_back(mut next_state: ResMut<NextState<Menu>>) {
-    (*next_state).set_if_neq(Menu::Main);
-}
-
-/// Play music for credits
-fn start_credits_music(mut commands: Commands, credits_music: Res<CreditsAssets>) {
-    commands.spawn((
-        Name::new("Credits Music"),
-        DespawnOnExit(Menu::Credits),
-        music(credits_music.music.clone()),
-    ));
+fn go_back_on_click(_: On<Pointer<Click>>, next_state: ResMut<NextState<Menu>>) {
+    go_back(next_state);
 }

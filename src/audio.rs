@@ -2,7 +2,7 @@
  * File: audio.rs
  * Author: Leopold Johannes Meinel (leo@meinel.dev)
  * -----
- * Copyright (c) 2025 Leopold Johannes Meinel & contributors
+ * Copyright (c) 2026 Leopold Johannes Meinel & contributors
  * SPDX ID: Apache-2.0
  * URL: https://www.apache.org/licenses/LICENSE-2.0
  * -----
@@ -14,12 +14,19 @@ use bevy::{
     prelude::*,
 };
 
-pub(super) fn plugin(app: &mut App) {
-    // Apply global volume if it is changed
-    app.add_systems(
-        Update,
-        apply_global_volume.run_if(resource_changed::<GlobalVolume>),
-    );
+#[allow(unused_imports)]
+pub(crate) mod prelude {
+    pub(crate) use super::{Music, SoundEffect, music, sound_effect};
+}
+
+pub(super) struct AudioPlugin;
+impl Plugin for AudioPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(
+            Update,
+            apply_global_volume.run_if(resource_changed::<GlobalVolume>),
+        );
+    }
 }
 
 /// An organizational marker component that should be added to a spawned [`AudioPlayer`] if it's in the

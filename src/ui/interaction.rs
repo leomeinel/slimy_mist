@@ -15,29 +15,28 @@ use bevy::{
 };
 use bevy_asset_loader::prelude::*;
 
-use crate::{audio::sound_effect, ui::prelude::*};
+use crate::{audio::prelude::*, ui::prelude::*};
 
-pub(super) fn plugin(app: &mut App) {
-    // Insert states
-    app.init_state::<OverrideInteraction>();
+pub(super) struct UiInteractionPlugin;
+impl Plugin for UiInteractionPlugin {
+    fn build(&self, app: &mut App) {
+        app.init_state::<OverrideInteraction>();
 
-    // Visualize ui interactions
-    app.add_systems(OnEnter(OverrideInteraction(false)), reset_palette);
-    app.add_systems(
-        Update,
-        (
-            apply_palette,
-            visualize_button_hover,
-            visualize_button_pressed,
-        ),
-    );
+        app.add_systems(OnEnter(OverrideInteraction(false)), reset_palette);
+        app.add_systems(
+            Update,
+            (
+                apply_palette,
+                visualize_button_hover,
+                visualize_button_pressed,
+            )
+                .in_set(AppUiSystems::VisualizeInteraction),
+        );
 
-    // Reset `CursorIcon`
-    app.add_observer(reset_cursor_on_remove_button);
-
-    // Play sound effects
-    app.add_observer(play_on_hover_sound_effect);
-    app.add_observer(play_on_click_sound_effect);
+        app.add_observer(reset_cursor_on_remove_button);
+        app.add_observer(play_on_hover_sound_effect);
+        app.add_observer(play_on_click_sound_effect);
+    }
 }
 
 /// Tracks whether [`Interaction::None`] is allowed to be overriden by [`InteractionOverride`].
@@ -85,7 +84,7 @@ pub(crate) struct InteractionAssets {
 /// This sets the appropriate [`BackgroundColor`] for all [`Interaction::None`].
 ///
 /// This allows [`Interaction`] to override [`OverrideInteraction`] in certain scenarios.
-pub(crate) fn reset_palette(
+pub(super) fn reset_palette(
     query: Query<(&Interaction, &InteractionPalette, &mut BackgroundColor)>,
 ) {
     for (interaction, palette, mut background) in query {
@@ -96,7 +95,7 @@ pub(crate) fn reset_palette(
 }
 
 /// Apply [`BackgroundColor`] from palette mapped to [`Interaction`] or [`InteractionOverride`].
-pub(crate) fn apply_palette(
+pub(super) fn apply_palette(
     query: Query<
         (
             &Interaction,
@@ -122,7 +121,7 @@ pub(crate) fn apply_palette(
 }
 
 /// Set [`CursorIcon`] according to [`Interaction`].
-pub(crate) fn visualize_button_hover(
+pub(super) fn visualize_button_hover(
     window: Single<(Entity, Option<&CursorIcon>), With<PrimaryWindow>>,
     query: Query<&Interaction, (Changed<Interaction>, With<Button>)>,
     mut commands: Commands,
@@ -144,7 +143,7 @@ pub(crate) fn visualize_button_hover(
 }
 
 /// Move [`Node`] based on [`NodeOffset`] according to [`Interaction`].
-pub(crate) fn visualize_button_pressed(
+pub(super) fn visualize_button_pressed(
     query: Query<(&Interaction, &NodeOffset, &mut Node), (Changed<Interaction>, With<Button>)>,
 ) {
     for (interaction, offset, mut node) in query {
@@ -157,7 +156,7 @@ pub(crate) fn visualize_button_pressed(
 }
 
 /// Reset [`CursorIcon`].
-fn reset_cursor_on_remove_button(
+pub(super) fn reset_cursor_on_remove_button(
     _: On<Remove, Button>,
     window: Single<(Entity, Option<&CursorIcon>), With<PrimaryWindow>>,
     mut commands: Commands,
@@ -170,7 +169,7 @@ fn reset_cursor_on_remove_button(
 }
 
 /// Play sound effect on hover
-fn play_on_hover_sound_effect(
+pub(super) fn play_on_hover_sound_effect(
     event: On<Pointer<Over>>,
     query: Query<(), Or<(With<Interaction>, With<InteractionOverride>)>>,
     mut commands: Commands,
@@ -182,7 +181,7 @@ fn play_on_hover_sound_effect(
 }
 
 /// Play sound effect on click
-fn play_on_click_sound_effect(
+pub(super) fn play_on_click_sound_effect(
     event: On<Pointer<Click>>,
     query: Query<(), Or<(With<Interaction>, With<InteractionOverride>)>>,
     mut commands: Commands,

@@ -12,18 +12,6 @@ use bevy::{
     prelude::*,
     window::PrimaryWindow,
 };
-use bevy_enhanced_input::prelude::*;
-
-use crate::screens::Screen;
-
-pub(super) fn plugin(app: &mut App) {
-    app.add_systems(
-        PreUpdate,
-        (update_pointer_start_time_secs, update_mouse_drag)
-            .before(EnhancedInputSystems::Update)
-            .run_if(in_state(Screen::Gameplay)),
-    );
-}
 
 /// Threshold for a valid swipe action from touch input in logical pixels.
 const SWIPE_THRESHOLD: f32 = 50.;
@@ -82,7 +70,7 @@ impl Swipe for MouseDrag {
 /// Update info in [`PointerStartTimeSecs`].
 ///
 /// This handles [`TouchInput`] and [`ButtonInput<MouseButton>`] for [`MouseButton::Left`].
-fn update_pointer_start_time_secs(
+pub(super) fn update_pointer_start_time_secs(
     mut reader: MessageReader<TouchInput>,
     mut pointer_start: ResMut<PointerStartTimeSecs>,
     mouse: Res<ButtonInput<MouseButton>>,
@@ -98,7 +86,7 @@ fn update_pointer_start_time_secs(
 /// Update info in [`MouseDrag`].
 ///
 /// This only handles [`ButtonInput<MouseButton>`] for [`MouseButton::Left`].
-fn update_mouse_drag(
+pub(super) fn update_mouse_drag(
     window: Single<&Window, With<PrimaryWindow>>,
     mut drag: ResMut<MouseDrag>,
     mouse: Res<ButtonInput<MouseButton>>,

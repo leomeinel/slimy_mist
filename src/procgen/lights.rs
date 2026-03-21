@@ -1,5 +1,5 @@
 /*
- * File: lighting.rs
+ * File: lights.rs
  * Author: Leopold Johannes Meinel (leo@meinel.dev)
  * -----
  * Copyright (c) 2026 Leopold Johannes Meinel & contributors
@@ -11,12 +11,7 @@ use bevy::prelude::*;
 use bevy_prng::WyRand;
 use rand::seq::IndexedRandom as _;
 
-use crate::{
-    levels::Level,
-    light::LightWrapper,
-    procgen::{CHUNK_SIZE, ProcGen, ProcGenCache, ProcGenRng, ProcGenerated, TileDataCache},
-    visual::Visible,
-};
+use crate::{images::prelude::*, levels::prelude::*, procgen::prelude::*, render::prelude::*};
 
 /// Number of lights to spawn per chunk
 const LIGHTS_PER_CHUNK: usize = 4;
@@ -28,7 +23,7 @@ const LIGHTS_PER_CHUNK: usize = 4;
 /// - `T` must implement [`LightWrapper`] + [`ProcGenerated`] + [`Visible`] and is used as the procedurally generated object associated with a [`ProcGenCache<T>`].
 /// - `A` must implement [`ProcGenerated`] and is used as a level's procedurally generated item.
 /// - `B` must implement [`Level`].
-pub(crate) fn spawn_on_procgen_lights<T, A, B>(
+pub(super) fn spawn_on_procgen_lights<T, A, B>(
     event: On<ProcGen<T>>,
     level: Single<Entity, With<B>>,
     mut procgen_rng: Single<&mut WyRand, With<ProcGenRng>>,

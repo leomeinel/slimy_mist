@@ -13,61 +13,30 @@
 //!
 //! Additional settings and accessibility options should go here.
 
-use bevy::{audio::Volume, input::common_conditions::input_just_pressed, prelude::*};
+use bevy::{audio::Volume, prelude::*};
 
-use crate::{
-    input::joystick::{JoystickID, JoystickState},
-    log::error::*,
-    menus::Menu,
-    screens::Screen,
-    ui::{
-        interaction::apply_palette,
-        prelude::*,
-        widgets::{ButtonBase, ButtonText},
-    },
-};
-
-pub(super) fn plugin(app: &mut App) {
-    // Open settings menu on state
-    app.add_systems(OnEnter(Menu::Settings), spawn_settings_menu);
-
-    // Exit settings menu on pressing Escape
-    app.add_systems(
-        Update,
-        go_back.run_if(in_state(Menu::Settings).and(input_just_pressed(KeyCode::Escape))),
-    );
-
-    // Handle changes to settings
-    app.add_systems(
-        Update,
-        (
-            update_joystick_button.before(apply_palette),
-            update_global_volume_label,
-        )
-            .run_if(in_state(Menu::Settings)),
-    );
-}
+use crate::{input::prelude::*, log::prelude::*, screens::prelude::*, ui::prelude::*};
 
 /// Global volume label marker
 #[derive(Component, Reflect)]
 #[reflect(Component)]
-struct GlobalVolumeLabel;
+pub(super) struct GlobalVolumeLabel;
 
 /// Toggle joystick button marker
 #[derive(Component, Reflect)]
 #[reflect(Component)]
-struct ToggleJoystickButton<const ID: u8>;
+pub(super) struct ToggleJoystickButton<const ID: u8>;
 
 /// Spawn settings menu
-fn spawn_settings_menu(mut commands: Commands, font: Res<UiFontHandle>) {
+pub(super) fn spawn_settings_menu(mut commands: Commands, font: Res<UiFontHandle>) {
     commands.spawn((
-        widgets::ui_root("Settings Menu"),
+        root_widget("Settings Menu"),
         GlobalZIndex(2),
         DespawnOnExit(Menu::Settings),
         children![
-            widgets::header("Settings", font.0.clone()),
+            header_widget("Settings", font.0.clone()),
             settings_grid(font.0.clone()),
-            widgets::button_large("Back", font.0.clone(), go_back_on_click),
+            button_large("Back", font.0.clone(), go_back_on_click),
         ],
     ));
 }
@@ -95,7 +64,7 @@ fn settings_grid(font: Handle<Font>) -> impl Bundle {
 /// Label for configuration in settings.
 fn settings_label(font: Handle<Font>, label: &'static str) -> (impl Bundle, Node) {
     (
-        widgets::label(label, font.clone()),
+        label_widget(label, font.clone()),
         Node {
             justify_self: JustifySelf::End,
             ..default()
@@ -112,7 +81,7 @@ fn global_volume_widget(font: Handle<Font>) -> impl Bundle {
             ..default()
         },
         children![
-            widgets::button_small("-", font.clone(), lower_global_volume_on_click),
+            button_small("-", font.clone(), lower_global_volume_on_click),
             (
                 Name::new("Current Volume"),
                 Node {
@@ -121,9 +90,9 @@ fn global_volume_widget(font: Handle<Font>) -> impl Bundle {
                     justify_content: JustifyContent::Center,
                     ..default()
                 },
-                children![(GlobalVolumeLabel, widgets::label("", font.clone()))],
+                children![(GlobalVolumeLabel, label_widget("", font.clone()))],
             ),
-            widgets::button_small("+", font.clone(), raise_global_volume_on_click),
+            button_small("+", font.clone(), raise_global_volume_on_click),
         ],
     )
 }
@@ -146,7 +115,7 @@ fn raise_global_volume_on_click(_: On<Pointer<Click>>, mut global_volume: ResMut
 }
 
 /// Update global volume label that displays volume
-fn update_global_volume_label(
+pub(super) fn update_global_volume_label(
     mut label: Single<&mut Text, With<GlobalVolumeLabel>>,
     global_volume: Res<GlobalVolume>,
 ) {
@@ -172,7 +141,7 @@ fn toggle_joystick_widget(font: Handle<Font>) -> impl Bundle {
             },
             children![(
                 ToggleJoystickButton::<{ JoystickID::Movement as u8 }>,
-                widgets::switch_medium("", font.clone(), toggle_joystick_on_click),
+                switch_medium("", font.clone(), toggle_joystick_on_click),
             )]
         )],
     )
@@ -190,7 +159,7 @@ fn toggle_joystick_on_click(
 }
 
 /// Update global volume label that displays volume
-fn update_joystick_button(
+pub(super) fn update_joystick_button(
     children: Single<&Children, With<ToggleJoystickButton<{ JoystickID::Movement as u8 }>>>,
     mut base_query: Query<(&mut BackgroundColor, &Children), (With<ButtonBase>, Without<Button>)>,
     mut surface_query: Query<
@@ -242,6 +211,11 @@ fn update_joystick_button(
     text.0 = new_text.to_uppercase();
 }
 
+/// Go back to [`Menu`] matching `state`.
+pub(super) fn go_back(mut next_state: ResMut<NextState<Menu>>, state: Res<State<Screen>>) {
+    (*next_state).set_if_neq(state.back_menu());
+}
+
 /// Call [`go_back`] on pointer click.
 fn go_back_on_click(
     _: On<Pointer<Click>>,
@@ -249,9 +223,4 @@ fn go_back_on_click(
     state: Res<State<Screen>>,
 ) {
     go_back(next_state, state);
-}
-
-/// Go back.
-fn go_back(mut next_state: ResMut<NextState<Menu>>, state: Res<State<Screen>>) {
-    (*next_state).set_if_neq(state.back_menu());
 }

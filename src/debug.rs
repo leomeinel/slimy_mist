@@ -1,5 +1,5 @@
 /*
- * File: dev_tools.rs
+ * File: debug.rs
  * Author: Leopold Johannes Meinel (leo@meinel.dev)
  * -----
  * Copyright (c) 2026 Leopold Johannes Meinel & contributors
@@ -22,61 +22,53 @@ use bevy_rapier2d::render::{DebugRenderContext, RapierDebugRenderPlugin};
 use vleue_navigator::prelude::*;
 
 use crate::{
-    Pause,
-    characters::nav::Path,
-    input::joystick::{JoystickID, JoystickState},
-    menus::Menu,
-    procgen::{DespawnProcGen, ProcGenInit, ProcGenState},
-    screens::Screen,
-    ui::{interaction::OverrideInteraction, prelude::*},
+    characters::prelude::*, core::prelude::*, input::prelude::*, procgen::prelude::*,
+    screens::prelude::*, ui::prelude::*,
 };
 
-pub(super) fn plugin(app: &mut App) {
-    // Add library plugins
-    app.add_plugins((
-        EguiPlugin::default(),
-        WorldInspectorPlugin::default().run_if(in_state(Debugging(true))),
-        RapierDebugRenderPlugin::default().disabled(),
-    ));
+pub(super) struct DebugPlugin;
+impl Plugin for DebugPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_plugins((
+            EguiPlugin::default(),
+            WorldInspectorPlugin::default().run_if(in_state(Debugging(true))),
+            RapierDebugRenderPlugin::default().disabled(),
+        ));
 
-    // Insert states
-    app.init_state::<Debugging>();
+        app.init_state::<Debugging>();
 
-    // Toggle debugging state
-    app.add_systems(
-        Update,
-        toggle_debugging.run_if(input_just_pressed(TOGGLE_KEY)),
-    );
-    // Toggle debug overlays
-    app.add_systems(
-        Update,
-        (
-            toggle_debug_ui,
-            (toggle_debug_colliders, toggle_debug_navmeshes).run_if(in_state(Screen::Gameplay)),
-        )
-            .run_if(state_changed::<Debugging>),
-    );
-    app.add_systems(
-        Update,
-        (display_prim_obstacles, display_navigator_path)
-            .run_if(in_state(Debugging(true)).and(in_state(Screen::Gameplay))),
-    );
-
-    // Log state transitions.
-    app.add_systems(
-        Update,
-        (
-            log_transitions::<Debugging>,
-            log_transitions::<JoystickState<{ JoystickID::Movement as u8 }>>,
-            log_transitions::<Menu>,
-            log_transitions::<OverrideInteraction>,
-            log_transitions::<Pause>,
-            log_transitions::<DespawnProcGen>,
-            log_transitions::<ProcGenInit>,
-            log_transitions::<ProcGenState>,
-            log_transitions::<Screen>,
-        ),
-    );
+        app.add_systems(
+            Update,
+            toggle_debugging.run_if(input_just_pressed(TOGGLE_KEY)),
+        );
+        app.add_systems(
+            Update,
+            (
+                toggle_debug_ui,
+                (toggle_debug_colliders, toggle_debug_navmeshes).run_if(in_state(Screen::Gameplay)),
+            )
+                .run_if(state_changed::<Debugging>),
+        );
+        app.add_systems(
+            Update,
+            (display_prim_obstacles, display_navigator_path)
+                .run_if(in_state(Debugging(true)).and(in_state(Screen::Gameplay))),
+        );
+        app.add_systems(
+            Update,
+            (
+                log_transitions::<Debugging>,
+                log_transitions::<JoystickState<{ JoystickID::Movement as u8 }>>,
+                log_transitions::<Menu>,
+                log_transitions::<OverrideInteraction>,
+                log_transitions::<Pause>,
+                log_transitions::<DespawnProcGen>,
+                log_transitions::<ProcGenInit>,
+                log_transitions::<ProcGenState>,
+                log_transitions::<Screen>,
+            ),
+        );
+    }
 }
 
 /// Toggle key

@@ -20,34 +20,9 @@ use bevy_rapier2d::prelude::*;
 use bevy_spritesheet_animation::prelude::*;
 
 use crate::{
-    AppSystems,
-    animations::{AnimationCache, AnimationState, AnimationTimer, Animations},
-    camera::{FOREGROUND_Z, ysort::YSort},
-    characters::{
-        Character, CharacterAssets,
-        attack::{AttackStats, punch},
-        health::Health,
-        movement::{FacingDirection, JumpHeight, JumpTimer, WalkSpeed},
-        nav::NavTarget,
-    },
-    impl_character_assets,
-    input::actions::player_input,
-    log::error::*,
-    visual::Visible,
+    animations::prelude::*, characters::prelude::*, input::prelude::*, log::prelude::*,
+    render::prelude::*,
 };
-
-pub(super) fn plugin(app: &mut App) {
-    // Insert resources
-    app.init_resource::<Animations<Player>>();
-
-    // Jump or stop jump depending on timer
-    app.add_systems(
-        Update,
-        (apply_jump.before(PhysicsSet::SyncBackend), limit_jump)
-            .chain()
-            .in_set(AppSystems::Update),
-    );
-}
 
 /// Walk speed of [`Player`].
 const PLAYER_WALK_SPEED: f32 = 60.;
@@ -120,7 +95,7 @@ impl Visible for Player {}
 const JUMP_HEIGHT: f32 = 12.;
 
 /// Apply jump
-fn apply_jump(
+pub(super) fn apply_jump(
     player: Single<(&AnimationCache, &mut JumpHeight, &JumpTimer, &Children), With<Player>>,
     mut transform_query: Query<&mut Transform, With<SpritesheetAnimation>>,
 ) {
@@ -151,7 +126,7 @@ fn apply_jump(
 }
 
 /// Limit jump by setting fall after specific time and then switching to walk
-fn limit_jump(
+pub(super) fn limit_jump(
     player: Single<(Entity, &mut AnimationCache, &mut JumpHeight, &JumpTimer), With<Player>>,
     mut commands: Commands,
 ) {

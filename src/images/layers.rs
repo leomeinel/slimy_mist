@@ -13,7 +13,7 @@ use std::marker::PhantomData;
 
 use bevy::{asset::RenderAssetUsages, prelude::*};
 
-use crate::{log::error::*, visual::Visible};
+use crate::{log::prelude::*, render::prelude::*};
 
 /// Layer data deserialized from a ron file as a generic
 ///
@@ -103,6 +103,21 @@ where
 
         DisplayImage::new(images.add(image))
     }
+}
+
+/// Insert [`DisplayImage`].
+///
+/// ## Traits
+///
+/// - `T` must implement [`Visible`].
+pub(super) fn insert_display_image<T>(
+    mut commands: Commands,
+    mut images: ResMut<Assets<Image>>,
+    data: Res<LayerDataRelatedCache<T>>,
+) where
+    T: Visible,
+{
+    commands.insert_resource(data.to_display_image(&mut images));
 }
 
 /// [`Image`] for displaying `T`

@@ -10,16 +10,6 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::{AppSystems, screens::Screen};
-
-pub(super) fn plugin(app: &mut App) {
-    // Tick timers
-    app.add_systems(Update, tick_jump_timer.in_set(AppSystems::TickTimers));
-
-    // Update facing
-    app.add_systems(PostUpdate, update_facing.run_if(in_state(Screen::Gameplay)));
-}
-
 // FIXME: This should be influenced by aiming direction and should determine sprite flip.
 //        Movement direction should be secondary.
 /// Direction the [`Character`] is facing.
@@ -43,7 +33,7 @@ pub(crate) struct WalkSpeed(pub(crate) f32);
 pub(crate) const JUMP_DURATION_SECS: f32 = 1.;
 
 /// Timer that tracks jumping
-#[derive(Component, Debug, Clone, PartialEq, Reflect)]
+#[derive(Component, Debug, Clone, PartialEq, Reflect, Deref, DerefMut)]
 #[reflect(Component)]
 pub(crate) struct JumpTimer(pub(crate) Timer);
 impl Default for JumpTimer {
@@ -56,7 +46,7 @@ impl Default for JumpTimer {
 }
 
 /// Update [`FacingDirection`] from [`KinematicCharacterControllerOutput::desired_translation`].
-fn update_facing(
+pub(super) fn update_facing(
     query: Query<
         (&mut FacingDirection, &KinematicCharacterControllerOutput),
         Changed<KinematicCharacterControllerOutput>,
@@ -68,12 +58,5 @@ fn update_facing(
         if controller_output.desired_translation != Vec2::ZERO {
             facing.0 = controller_output.desired_translation.normalize_or_zero();
         }
-    }
-}
-
-/// Tick [`JumpTimer`]
-fn tick_jump_timer(mut query: Query<&mut JumpTimer>, time: Res<Time>) {
-    for mut timer in &mut query {
-        timer.0.tick(time.delta());
     }
 }

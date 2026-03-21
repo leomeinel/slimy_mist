@@ -13,26 +13,7 @@ use bevy::{platform::collections::HashSet, prelude::*};
 use bevy_rapier2d::{parry::shape, prelude::*};
 use ordered_float::OrderedFloat;
 
-use crate::{
-    AppSystems,
-    camera::OVERLAY_Z,
-    characters::{
-        Character, CollisionDataCache,
-        health::{Damage, Health},
-        movement::FacingDirection,
-        player::Player,
-    },
-    log::{error::*, warn::*},
-    visual::particles::{ParticleHandle, ParticleMeleeAttack, SpawnParticleOnce},
-};
-
-pub(super) fn plugin(app: &mut App) {
-    // Tick timers
-    app.add_systems(Update, tick_attack_timer.in_set(AppSystems::TickTimers));
-
-    app.add_observer(on_melee_attack::<Player>);
-    app.add_observer(on_delay_attack);
-}
+use crate::{characters::prelude::*, log::prelude::*, render::prelude::*};
 
 /// Applies to anything that is a type of [`Attack`].
 pub(crate) trait AttackType {}
@@ -71,7 +52,7 @@ where
 
 /// [`EntityEvent`] that is triggered if the contained [`Entity`]'s next [`Attack`] should be delayed.
 #[derive(EntityEvent)]
-pub(crate) struct DelayAttack {
+pub(super) struct DelayAttack {
     entity: Entity,
     cooldown_secs: f32,
 }
@@ -86,7 +67,7 @@ pub(crate) struct AttackStats {
 }
 
 /// Timer that tracks [`Attack`]s
-#[derive(Component, Debug, Clone, PartialEq, Reflect)]
+#[derive(Component, Debug, Clone, PartialEq, Reflect, Deref, DerefMut)]
 #[reflect(Component)]
 pub(crate) struct AttackTimer(pub(crate) Timer);
 
@@ -105,7 +86,7 @@ pub(crate) fn punch() -> AttackData {
 /// ## Traits
 ///
 /// - `T` must implement [`Character`] and is used as the character associated with a [`AttackStats`].
-fn on_melee_attack<T>(
+pub(super) fn on_melee_attack<T>(
     event: On<Attack<MeleeAttack>>,
     target_query: Query<&Health>,
     origin_query: Query<(&Transform, &FacingDirection, &AttackStats), With<T>>,
@@ -176,18 +157,11 @@ fn on_melee_attack<T>(
 }
 
 /// Insert [`AttackTimer`] to delay [`Attack`]s.
-fn on_delay_attack(event: On<DelayAttack>, mut commands: Commands) {
+pub(super) fn on_delay_attack(event: On<DelayAttack>, mut commands: Commands) {
     commands
         .entity(event.entity)
         .insert(AttackTimer(Timer::from_seconds(
             event.cooldown_secs,
             TimerMode::Once,
         )));
-}
-
-/// Tick [`AttackTimer`]
-fn tick_attack_timer(mut query: Query<&mut AttackTimer>, time: Res<Time>) {
-    for mut timer in &mut query {
-        timer.0.tick(time.delta());
-    }
 }

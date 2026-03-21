@@ -17,14 +17,8 @@ use bevy_prng::WyRand;
 use rand::seq::IndexedRandom;
 
 use crate::{
-    audio::music,
-    camera::LEVEL_Z,
-    characters::{SpawnCharacter, player::Player},
-    impl_level_assets,
-    levels::{Level, LevelAssets, LevelRng},
-    log::warn::*,
-    procgen::ProcGenerated,
-    screens::Screen,
+    audio::prelude::*, characters::prelude::*, levels::prelude::*, log::prelude::*,
+    procgen::prelude::*, render::prelude::*, screens::prelude::*,
 };
 
 /// Assets for the overworld
@@ -55,7 +49,7 @@ const LEVEL_POS: Vec3 = Vec3::new(0., 0., LEVEL_Z);
 const PLAYER_POS: Vec2 = Vec2::new(0., 0.);
 
 /// Spawn overworld with player, enemies and objects
-pub(crate) fn spawn_overworld(
+pub(super) fn spawn_overworld(
     mut level_rng: Single<&mut WyRand, With<LevelRng>>,
     mut commands: Commands,
     level_assets: Res<OverworldAssets>,

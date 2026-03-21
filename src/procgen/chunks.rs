@@ -14,14 +14,7 @@ use bevy_ecs_tilemap::prelude::*;
 use bevy_prng::WyRand;
 use rand::RngExt as _;
 
-use crate::{
-    camera::LEVEL_Z,
-    levels::{Level, LevelAssets},
-    procgen::{
-        CHUNK_SIZE, PROCGEN_DISTANCE, ProcGen, ProcGenCache, ProcGenRng, ProcGenState,
-        ProcGenerated, TileDataCache,
-    },
-};
+use crate::{images::prelude::*, levels::prelude::*, procgen::prelude::*, render::prelude::*};
 
 /// Spawn chunks around the camera
 ///
@@ -29,7 +22,7 @@ use crate::{
 ///
 /// - `T` must implement [`ProcGenerated`]' and is used as the procedurally generated level associated with a [`ProcGenCache<T>`].
 /// - `A` must implement [`Level`].
-pub(crate) fn spawn_chunks<T, A>(
+pub(super) fn spawn_chunks<T, A>(
     level: Single<Entity, With<A>>,
     mut commands: Commands,
     mut next_state: ResMut<NextState<ProcGenState>>,
@@ -72,7 +65,7 @@ pub(crate) fn spawn_chunks<T, A>(
 /// - `T` must implement [`ProcGenerated`]' and is used as the procedurally generated level associated with a [`ProcGenCache<T>`].
 /// - `A` must implement [`LevelAssets`] and is used as a level's assets.
 /// - `B` must implement [`Level`].
-pub(crate) fn spawn_on_procgen_chunks<T, A, B>(
+pub(super) fn spawn_on_procgen_chunks<T, A, B>(
     event: On<ProcGen<T>>,
     level: Single<Entity, With<B>>,
     mut rng: Single<&mut WyRand, With<ProcGenRng>>,

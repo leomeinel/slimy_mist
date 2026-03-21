@@ -9,16 +9,37 @@
 
 //! Game worlds
 
-pub(crate) mod overworld;
+mod navmesh;
+mod overworld;
+
+pub(crate) mod prelude {
+    pub(crate) use super::overworld::{Overworld, OverworldAssets, OverworldProcGen};
+    pub(crate) use super::{Level, LevelAssets, LevelRng, impl_level_assets};
+}
 
 use bevy::{prelude::*, reflect::Reflectable};
 use bevy_asset_loader::asset_collection::AssetCollection;
 
-use crate::utils::rng::{ForkedRng, setup_rng};
+use crate::{screens::prelude::*, utils::prelude::*};
 
-pub(super) fn plugin(app: &mut App) {
-    // Add rng for levels
-    app.add_systems(Startup, setup_rng::<LevelRng>);
+pub(super) struct LevelsPlugin;
+impl Plugin for LevelsPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_plugins(navmesh::NavMeshPlugin);
+
+        app.add_systems(Startup, setup_rng::<LevelRng>);
+        app.add_systems(
+            OnEnter(Screen::Gameplay),
+            overworld::spawn_overworld.in_set(EnterGameplaySystems::Levels),
+        );
+    }
+}
+
+/// Applies to anything that is a level
+pub(crate) trait Level
+where
+    Self: Component + Default + Reflectable,
+{
 }
 
 /// Applies to anything that stores level assets
@@ -29,7 +50,6 @@ where
     fn music(&self) -> &Option<Vec<Handle<AudioSource>>>;
     fn tile_set(&self) -> &Handle<Image>;
 }
-#[macro_export]
 macro_rules! impl_level_assets {
     ($type: ty) => {
         impl LevelAssets for $type {
@@ -42,13 +62,7 @@ macro_rules! impl_level_assets {
         }
     };
 }
-
-/// Applies to anything that is a level
-pub(crate) trait Level
-where
-    Self: Component + Default + Reflectable,
-{
-}
+pub(crate) use impl_level_assets;
 
 /// Rng for levels
 #[derive(Component, Default)]

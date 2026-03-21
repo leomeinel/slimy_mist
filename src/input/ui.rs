@@ -7,37 +7,23 @@
  * URL: https://www.apache.org/licenses/LICENSE-2.0
  */
 
-use bevy::{
-    input::mouse::{MouseScrollUnit, MouseWheel},
-    platform::collections::HashSet,
-    prelude::*,
-};
+pub(super) mod nav;
+pub(super) mod scroll;
 
-use crate::{
-    AppSystems,
-    input::pointer::Swipe as _,
-    ui::scroll::{InputScroll, ScrollAction},
-    utils::run_conditions::component_is_present,
-};
+use bevy::{platform::collections::HashSet, prelude::*};
 
-pub(super) fn plugin(app: &mut App) {
-    // Insert resources
-    app.init_resource::<UiNavActionSet>();
+pub(super) struct UiInputPlugin;
+impl Plugin for UiInputPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_plugins((nav::UiInputNavPlugin, scroll::UiInputScrollPlugin));
 
-    app.add_systems(
-        PreUpdate,
-        process_inputs.run_if(component_is_present::<UiNav>),
-    );
+        app.init_resource::<UiNavActionSet>();
 
-    app.add_systems(
-        Update,
-        (
-            input_scroll_directional_nav,
-            input_scroll_mouse_wheel,
-            input_scroll_touch,
-        )
-            .in_set(AppSystems::RecordInput),
-    );
+        app.add_systems(
+            PreUpdate,
+            process_inputs.run_if(any_with_component::<UiNav>),
+        );
+    }
 }
 
 /// Marker [`Component`] for directional navigation.
@@ -110,7 +96,7 @@ impl UiNavActionSet {
 //        since I only have gamepads that are very broken, but I will test this further.
 //        Also for future testing use https://gamepadtest.com
 /// Process inputs and insert [`UiNavAction`] into [`UiNavActionSet`].
-fn process_inputs(
+pub(super) fn process_inputs(
     gamepad_query: Query<&Gamepad>,
     mut action_set: ResMut<UiNavActionSet>,
     keyboard: Res<ButtonInput<KeyCode>>,
@@ -139,77 +125,5 @@ fn process_inputs(
         if (on_just_pressed && just_pressed) || (!on_just_pressed && just_released) {
             action_set.0.insert(action);
         }
-    }
-}
-
-/// Trigger [`Scroll`] for [`Entity`] with [`InputScroll`] from [`UiNavActionSet`].
-///
-/// - This assumes that only a single [`InputScroll`] is present.
-fn input_scroll_directional_nav(
-    scroll: Single<(Entity, &Node, &InputScroll)>,
-    mut commands: Commands,
-    action_set: Res<UiNavActionSet>,
-) {
-    let (entity, node, scroll) = *scroll;
-    let Some(delta) = action_set.direction().map(|d| -d.as_vec2() * scroll.0) else {
-        return;
-    };
-    if (node.align_items == AlignItems::Center || delta.x == 0.)
-        && (node.justify_content == JustifyContent::Center || delta.y == 0.)
-    {
-        return;
-    }
-
-    commands.trigger(ScrollAction { entity, delta });
-}
-
-/// Trigger [`Scroll`] for [`Entity`] with [`InputScroll`] from [`Touches`].
-///
-/// - This assumes that only a single [`InputScroll`] is present.
-fn input_scroll_touch(
-    scroll: Single<(Entity, &Node, &InputScroll)>,
-    mut commands: Commands,
-    touches: Res<Touches>,
-) {
-    for touch in touches.iter() {
-        let (entity, node, scroll) = *scroll;
-        if ((node.align_items == AlignItems::Center || scroll.0.x == 0.)
-            && (node.justify_content == JustifyContent::Center || scroll.0.y == 0.))
-            || !touch.is_vertical_swipe()
-        {
-            continue;
-        }
-        let delta = -touch.delta();
-
-        commands.trigger(ScrollAction { entity, delta });
-    }
-}
-
-/// Trigger [`Scroll`] for [`Entity`] with [`InputScroll`] from [`MouseWheel`].
-///
-/// - This assumes that only a single [`InputScroll`] is present.
-fn input_scroll_mouse_wheel(
-    mut reader: MessageReader<MouseWheel>,
-    scroll: Single<(Entity, &Node, &InputScroll)>,
-    mut commands: Commands,
-    keyboard: Res<ButtonInput<KeyCode>>,
-) {
-    for mouse_wheel in reader.read() {
-        let (entity, node, scroll) = *scroll;
-        if (node.align_items == AlignItems::Center || scroll.0.x == 0.)
-            && (node.justify_content == JustifyContent::Center || scroll.0.y == 0.)
-        {
-            continue;
-        }
-
-        let mut delta = -Vec2::new(mouse_wheel.x, mouse_wheel.y);
-        if mouse_wheel.unit == MouseScrollUnit::Line {
-            delta *= scroll.0;
-        }
-        if keyboard.any_pressed([KeyCode::ControlLeft, KeyCode::ControlRight]) {
-            std::mem::swap(&mut delta.x, &mut delta.y);
-        }
-
-        commands.trigger(ScrollAction { entity, delta });
     }
 }

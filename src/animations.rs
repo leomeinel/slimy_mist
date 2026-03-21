@@ -17,60 +17,60 @@
 //! - [Sprite animation](https://github.com/bevyengine/bevy/blob/latest/examples/2d/sprite_animation.rs)
 //! - [Timers](https://github.com/bevyengine/bevy/blob/latest/examples/time/timers.rs)
 
+mod audio;
+mod sprites;
+
+pub(crate) mod prelude {
+    pub(crate) use super::{
+        ANIMATION_DELAY_RANGE_SECS, AnimationCache, AnimationData, AnimationDataCache,
+        AnimationHandle, AnimationRng, AnimationState, AnimationTimer, Animations,
+    };
+}
+
 use std::{marker::PhantomData, ops::Range};
 
 use bevy::prelude::*;
-use bevy_prng::WyRand;
-use bevy_rapier2d::prelude::KinematicCharacterControllerOutput;
 use bevy_spritesheet_animation::prelude::*;
-use rand::seq::IndexedRandom as _;
 
-use crate::{
-    AppSystems, PausableSystems,
-    audio::sound_effect,
-    characters::{
-        Character, CharacterAssets,
-        movement::JUMP_DURATION_SECS,
-        npc::{Slime, SlimeAssets},
-        player::{Player, PlayerAssets},
-    },
-    log::{error::*, warn::*},
-    screens::Screen,
-    utils::rng::{ForkedRng, setup_rng},
-    visual::{TextureInfoCache, Visible, layers::DisplayImage},
-};
+use crate::{characters::prelude::*, core::prelude::*, screens::prelude::*, utils::prelude::*};
 
-pub(super) fn plugin(app: &mut App) {
-    // Add library plugins
-    app.add_plugins(SpritesheetAnimationPlugin);
+pub(super) struct AnimationsPlugin;
+impl Plugin for AnimationsPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_plugins(SpritesheetAnimationPlugin);
 
-    // Add rng for animations
-    app.add_systems(Startup, setup_rng::<AnimationRng>);
-
-    // Animation updates
-    app.add_systems(
-        Update,
-        (
-            flip_sprites::<Player>,
-            flip_sprites::<Slime>,
+        app.add_systems(Startup, setup_rng::<AnimationRng>);
+        app.add_systems(
+            OnEnter(Screen::Gameplay),
             (
-                update_animations::<Player>,
-                update_animation_sounds::<Player, PlayerAssets>,
+                sprites::setup_animations::<Player>,
+                sprites::setup_animations::<Slime>,
             )
-                .chain(),
+                .in_set(EnterGameplaySystems::Animations),
+        );
+        app.add_systems(
+            Update,
             (
-                update_animations::<Slime>,
-                update_animation_sounds::<Slime, SlimeAssets>,
+                (
+                    sprites::update_animations::<Player>,
+                    audio::update_animation_sounds::<Player, PlayerAssets>,
+                )
+                    .chain(),
+                (
+                    sprites::update_animations::<Slime>,
+                    audio::update_animation_sounds::<Slime, SlimeAssets>,
+                )
+                    .chain(),
             )
-                .chain(),
-        )
-            .run_if(in_state(Screen::Gameplay))
-            .in_set(AppSystems::Update)
-            .in_set(PausableSystems),
-    );
-
-    // Tick animation timer
-    app.add_systems(Update, tick_animation_timer.in_set(AppSystems::TickTimers));
+                .run_if(in_state(Screen::Gameplay))
+                .in_set(AppSystems::Update)
+                .in_set(PausableSystems),
+        );
+        app.add_systems(
+            Update,
+            tick_component_timer::<AnimationTimer>.in_set(AppSystems::TickTimers),
+        );
+    }
 }
 
 /// Animation delay [`Range`] in seconds
@@ -204,7 +204,7 @@ impl AnimationCache {
 }
 
 /// Timer that tracks animation
-#[derive(Component, Debug, Clone, PartialEq, Reflect)]
+#[derive(Component, Debug, Clone, PartialEq, Reflect, Deref, DerefMut)]
 #[reflect(Component)]
 pub(crate) struct AnimationTimer(pub(crate) Timer);
 
@@ -212,317 +212,3 @@ pub(crate) struct AnimationTimer(pub(crate) Timer);
 #[derive(Component, Default)]
 pub(crate) struct AnimationRng;
 impl ForkedRng for AnimationRng {}
-
-/// Setup the [`Animations`] struct and add animations
-///
-/// ## Traits
-///
-/// - `T` must implement [`Character`] and [`Visible`].
-pub(crate) fn setup_animations<T>(
-    mut commands: Commands,
-    mut atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
-    mut global_animations: ResMut<Assets<Animation>>,
-    animation_data: Res<AnimationDataCache<T>>,
-    display_image: Res<DisplayImage<T>>,
-    images: Res<Assets<Image>>,
-) where
-    T: Character + Visible,
-{
-    // Set sprite sheet and generate sprite from it
-    let sprite_sheet = Spritesheet::new(
-        &display_image.image,
-        animation_data.atlas_columns,
-        animation_data.atlas_rows,
-    );
-    let sprite = sprite_sheet
-        .with_loaded_image(&images)
-        .expect(ERR_NOT_LOADED_SPRITE_IMAGE)
-        .sprite(&mut atlas_layouts);
-
-    // Idle animation: This is the only required animation
-    let idle = animation_handle(
-        &mut global_animations,
-        &sprite_sheet,
-        animation_data.idle_frames.as_ref(),
-        animation_data.idle_interval_ms,
-        AnimationRepeat::Loop,
-    )
-    .expect(ERR_INVALID_REQUIRED_ANIMATION_DATA);
-
-    // Walk animation
-    let walk = animation_handle(
-        &mut global_animations,
-        &sprite_sheet,
-        animation_data.walk_frames.as_ref(),
-        animation_data.walk_interval_ms,
-        AnimationRepeat::Loop,
-    );
-
-    // Jump animation
-    let jump = animation_data
-        .jump_frames
-        .as_ref()
-        .map(|frames| {
-            let interval_ms = (JUMP_DURATION_SECS * 500. / frames.len().max(1) as f32) as u32;
-            animation_handle(
-                &mut global_animations,
-                &sprite_sheet,
-                animation_data.jump_frames.as_ref(),
-                Some(interval_ms),
-                AnimationRepeat::Times(1),
-            )
-        })
-        .unwrap_or_else(|| None);
-
-    // Fall animation
-    let fall = animation_data
-        .fall_frames
-        .as_ref()
-        .map(|frames| {
-            let interval_ms = (JUMP_DURATION_SECS * 500. / frames.len().max(1) as f32) as u32;
-            animation_handle(
-                &mut global_animations,
-                &sprite_sheet,
-                animation_data.fall_frames.as_ref(),
-                Some(interval_ms),
-                AnimationRepeat::Times(1),
-            )
-        })
-        .unwrap_or_else(|| None);
-
-    let sprite_layout_id = sprite
-        .texture_atlas
-        .as_ref()
-        .expect(ERR_INVALID_TEXTURE_ATLAS)
-        .layout
-        .id();
-    let texture_size = atlas_layouts
-        .get(sprite_layout_id)
-        .expect(ERR_INVALID_TEXTURE_ATLAS)
-        .textures
-        .first()
-        .expect(ERR_INVALID_TEXTURE_ATLAS)
-        .size();
-
-    commands.insert_resource(TextureInfoCache::<T> {
-        size: texture_size,
-        ..default()
-    });
-    commands.insert_resource(Animations::<T> {
-        sprite,
-        idle,
-        walk,
-        jump,
-        fall,
-        ..default()
-    });
-}
-
-/// Animation handle customized via parameters
-///
-/// Returns [`Some`] for valid parameters
-/// Returns [`None`] for invalid `row`, `frames` or `interval` parameter
-fn animation_handle(
-    global_animations: &mut ResMut<Assets<Animation>>,
-    sprite_sheet: &Spritesheet,
-    frames: Option<&Vec<(usize, usize)>>,
-    interval: Option<u32>,
-    repetitions: AnimationRepeat,
-) -> Option<Handle<Animation>> {
-    let (Some(frames), Some(interval)) = (frames, interval) else {
-        warn_once!("{}", WARN_INCOMPLETE_ANIMATION_DATA);
-        return None;
-    };
-    if frames.is_empty() {
-        return None;
-    }
-
-    Some(
-        global_animations.add(
-            sprite_sheet
-                .create_animation()
-                .add_cells(frames.clone())
-                .set_clip_duration(AnimationDuration::PerFrame(interval))
-                .set_repetitions(repetitions)
-                .build(),
-        ),
-    )
-}
-
-// FIXME: We should also follow the aim direction in some scenarios.
-/// Flip [`Sprite`]s
-///
-/// ## Traits
-///
-/// - `T` must implement [`Character`].
-fn flip_sprites<T>(
-    character_query: Query<(&KinematicCharacterControllerOutput, &Children), With<T>>,
-    mut sprite_query: Query<&mut Sprite, With<SpritesheetAnimation>>,
-) where
-    T: Character,
-{
-    for (controller_output, children) in character_query {
-        let direction = controller_output.desired_translation;
-        if direction.x == 0. {
-            continue;
-        }
-
-        let child = children
-            .iter()
-            .find(|e| sprite_query.contains(*e))
-            .expect(ERR_INVALID_CHILDREN);
-        let mut sprite = sprite_query.get_mut(child).expect(ERR_INVALID_CHILDREN);
-        sprite.flip_x = direction.x < 0.;
-    }
-}
-
-/// Update animations
-///
-/// ## Traits
-///
-/// - `T` must implement [`Character`].
-fn update_animations<T>(
-    character_query: Query<(&mut AnimationCache, &AnimationTimer, &Children), With<T>>,
-    mut animation_query: Query<&mut SpritesheetAnimation, With<SpritesheetAnimation>>,
-    animations: Res<Animations<T>>,
-) where
-    T: Character,
-{
-    for (mut cache, timer, children) in character_query {
-        let child = children
-            .iter()
-            .find(|e| animation_query.contains(*e))
-            .expect(ERR_INVALID_CHILDREN);
-        let mut animation = animation_query.get_mut(child).expect(ERR_INVALID_CHILDREN);
-
-        // Reset animation after timer has finished
-        if timer.0.just_finished() {
-            animation.reset();
-        }
-
-        // Match to current `AnimationState`
-        match cache.state {
-            AnimationState::Walk => {
-                switch_to_new_animation(&mut animation, animations.walk.clone(), &mut cache)
-            }
-            AnimationState::Idle => {
-                switch_to_new_animation(&mut animation, Some(animations.idle.clone()), &mut cache)
-            }
-            AnimationState::Jump => {
-                switch_to_new_animation(&mut animation, animations.jump.clone(), &mut cache)
-            }
-            AnimationState::Fall => {
-                switch_to_new_animation(&mut animation, animations.fall.clone(), &mut cache)
-            }
-        }
-    }
-}
-
-/// Switches to new [`SpritesheetAnimation`] from [`Option<Handle<Animation>>`] if it has not already been switched to.
-fn switch_to_new_animation(
-    animation: &mut SpritesheetAnimation,
-    new_animation: Option<Handle<Animation>>,
-    cache: &mut AnimationCache,
-) {
-    let new_animation = new_animation.expect(ERR_UNINITIALIZED_REQUIRED_ANIMATION);
-
-    if animation.animation != new_animation {
-        animation.switch(new_animation);
-        cache.sound_frame = None;
-    }
-}
-
-/// Update animation sounds
-///
-/// ## Traits
-///
-/// - `T` must implement [`Character`].
-/// - `A` must implement [`CharacterAssets`]
-pub(crate) fn update_animation_sounds<T, A>(
-    mut rng: Single<&mut WyRand, With<AnimationRng>>,
-    character_query: Query<(&mut AnimationCache, &Children), With<T>>,
-    animation_query: Query<&mut SpritesheetAnimation>,
-    mut commands: Commands,
-    animation_data: Res<AnimationDataCache<T>>,
-    assets: Res<A>,
-) where
-    T: Character,
-    A: CharacterAssets,
-{
-    let frame_set = (
-        animation_data.walk_sound_frames.clone(),
-        animation_data.jump_sound_frames.clone(),
-        animation_data.fall_sound_frames.clone(),
-    );
-
-    for (mut cache, children) in character_query {
-        let child = children
-            .iter()
-            .find(|e| animation_query.contains(*e))
-            .expect(ERR_INVALID_CHILDREN);
-        let animation = animation_query.get(child).expect(ERR_INVALID_CHILDREN);
-
-        // Continue if sound has already been played
-        let current_frame = animation.progress.frame;
-        if let Some(sound_frame) = cache.sound_frame
-            && sound_frame == current_frame
-        {
-            continue;
-        }
-
-        // Match to current `AnimationState`
-        let Some(sound) = (match cache.state {
-            AnimationState::Walk => {
-                choose_sound(&mut rng, &current_frame, &frame_set.0, assets.walk_sounds())
-            }
-            AnimationState::Jump => {
-                choose_sound(&mut rng, &current_frame, &frame_set.1, assets.jump_sounds())
-            }
-            AnimationState::Fall => {
-                choose_sound(&mut rng, &current_frame, &frame_set.2, assets.fall_sounds())
-            }
-            _ => None,
-        }) else {
-            cache.sound_frame = None;
-            continue;
-        };
-
-        // Play sound
-        commands.spawn(sound_effect(sound));
-        cache.sound_frame = Some(current_frame);
-    }
-}
-
-/// Choose a random sound customized via parameters for current frame.
-///
-/// Returns [`Some`] if current frame is a fall sound frame.
-/// Returns [`None`] if current frame is not a fall sound frame or on missing data.
-fn choose_sound(
-    rng: &mut WyRand,
-    current_frame: &usize,
-    sound_frames: &Option<Vec<usize>>,
-    sounds: &Option<Vec<Handle<AudioSource>>>,
-) -> Option<Handle<AudioSource>> {
-    // Return `None` if frame data is missing or does not contain current frame
-    let Some(sound_frames) = sound_frames else {
-        warn_once!("{}", WARN_INCOMPLETE_ANIMATION_DATA);
-        return None;
-    };
-    if !sound_frames.contains(current_frame) {
-        return None;
-    }
-    // Return `None` if asset data is missing
-    let Some(sounds) = sounds else {
-        warn_once!("{}", WARN_INCOMPLETE_ASSET_DATA);
-        return None;
-    };
-
-    sounds.choose(rng).cloned()
-}
-
-/// Tick [`AnimationTimer`]
-fn tick_animation_timer(mut query: Query<&mut AnimationTimer>, time: Res<Time>) {
-    for mut timer in &mut query {
-        timer.0.tick(time.delta());
-    }
-}

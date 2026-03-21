@@ -11,31 +11,10 @@ use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_enhanced_input::prelude::*;
 use virtual_joystick::VirtualJoystickMessage;
 
-use crate::{
-    characters::movement::WalkSpeed,
-    input::InputSystems,
-    input::actions::{Aim, Jump, Melee, Walk},
-    input::joystick::{JoystickID, JoystickRect},
-    input::pointer::{MouseDrag, PointerStartTimeSecs, Swipe as _},
-    {camera::CanvasCamera, characters::player::Player},
-};
-
-pub(super) fn plugin(app: &mut App) {
-    app.add_systems(
-        PreUpdate,
-        (
-            mock_walk_from_virtual_joystick,
-            mock_jump_from_touch,
-            (mock_melee_from_click, mock_melee_from_touch).chain(),
-            (mock_aim_from_click, mock_aim_from_touch).chain(),
-        )
-            .in_set(InputSystems::Mock)
-            .chain(),
-    );
-}
+use crate::{characters::prelude::*, input::prelude::*, render::prelude::*};
 
 /// Mock [`Walk`] from virtual [`VirtualJoystickMessage`].
-fn mock_walk_from_virtual_joystick(
+pub(super) fn mock_walk_from_virtual_joystick(
     mut reader: MessageReader<VirtualJoystickMessage<u8>>,
     player: Single<(Entity, &WalkSpeed), With<Player>>,
     mut commands: Commands,
@@ -57,7 +36,7 @@ fn mock_walk_from_virtual_joystick(
 }
 
 /// Mock [`Jump`] from [`Touches`].
-fn mock_jump_from_touch(
+pub(super) fn mock_jump_from_touch(
     jump: Single<Entity, With<Player>>,
     mut commands: Commands,
     touches: Res<Touches>,
@@ -77,7 +56,7 @@ fn mock_jump_from_touch(
 }
 
 /// Mock [`Melee`] from [`Touches`].
-fn mock_melee_from_touch(
+pub(super) fn mock_melee_from_touch(
     melee: Single<Entity, With<Player>>,
     mut commands: Commands,
     pointer_start: Res<PointerStartTimeSecs>,
@@ -101,7 +80,7 @@ fn mock_melee_from_touch(
 }
 
 /// Mock [`Aim`] from [`Touches`].
-fn mock_aim_from_touch(
+pub(super) fn mock_aim_from_touch(
     aim: Single<Entity, With<Player>>,
     camera: Single<(&Camera, &GlobalTransform), With<CanvasCamera>>,
     player_transform: Single<&Transform, With<Player>>,
@@ -129,7 +108,7 @@ fn mock_aim_from_touch(
 }
 
 /// Mock [`Melee`] from clicks.
-fn mock_melee_from_click(
+pub(super) fn mock_melee_from_click(
     melee: Single<Entity, With<Player>>,
     mut commands: Commands,
     drag: Res<MouseDrag>,
@@ -155,7 +134,7 @@ fn mock_melee_from_click(
 }
 
 /// Mock [`Aim`] from clicks.
-fn mock_aim_from_click(
+pub(super) fn mock_aim_from_click(
     aim: Single<Entity, With<Player>>,
     camera: Single<(&Camera, &GlobalTransform), With<CanvasCamera>>,
     player_transform: Single<&Transform, With<Player>>,

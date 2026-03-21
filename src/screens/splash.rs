@@ -14,43 +14,36 @@
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 use bevy_asset_loader::prelude::*;
 
-use crate::{AppSystems, screens::Screen, ui::prelude::*};
+use crate::{
+    core::prelude::*, images::prelude::*, screens::prelude::*, ui::prelude::*, utils::prelude::*,
+};
 
-pub(super) fn plugin(app: &mut App) {
-    // Insert resources
-    app.insert_resource(ClearColor(CLEAR_BACKGROUND.into()));
+pub(super) struct SplashPlugin;
+impl Plugin for SplashPlugin {
+    fn build(&self, app: &mut App) {
+        app.insert_resource(ClearColor(CLEAR_BACKGROUND.into()));
 
-    // Open splash screen
-    app.add_systems(OnEnter(Screen::Splash), spawn_splash_screen);
-
-    // Exit splash screen early on pressing Escape
-    app.add_systems(
-        Update,
-        enter_title_screen
-            .run_if(input_just_pressed(KeyCode::Escape).and(in_state(Screen::Splash))),
-    );
-
-    // Animate splash screen
-    app.add_systems(
-        Update,
-        (
-            tick_fade_in_out.in_set(AppSystems::TickTimers),
-            apply_fade_in_out.in_set(AppSystems::Update),
-        )
-            .run_if(in_state(Screen::Splash)),
-    );
-
-    // Add splash timer
-    app.add_systems(OnEnter(Screen::Splash), insert_splash_timer);
-    app.add_systems(OnExit(Screen::Splash), remove_splash_timer);
-    app.add_systems(
-        Update,
-        (
-            tick_splash_timer.in_set(AppSystems::TickTimers),
-            check_splash_timer.in_set(AppSystems::Update),
-        )
-            .run_if(in_state(Screen::Splash)),
-    );
+        app.add_systems(
+            OnEnter(Screen::Splash),
+            (spawn_splash_screen, insert_splash_timer),
+        );
+        app.add_systems(OnExit(Screen::Splash), remove_splash_timer);
+        app.add_systems(
+            Update,
+            enter_title_screen
+                .run_if(input_just_pressed(KeyCode::Escape).and(in_state(Screen::Splash))),
+        );
+        app.add_systems(
+            Update,
+            (
+                tick_fade_in_out::<SplashImage>.in_set(AppSystems::TickTimers),
+                apply_fade_in_out.in_set(AppSystems::Update),
+                tick_resource_timer::<SplashTimer>.in_set(AppSystems::TickTimers),
+                check_splash_timer.in_set(AppSystems::Update),
+            )
+                .run_if(in_state(Screen::Splash)),
+        );
+    }
 }
 
 /// Assets for splash screen
@@ -61,30 +54,12 @@ pub(crate) struct SplashAssets {
     splash: Handle<Image>,
 }
 
-/// Fading in and out of splash screen
-#[derive(Component, Reflect)]
-#[reflect(Component)]
-struct ImageNodeFadeInOut {
-    /// Total duration in seconds.
-    total_duration: f32,
-    /// Fade duration in seconds.
-    fade_duration: f32,
-    /// Current progress in seconds, between 0 and [`Self::total_duration`].
-    t: f32,
-}
-impl ImageNodeFadeInOut {
-    fn alpha(&self) -> f32 {
-        // Normalize by duration.
-        let t = (self.t / self.total_duration).clamp(0.0, 1.0);
-        let fade = self.fade_duration / self.total_duration;
-
-        // Regular trapezoid-shaped graph, flat at the top with alpha = 1.0.
-        ((1.0 - (2.0 * t - 1.0).abs()) / fade).min(1.0)
-    }
-}
+/// Marker [`Component`] for splash screen image.
+#[derive(Component)]
+struct SplashImage;
 
 /// Timer that tracks splash screen
-#[derive(Resource, Debug, Clone, PartialEq, Reflect)]
+#[derive(Resource, Debug, Clone, PartialEq, Reflect, Deref, DerefMut)]
 #[reflect(Resource)]
 struct SplashTimer(Timer);
 impl Default for SplashTimer {
@@ -101,31 +76,25 @@ const SPLASH_FADE_DURATION_SECS: f32 = 0.6;
 /// Spawn splash screen
 fn spawn_splash_screen(mut commands: Commands, splash_assets: Res<SplashAssets>) {
     commands.spawn((
-        widgets::ui_root("Splash Screen"),
+        root_widget("Splash Screen"),
         BackgroundColor(CLEAR_BACKGROUND.into()),
         DespawnOnExit(Screen::Splash),
         children![(
             Name::new("Splash image"),
+            SplashImage,
             Node {
                 margin: UiRect::all(auto()),
                 width: percent(70),
                 ..default()
             },
             ImageNode::new(splash_assets.splash.clone()),
-            ImageNodeFadeInOut {
+            FadeInOut {
                 total_duration: SPLASH_DURATION_SECS,
                 fade_duration: SPLASH_FADE_DURATION_SECS,
                 t: 0.0,
             },
         )],
     ));
-}
-
-/// Apply [`ImageNodeFadeInOut`]
-fn apply_fade_in_out(mut query: Query<(&ImageNodeFadeInOut, &mut ImageNode)>) {
-    for (anim, mut image) in &mut query {
-        image.color.set_alpha(anim.alpha())
-    }
 }
 
 /// Enter title screen
@@ -148,16 +117,4 @@ fn insert_splash_timer(mut commands: Commands) {
 /// Remove [`SplashTimer`]
 fn remove_splash_timer(mut commands: Commands) {
     commands.remove_resource::<SplashTimer>();
-}
-
-/// Tick [`ImageNodeFadeInOut`]
-fn tick_fade_in_out(mut query: Query<&mut ImageNodeFadeInOut>, time: Res<Time>) {
-    for mut anim in &mut query {
-        anim.t += time.delta_secs();
-    }
-}
-
-/// Tick [`SplashTimer`]
-fn tick_splash_timer(time: Res<Time>, mut timer: ResMut<SplashTimer>) {
-    timer.0.tick(time.delta());
 }

@@ -13,38 +13,32 @@ use bevy::prelude::*;
 use bevy_enoki::prelude::*;
 
 use crate::{
-    AppSystems,
-    animations::{AnimationCache, AnimationState},
-    camera::BACKGROUND_Z_DELTA,
-    characters::{Character, player::Player},
-    log::error::*,
-    screens::{Screen, gameplay::InitGameplaySystems},
-    visual::{TextureInfoCache, Visible},
+    animations::prelude::*, characters::prelude::*, core::prelude::*, images::prelude::*,
+    log::prelude::*, render::prelude::*, screens::prelude::*, utils::prelude::*,
 };
 
-pub(super) fn plugin(app: &mut App) {
-    // Add library plugins
-    app.add_plugins(EnokiPlugin);
+pub(super) struct ParticlesPlugin;
+impl Plugin for ParticlesPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_plugins(EnokiPlugin);
 
-    // Add particle systems
-    app.add_systems(
-        OnEnter(Screen::Gameplay),
-        add_walking_dust::<Player>.after(InitGameplaySystems::Finalize),
-    );
+        app.add_systems(
+            OnEnter(Screen::Gameplay),
+            add_walking_dust::<Player>.after(EnterGameplaySystems::Levels),
+        );
+        app.add_systems(
+            Update,
+            update_character_particles::<Player, ParticleWalkingDust>
+                .after(EnterGameplaySystems::Levels)
+                .run_if(in_state(Screen::Gameplay)),
+        );
+        app.add_systems(
+            Update,
+            tick_component_timer::<ParticleTimer>.in_set(AppSystems::TickTimers),
+        );
 
-    // Update particles for character
-    app.add_systems(
-        Update,
-        update_character_particles::<Player, ParticleWalkingDust>
-            .after(InitGameplaySystems::Finalize)
-            .run_if(in_state(Screen::Gameplay)),
-    );
-
-    // Tick timers
-    app.add_systems(Update, tick_particle_timer.in_set(AppSystems::TickTimers));
-
-    // Add observers spawning particles
-    app.add_observer(on_spawn_particle_once::<ParticleMeleeAttack>);
+        app.add_observer(on_spawn_particle_once::<ParticleMeleeAttack>);
+    }
 }
 
 /// Applies to anything that is considered a particle.
@@ -104,7 +98,7 @@ where
 }
 
 /// Timer that tracks particles
-#[derive(Component, Debug, Clone, PartialEq, Reflect)]
+#[derive(Component, Debug, Clone, PartialEq, Reflect, Deref, DerefMut)]
 #[reflect(Component)]
 struct ParticleTimer(Timer);
 
@@ -113,7 +107,7 @@ struct ParticleTimer(Timer);
 /// ## Traits
 ///
 /// - `T` must implement [`Particle`] and is used as the associated particle type.
-pub(crate) fn on_spawn_particle_once<T>(event: On<SpawnParticleOnce>, mut commands: Commands)
+fn on_spawn_particle_once<T>(event: On<SpawnParticleOnce>, mut commands: Commands)
 where
     T: Particle,
 {
@@ -138,7 +132,7 @@ const WALKING_DUST_SECS: f32 = 0.5;
 fn add_walking_dust<T>(
     query: Query<Entity, With<T>>,
     mut commands: Commands,
-    texture_info: Res<TextureInfoCache<T>>,
+    texture_info: Res<ImageMeta<T>>,
     handle: Res<ParticleHandle<ParticleWalkingDust>>,
 ) where
     T: Visible,
@@ -198,12 +192,5 @@ fn update_character_particles<T, A>(
         }
 
         state.set_new_active(particle.is_active(cache.state));
-    }
-}
-
-/// Tick [`ParticleTimer`]
-fn tick_particle_timer(mut query: Query<&mut ParticleTimer>, time: Res<Time>) {
-    for mut timer in &mut query {
-        timer.0.tick(time.delta());
     }
 }

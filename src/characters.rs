@@ -9,47 +9,97 @@
 
 //! Characters
 
-pub(crate) mod attack;
-pub(crate) mod collision;
-pub(crate) mod health;
-pub(crate) mod movement;
-pub(crate) mod nav;
-pub(crate) mod npc;
-pub(crate) mod player;
+mod attack;
+mod collision;
+mod health;
+mod movement;
+mod nav;
+mod npc;
+mod player;
+
+#[allow(unused_imports)]
+pub(crate) mod prelude {
+    pub(crate) use super::attack::{
+        Attack, AttackData, AttackStats, AttackTimer, AttackType, MeleeAttack, punch,
+    };
+    pub(crate) use super::collision::{
+        CollisionData, CollisionDataCache, CollisionDataRelatedCache, CollisionHandle,
+        character_collider,
+    };
+    pub(crate) use super::health::{Damage, Health};
+    pub(crate) use super::movement::{
+        FacingDirection, JUMP_DURATION_SECS, JumpHeight, JumpTimer, WalkSpeed,
+    };
+    pub(crate) use super::nav::{NavTarget, NavTargetPosMap, Navigator, Path};
+    pub(crate) use super::npc::{Npc, Slime, SlimeAssets};
+    pub(crate) use super::player::{Player, PlayerAssets};
+    pub(crate) use super::{
+        Character, CharacterAssets, SpawnCharacter, StaticShadow, impl_character_assets,
+    };
+}
 
 use std::marker::PhantomData;
 
 use bevy::{prelude::*, reflect::Reflectable};
 use bevy_asset_loader::asset_collection::AssetCollection;
 use bevy_prng::WyRand;
-use bevy_spritesheet_animation::prelude::SpritesheetAnimation;
+use bevy_rapier2d::prelude::*;
+use bevy_spritesheet_animation::prelude::*;
 use rand::RngExt as _;
 
 use crate::{
-    animations::{ANIMATION_DELAY_RANGE_SECS, AnimationRng, Animations},
-    camera::BACKGROUND_Z_DELTA,
-    characters::{
-        collision::{CollisionDataCache, CollisionDataRelatedCache, character_collider},
-        npc::Slime,
-        player::Player,
-    },
-    levels::{Level, overworld::Overworld},
+    animations::prelude::*, characters::prelude::*, core::prelude::*, levels::prelude::*,
+    procgen::prelude::*, render::prelude::*, screens::prelude::*, utils::prelude::*,
 };
 
-pub(super) fn plugin(app: &mut App) {
-    // Add child plugins
-    app.add_plugins((
-        attack::plugin,
-        health::plugin,
-        nav::plugin,
-        movement::plugin,
-        npc::plugin,
-        player::plugin,
-    ));
+pub(super) struct CharactersPlugin;
+impl Plugin for CharactersPlugin {
+    fn build(&self, app: &mut App) {
+        app.init_resource::<Animations<Slime>>();
+        app.init_resource::<Animations<Player>>();
 
-    // Spawn characters
-    app.add_observer(on_spawn_character::<Player, Overworld>);
-    app.add_observer(on_spawn_character::<Slime, Overworld>);
+        app.add_systems(
+            Update,
+            (
+                (
+                    nav::find_path::<OverworldProcGen>,
+                    nav::refresh_path::<OverworldProcGen>,
+                )
+                    .run_if(in_state(DespawnProcGen(false))),
+                nav::apply_path.in_set(PausableSystems),
+            )
+                .run_if(in_state(ProcGenInit(true)).and(in_state(Screen::Gameplay)))
+                .in_set(AppSystems::Update),
+        );
+        app.add_systems(
+            Update,
+            (
+                player::apply_jump.before(PhysicsSet::SyncBackend),
+                player::limit_jump,
+            )
+                .chain()
+                .in_set(AppSystems::Update),
+        );
+        app.add_systems(
+            PostUpdate,
+            movement::update_facing.run_if(in_state(Screen::Gameplay)),
+        );
+
+        app.add_systems(
+            Update,
+            (
+                tick_component_timer::<attack::AttackTimer>,
+                tick_component_timer::<movement::JumpTimer>,
+            )
+                .in_set(AppSystems::TickTimers),
+        );
+
+        app.add_observer(attack::on_melee_attack::<Player>);
+        app.add_observer(attack::on_delay_attack);
+        app.add_observer(health::on_damage);
+        app.add_observer(on_spawn_character::<Player, Overworld>);
+        app.add_observer(on_spawn_character::<Slime, Overworld>);
+    }
 }
 
 /// Applies to anything that stores character assets
@@ -61,7 +111,6 @@ where
     fn jump_sounds(&self) -> &Option<Vec<Handle<AudioSource>>>;
     fn fall_sounds(&self) -> &Option<Vec<Handle<AudioSource>>>;
 }
-#[macro_export]
 macro_rules! impl_character_assets {
     ($type: ty) => {
         impl CharacterAssets for $type {
@@ -77,6 +126,7 @@ macro_rules! impl_character_assets {
         }
     };
 }
+pub(crate) use impl_character_assets;
 
 /// Applies to any character [`Component`]
 pub(crate) trait Character

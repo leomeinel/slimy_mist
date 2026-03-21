@@ -19,24 +19,8 @@ use bevy_asset_loader::prelude::*;
 use bevy_rapier2d::prelude::*;
 
 use crate::{
-    animations::{AnimationCache, AnimationTimer, Animations},
-    camera::{FOREGROUND_Z, ysort::YSort},
-    characters::{
-        Character, CharacterAssets,
-        attack::{AttackStats, punch},
-        health::Health,
-        movement::{FacingDirection, WalkSpeed},
-        nav::Navigator,
-    },
-    impl_character_assets,
-    procgen::ProcGenerated,
-    visual::Visible,
+    animations::prelude::*, characters::prelude::*, procgen::prelude::*, render::prelude::*,
 };
-
-pub(super) fn plugin(app: &mut App) {
-    // Insert resources
-    app.init_resource::<Animations<Slime>>();
-}
 
 /// Assets that are serialized from a ron file
 #[derive(AssetCollection, Resource, Default, Reflect)]

@@ -9,10 +9,6 @@
 
 use bevy::prelude::*;
 
-pub(super) fn plugin(app: &mut App) {
-    app.add_observer(on_damage);
-}
-
 /// Health that determines if a [`Component`] should be despawned.
 #[derive(Component, Default)]
 pub(crate) struct Health(pub(crate) f32);
@@ -25,7 +21,11 @@ pub(crate) struct Damage {
 }
 
 /// Apply [`Damage`] to [`Health`] and handle despawning.
-fn on_damage(event: On<Damage>, mut target_query: Query<&mut Health>, mut commands: Commands) {
+pub(super) fn on_damage(
+    event: On<Damage>,
+    mut target_query: Query<&mut Health>,
+    mut commands: Commands,
+) {
     for entity in &event.targets {
         let Ok(mut health) = target_query.get_mut(*entity) else {
             continue;

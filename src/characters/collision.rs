@@ -12,7 +12,7 @@ use std::marker::PhantomData;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::characters::{Character, StaticShadow};
+use crate::characters::prelude::*;
 
 /// Collision data deserialized from a ron file as a generic
 ///

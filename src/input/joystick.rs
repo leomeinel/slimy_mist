@@ -16,77 +16,76 @@ use virtual_joystick::{
     VirtualJoystickNode, VirtualJoystickPlugin, VirtualJoystickUIBackground, VirtualJoystickUIKnob,
 };
 
-use crate::{
-    screens::{Screen, gameplay::InitGameplaySystems},
-    ui::prelude::*,
-};
+use crate::{screens::prelude::*, ui::prelude::*};
 
-pub(super) fn plugin(app: &mut App) {
-    app.init_state::<JoystickState<{ JoystickID::Movement as u8 }>>();
+pub(super) struct JoystickPlugin;
+impl Plugin for JoystickPlugin {
+    fn build(&self, app: &mut App) {
+        app.init_state::<JoystickState<{ JoystickID::Movement as u8 }>>();
 
-    // Add library plugins
-    app.add_plugins(VirtualJoystickPlugin::<u8>::default());
+        app.add_plugins(VirtualJoystickPlugin::<u8>::default());
 
-    // Toggle joystick
-    app.add_systems(
-        OnEnter(Screen::Gameplay),
-        spawn_joystick::<{ JoystickID::Movement as u8 }>
-            .after(InitGameplaySystems::Finalize)
-            .run_if(
-                in_state(JoystickState::<{ JoystickID::Movement as u8 }>::Toggled(
-                    true,
-                ))
-                .or(in_state(
-                    JoystickState::<{ JoystickID::Movement as u8 }>::Spawned,
-                )),
-            ),
-    );
-    app.add_systems(
-        OnEnter(JoystickState::<{ JoystickID::Movement as u8 }>::Toggled(
-            true,
-        )),
-        spawn_joystick::<{ JoystickID::Movement as u8 }>
-            .after(InitGameplaySystems::Finalize)
-            .run_if(in_state(Screen::Gameplay)),
-    );
-    app.add_systems(
-        OnEnter(JoystickState::<{ JoystickID::Movement as u8 }>::Toggled(
-            false,
-        )),
-        despawn_joystick::<{ JoystickID::Movement as u8 }>
-            .after(InitGameplaySystems::Finalize)
-            .run_if(in_state(Screen::Gameplay)),
-    );
-    // Reset `JoystickRect`
-    app.add_systems(
-        OnEnter(JoystickState::<{ JoystickID::Movement as u8 }>::None),
-        reset_joystick_rect::<{ JoystickID::Movement as u8 }>
-            .after(InitGameplaySystems::Finalize)
-            .run_if(in_state(Screen::Gameplay)),
-    );
-    app.add_systems(
-        OnExit(Screen::Gameplay),
-        reset_joystick_rect::<{ JoystickID::Movement as u8 }>.after(InitGameplaySystems::Finalize),
-    );
-
-    // Update `JoystickRect`
-    app.add_systems(
-        PostUpdate,
-        update_joystick_rect::<{ JoystickID::Movement as u8 }>
-            .after(InitGameplaySystems::Finalize)
-            .after(TransformSystems::Propagate)
-            .run_if(
-                in_state(Screen::Gameplay)
-                    .and(in_state(
-                        JoystickState::<{ JoystickID::Movement as u8 }>::Spawned,
+        // Toggle joystick
+        app.add_systems(
+            OnEnter(Screen::Gameplay),
+            spawn_joystick::<{ JoystickID::Movement as u8 }>
+                .after(EnterGameplaySystems::Resources)
+                .run_if(
+                    in_state(JoystickState::<{ JoystickID::Movement as u8 }>::Toggled(
+                        true,
                     ))
-                    .and(
-                        state_changed::<Screen>
-                            .or(state_changed::<JoystickState<{ JoystickID::Movement as u8 }>>)
-                            .or(on_message::<WindowResized>),
-                    ),
-            ),
-    );
+                    .or(in_state(
+                        JoystickState::<{ JoystickID::Movement as u8 }>::Spawned,
+                    )),
+                ),
+        );
+        app.add_systems(
+            OnEnter(JoystickState::<{ JoystickID::Movement as u8 }>::Toggled(
+                true,
+            )),
+            spawn_joystick::<{ JoystickID::Movement as u8 }>
+                .after(EnterGameplaySystems::Resources)
+                .run_if(in_state(Screen::Gameplay)),
+        );
+        app.add_systems(
+            OnEnter(JoystickState::<{ JoystickID::Movement as u8 }>::Toggled(
+                false,
+            )),
+            despawn_joystick::<{ JoystickID::Movement as u8 }>
+                .after(EnterGameplaySystems::Resources)
+                .run_if(in_state(Screen::Gameplay)),
+        );
+        // Reset `JoystickRect`
+        app.add_systems(
+            OnEnter(JoystickState::<{ JoystickID::Movement as u8 }>::None),
+            reset_joystick_rect::<{ JoystickID::Movement as u8 }>
+                .after(EnterGameplaySystems::Resources)
+                .run_if(in_state(Screen::Gameplay)),
+        );
+        app.add_systems(
+            OnExit(Screen::Gameplay),
+            reset_joystick_rect::<{ JoystickID::Movement as u8 }>
+                .after(EnterGameplaySystems::Resources),
+        );
+        // Update `JoystickRect`
+        app.add_systems(
+            PostUpdate,
+            update_joystick_rect::<{ JoystickID::Movement as u8 }>
+                .after(EnterGameplaySystems::Resources)
+                .after(TransformSystems::Propagate)
+                .run_if(
+                    in_state(Screen::Gameplay)
+                        .and(in_state(
+                            JoystickState::<{ JoystickID::Movement as u8 }>::Spawned,
+                        ))
+                        .and(
+                            state_changed::<Screen>
+                                .or(state_changed::<JoystickState<{ JoystickID::Movement as u8 }>>)
+                                .or(on_message::<WindowResized>),
+                        ),
+                ),
+        );
+    }
 }
 
 /// Tracks the current state of the joystick.

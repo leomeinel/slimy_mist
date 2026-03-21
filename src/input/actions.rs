@@ -13,35 +13,27 @@ use bevy::prelude::*;
 use bevy_enhanced_input::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::{
-    Pause,
-    animations::{AnimationCache, AnimationState},
-    characters::{
-        attack::{Attack, AttackTimer, MeleeAttack},
-        movement::{JumpTimer, WalkSpeed},
-        player::Player,
-    },
-};
+use crate::{animations::prelude::*, characters::prelude::*, core::prelude::*};
 
 /// Walk [`InputAction`]
 #[derive(InputAction)]
 #[action_output(Vec2)]
-pub(super) struct Walk;
+pub(crate) struct Walk;
 
 /// Jump [`InputAction`]
 #[derive(InputAction)]
 #[action_output(bool)]
-pub(super) struct Jump;
+pub(crate) struct Jump;
 
 /// Melee attack [`InputAction`]
 #[derive(InputAction)]
 #[action_output(bool)]
-pub(super) struct Melee;
+pub(crate) struct Melee;
 
 /// Aim direction [`InputAction`]
 #[derive(InputAction)]
 #[action_output(Vec2)]
-pub(super) struct Aim;
+pub(crate) struct Aim;
 
 /// Input [`Action`]s for [`Player`].
 pub(crate) fn player_input() -> impl Bundle {

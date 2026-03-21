@@ -13,10 +13,7 @@ use core::time::Duration;
 
 use bevy::{
     camera::NormalizedRenderTarget,
-    input_focus::{
-        InputDispatchPlugin, InputFocus, InputFocusVisible,
-        directional_navigation::{AutoNavigationConfig, DirectionalNavigationPlugin},
-    },
+    input_focus::{InputFocus, InputFocusVisible},
     math::CompassOctant,
     picking::{
         backend::HitData,
@@ -26,63 +23,46 @@ use bevy::{
     ui::auto_directional_navigation::{AutoDirectionalNavigation, AutoDirectionalNavigator},
 };
 
-use crate::{
-    input::ui::{UiNavAction, UiNavActionSet},
-    log::warn::*,
-    ui::interaction::{InteractionOverride, OverrideInteraction},
-    utils::run_conditions::component_is_present,
-};
+use crate::{input::prelude::*, log::prelude::*, ui::prelude::*};
 
-pub(super) fn plugin(app: &mut App) {
-    // Library plugins
-    app.add_plugins((InputDispatchPlugin, DirectionalNavigationPlugin));
-
-    // Insert resources
-    app.insert_resource(InputFocusVisible(true));
-    // FIXME: This currently sometimes navigates in weird ways. This is especially visible in the `Settings`
-    //        `Menu`. The current `min_alignment_factor` is usable, but still not great.
-    app.insert_resource(AutoNavigationConfig {
-        min_alignment_factor: 0.01,
-        prefer_aligned: true,
-        ..default()
-    });
-
-    // Process inputs, override `Interaction` and navigate
-    app.add_systems(OnEnter(OverrideInteraction(true)), set_input_focus);
-    app.add_systems(
-        OnEnter(OverrideInteraction(false)),
-        reset_interaction_overrides,
-    );
-    app.add_systems(
-        PreUpdate,
-        (
-            override_interaction.run_if(
-                in_state(OverrideInteraction(false))
-                    .and(component_is_present::<AutoDirectionalNavigation>),
-            ),
+pub(super) struct UiInputNavPlugin;
+impl Plugin for UiInputNavPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(OnEnter(OverrideInteraction(true)), set_input_focus);
+        app.add_systems(
+            OnEnter(OverrideInteraction(false)),
+            reset_interaction_overrides,
+        );
+        app.add_systems(
+            PreUpdate,
             (
-                reset_override,
-                override_interaction_on_release,
-                override_interaction_on_focus,
-                navigate,
+                override_interaction.run_if(
+                    in_state(OverrideInteraction(false))
+                        .and(any_with_component::<AutoDirectionalNavigation>),
+                ),
+                (
+                    reset_override,
+                    override_interaction_on_release,
+                    override_interaction_on_focus,
+                    navigate,
+                )
+                    .run_if(in_state(OverrideInteraction(true)))
+                    .chain(),
             )
-                .run_if(in_state(OverrideInteraction(true)))
                 .chain(),
-        )
-            .chain(),
-    );
+        );
+        app.add_systems(
+            Update,
+            (hover_focused, click_focused).run_if(in_state(OverrideInteraction(true))),
+        );
 
-    app.add_systems(
-        Update,
-        (hover_focused, click_focused).run_if(in_state(OverrideInteraction(true))),
-    );
-
-    app.add_observer(reset_override_on_remove_nav);
-    app.add_observer(override_interaction_on_click);
+        app.add_observer(reset_override_on_remove_nav);
+        app.add_observer(override_interaction_on_click);
+    }
 }
 
 /// Set initial focus to top left-most [`AutoDirectionalNavigation`].
-fn set_input_focus(
+pub(super) fn set_input_focus(
     query: Query<(Entity, &UiGlobalTransform), With<AutoDirectionalNavigation>>,
     mut input_focus: ResMut<InputFocus>,
 ) {
@@ -102,7 +82,7 @@ fn set_input_focus(
 }
 
 /// Reset all [`InteractionOverride`]s.
-fn reset_interaction_overrides(
+pub(super) fn reset_interaction_overrides(
     query: Query<&mut InteractionOverride, With<AutoDirectionalNavigation>>,
 ) {
     for mut interaction_override in query {
@@ -111,7 +91,7 @@ fn reset_interaction_overrides(
 }
 
 /// Enable [`OverrideInteraction`] if [`UiNavActionSet`] is not empty.
-fn override_interaction(
+pub(super) fn override_interaction(
     mut next_state: ResMut<NextState<OverrideInteraction>>,
     action_set: Res<UiNavActionSet>,
 ) {
@@ -121,7 +101,7 @@ fn override_interaction(
 }
 
 /// Set [`OverrideInteraction`] to false if any [`Interaction`] with [`AutoDirectionalNavigation`] is not [`Interaction::None`].
-fn reset_override(
+pub(super) fn reset_override(
     query: Query<&Interaction, With<AutoDirectionalNavigation>>,
     mut next_state: ResMut<NextState<OverrideInteraction>>,
 ) {
@@ -131,7 +111,7 @@ fn reset_override(
 }
 
 /// Set correct [`InteractionOverride`] for focused [`AutoDirectionalNavigation`]s.
-fn override_interaction_on_focus(
+pub(super) fn override_interaction_on_focus(
     query: Query<(Entity, &mut InteractionOverride), With<AutoDirectionalNavigation>>,
     input_focus: Res<InputFocus>,
     input_focus_visible: Res<InputFocusVisible>,
@@ -149,7 +129,7 @@ fn override_interaction_on_focus(
 }
 
 /// Set correct [`InteractionOverride`] for selected [`AutoDirectionalNavigation`]s on press.
-fn override_interaction_on_click(
+pub(super) fn override_interaction_on_click(
     event: On<Pointer<Click>>,
     mut query: Query<&mut InteractionOverride, With<AutoDirectionalNavigation>>,
     input_focus_visible: Res<InputFocusVisible>,
@@ -163,7 +143,7 @@ fn override_interaction_on_click(
 }
 
 /// Set correct [`InteractionOverride`] for selected [`AutoDirectionalNavigation`]s on release.
-fn override_interaction_on_release(
+pub(super) fn override_interaction_on_release(
     query: Query<&mut InteractionOverride, With<AutoDirectionalNavigation>>,
     action_set: Res<UiNavActionSet>,
     input_focus_visible: Res<InputFocusVisible>,
@@ -177,7 +157,7 @@ fn override_interaction_on_release(
 }
 
 /// Navigate to [`UiNavActionSet::direction()`].
-fn navigate(mut navigator: AutoDirectionalNavigator, action_set: Res<UiNavActionSet>) {
+pub(super) fn navigate(mut navigator: AutoDirectionalNavigator, action_set: Res<UiNavActionSet>) {
     // Navigate to `maybe_direction`.
     let direction = action_set.direction().map(CompassOctant::from);
     if let Some(direction) = direction
@@ -188,7 +168,7 @@ fn navigate(mut navigator: AutoDirectionalNavigator, action_set: Res<UiNavAction
 }
 
 /// Trigger [`Pointer<Over>`] on focused [`Entity`]s.
-fn hover_focused(
+pub(super) fn hover_focused(
     mut commands: Commands,
     input_focus: Res<InputFocus>,
     mut last_entity: Local<Option<Entity>>,
@@ -222,7 +202,7 @@ fn hover_focused(
 }
 
 /// Trigger [`Pointer<Click>`] on focused [`Entity`]s mapped to [`UiNavAction::Select`] in [`UiNavActionSet`].
-fn click_focused(
+pub(super) fn click_focused(
     mut commands: Commands,
     action_set: Res<UiNavActionSet>,
     input_focus: Res<InputFocus>,
@@ -257,7 +237,7 @@ fn click_focused(
 }
 
 /// Set [`OverrideInteraction`] to false.
-fn reset_override_on_remove_nav(
+pub(super) fn reset_override_on_remove_nav(
     _: On<Remove, AutoDirectionalNavigation>,
     mut next_state: ResMut<NextState<OverrideInteraction>>,
 ) {

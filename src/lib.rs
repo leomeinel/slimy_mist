@@ -18,31 +18,28 @@
 
 mod animations;
 mod audio;
-mod camera;
 mod characters;
+mod core;
 #[cfg(feature = "dev")]
-mod dev_tools;
+mod debug;
+mod images;
 mod input;
 mod levels;
-mod light;
 mod log;
-mod menus;
 #[cfg(any(target_os = "android", target_os = "ios"))]
 mod mobile;
 mod procgen;
+mod render;
 mod screens;
 mod ui;
 mod utils;
-mod visual;
 
 #[cfg(any(target_os = "android", target_os = "ios"))]
 use bevy::window::WindowMode;
 use bevy::{asset::AssetMetaCheck, prelude::*, window::ScreenEdge};
-use bevy_ecs_tilemap::TilemapPlugin;
-use bevy_fast_light::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::plugin::EntropyPlugin;
-use bevy_rapier2d::plugin::RapierPhysicsPlugin;
+use bevy_rand::prelude::*;
+use bevy_rapier2d::prelude::*;
 
 /// Main function for library
 ///
@@ -56,7 +53,6 @@ pub fn main() -> AppExit {
 pub struct AppPlugin;
 impl Plugin for AppPlugin {
     fn build(&self, app: &mut App) {
-        // Add bevy plugins
         app.add_plugins(
             DefaultPlugins
                 .set(AssetPlugin {
@@ -87,69 +83,26 @@ impl Plugin for AppPlugin {
                 })
                 .set(ImagePlugin::default_nearest()),
         );
-
-        // Add library plugins
         app.add_plugins((
             EntropyPlugin::<WyRand>::default(),
-            FastLightPlugin::default(),
             RapierPhysicsPlugin::<()>::default(),
-            TilemapPlugin,
         ));
-
-        // Add other plugins.
         app.add_plugins((
-            animations::plugin,
-            audio::plugin,
-            camera::plugin,
-            characters::plugin,
+            characters::CharactersPlugin,
             #[cfg(feature = "dev")]
-            dev_tools::plugin,
-            input::plugin,
-            levels::plugin,
-            light::plugin,
-            menus::plugin,
+            debug::DebugPlugin,
+            input::InputPlugin,
             #[cfg(any(target_os = "android", target_os = "ios"))]
-            mobile::plugin,
-            procgen::plugin,
-            screens::plugin,
-            ui::plugin,
-            visual::plugin,
+            mobile::MobilePlugin,
+            procgen::ProcGenPlugin,
+            screens::ScreensPlugin,
+            ui::UiPlugin,
+            animations::AnimationsPlugin,
+            audio::AudioPlugin,
+            levels::LevelsPlugin,
+            render::RenderPlugin,
+            images::ImagesPlugin,
+            core::CorePlugin,
         ));
-
-        // Set up the `Pause` state.
-        app.init_state::<Pause>();
-        app.configure_sets(Update, PausableSystems.run_if(in_state(Pause(false))));
-
-        // Order new `AppSystems` variants by adding them here:
-        app.configure_sets(
-            Update,
-            (
-                AppSystems::TickTimers,
-                AppSystems::RecordInput,
-                AppSystems::Update,
-            )
-                .chain(),
-        );
     }
 }
-
-/// High-level groupings of systems for the app in the `Update` schedule.
-/// When adding a new variant, make sure to order it in the `configure_sets`
-/// call above.
-#[derive(SystemSet, Debug, Clone, Copy, Eq, PartialEq, Hash, PartialOrd, Ord)]
-enum AppSystems {
-    /// Tick timers.
-    TickTimers,
-    /// Record player input.
-    RecordInput,
-    /// Do everything else (consider splitting this into further variants).
-    Update,
-}
-
-/// Tracks whether the game is paused.
-#[derive(States, Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
-struct Pause(pub(crate) bool);
-
-/// A system set for systems that shouldn't run while the game is paused.
-#[derive(SystemSet, Copy, Clone, Eq, PartialEq, Hash, Debug)]
-struct PausableSystems;

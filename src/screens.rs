@@ -11,26 +11,34 @@
 
 //! The game's main screen states and transitions between them.
 
-pub(crate) mod gameplay;
+mod gameplay;
 mod loading;
 mod splash;
-mod title;
+
+pub(crate) mod prelude {
+    pub(crate) use super::Screen;
+    pub(crate) use super::gameplay::EnterGameplaySystems;
+    pub(crate) use super::splash::SplashAssets;
+}
 
 use bevy::prelude::*;
 
-use crate::menus::Menu;
+use crate::ui::prelude::*;
 
-pub(super) fn plugin(app: &mut App) {
-    // Add child plugins
-    app.add_plugins((
-        gameplay::plugin,
-        loading::plugin,
-        splash::plugin,
-        title::plugin,
-    ));
+pub(super) struct ScreensPlugin;
+impl Plugin for ScreensPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_plugins((
+            gameplay::GameplayPlugin,
+            loading::LoadingPlugin,
+            splash::SplashPlugin,
+        ));
 
-    // Initialize main screen states
-    app.init_state::<Screen>();
+        app.init_state::<Screen>();
+
+        app.add_systems(OnEnter(Screen::Title), open_main_menu);
+        app.add_systems(OnExit(Screen::Title), close_main_menu);
+    }
 }
 
 /// The game's main screen states.
@@ -50,4 +58,14 @@ impl Screen {
             _ => Menu::Pause,
         }
     }
+}
+
+/// Open main menu
+fn open_main_menu(mut next_state: ResMut<NextState<Menu>>) {
+    (*next_state).set_if_neq(Menu::Main);
+}
+
+/// Close main menu
+fn close_main_menu(mut next_state: ResMut<NextState<Menu>>) {
+    (*next_state).set_if_neq(Menu::None);
 }

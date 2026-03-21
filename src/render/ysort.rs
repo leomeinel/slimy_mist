@@ -9,26 +9,7 @@
 
 use bevy::prelude::*;
 
-use crate::{
-    characters::{npc::Slime, player::Player},
-    levels::overworld::OverworldProcGen,
-    procgen::{ProcGenCache, ProcGenInit, ProcGenerated, TileDataRelatedCache},
-    screens::Screen,
-    visual::{TextureInfoCache, Visible},
-};
-
-pub(super) fn plugin(app: &mut App) {
-    // Sort entities with `YSort`
-    app.add_systems(
-        PostUpdate,
-        (
-            y_sort::<Player, OverworldProcGen>,
-            y_sort::<Slime, OverworldProcGen>,
-        )
-            .before(TransformSystems::Propagate)
-            .run_if(in_state(ProcGenInit(true)).and(in_state(Screen::Gameplay))),
-    );
-}
+use crate::{images::prelude::*, procgen::prelude::*, render::prelude::*};
 
 /// Sorts entities by their y position.
 #[derive(Component, Default, Reflect, Debug)]
@@ -52,10 +33,10 @@ pub(crate) struct YSortOffset(pub(crate) f32);
 ///
 /// - `T` must implement [`Visible`].
 /// - `A` must implement [`ProcGenerated`]' and is used as the procedurally generated level.
-fn y_sort<T, A>(
+pub(super) fn relative_sort<T, A>(
     query: Query<(&mut Transform, &YSort, Option<&YSortOffset>), With<T>>,
     cache: Res<ProcGenCache<A>>,
-    texture_info: Res<TextureInfoCache<T>>,
+    texture_info: Res<ImageMeta<T>>,
     tile_data_related: Res<TileDataRelatedCache<A>>,
 ) where
     T: Visible,

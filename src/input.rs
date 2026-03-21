@@ -7,45 +7,74 @@
  * URL: https://www.apache.org/licenses/LICENSE-2.0
  */
 
-pub(crate) mod actions;
-pub(crate) mod joystick;
+mod actions;
+mod joystick;
 mod mock;
-pub(crate) mod pointer;
-pub(crate) mod ui;
+mod pointer;
+mod ui;
+
+pub(crate) mod prelude {
+    pub(crate) use super::actions::{Aim, Jump, Melee, Walk, player_input};
+    pub(crate) use super::joystick::{
+        JoystickAssets, JoystickID, JoystickMap, JoystickRect, JoystickState,
+    };
+    pub(crate) use super::pointer::{MouseDrag, PointerStartTimeSecs, Swipe};
+    pub(crate) use super::ui::scroll::{AutoScroll, InputScroll};
+    pub(crate) use super::ui::{UiNav, UiNavAction, UiNavActionSet};
+}
 
 use bevy::prelude::*;
 use bevy_enhanced_input::prelude::*;
 
-use crate::{characters::player::Player, screens::Screen};
+use crate::{characters::prelude::*, screens::prelude::*};
 
-pub(super) fn plugin(app: &mut App) {
-    // Add library plugins
-    app.add_plugins(EnhancedInputPlugin);
+pub(super) struct InputPlugin;
+impl Plugin for InputPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_plugins(EnhancedInputPlugin);
+        app.add_plugins((joystick::JoystickPlugin, ui::UiInputPlugin));
 
-    // Add child plugins
-    app.add_plugins((joystick::plugin, mock::plugin, pointer::plugin, ui::plugin));
+        app.add_input_context::<Player>();
 
-    // Order new `InitGameplaySystems` variants by adding them here:
-    app.configure_sets(
-        PreUpdate,
-        (InputSystems::Cache, InputSystems::Mock)
-            .before(EnhancedInputSystems::Update)
-            .run_if(in_state(Screen::Gameplay))
-            .chain(),
-    );
+        app.add_observer(actions::apply_walk);
+        app.add_observer(actions::reset_walk);
+        app.add_observer(actions::set_jump);
+        app.add_observer(actions::trigger_melee_attack);
+        app.add_observer(actions::reset_aim);
 
-    // Handle bevy_enhanced_input with input context and observers
-    app.add_input_context::<Player>();
-    app.add_observer(actions::apply_walk);
-    app.add_observer(actions::reset_walk);
-    app.add_observer(actions::set_jump);
-    app.add_observer(actions::trigger_melee_attack);
-    app.add_observer(actions::reset_aim);
+        app.configure_sets(
+            PreUpdate,
+            (InputSystems::Cache, InputSystems::Mock)
+                .before(EnhancedInputSystems::Update)
+                .run_if(in_state(Screen::Gameplay))
+                .chain(),
+        );
+        app.add_systems(
+            PreUpdate,
+            (
+                mock::mock_walk_from_virtual_joystick,
+                mock::mock_jump_from_touch,
+                (mock::mock_melee_from_click, mock::mock_melee_from_touch).chain(),
+                (mock::mock_aim_from_click, mock::mock_aim_from_touch).chain(),
+            )
+                .in_set(InputSystems::Mock)
+                .chain(),
+        );
+        app.add_systems(
+            PreUpdate,
+            (
+                pointer::update_pointer_start_time_secs,
+                pointer::update_mouse_drag,
+            )
+                .before(EnhancedInputSystems::Update)
+                .run_if(in_state(Screen::Gameplay)),
+        );
+    }
 }
 
 /// A [`SystemSet`] for systems that initialize [`Screen::Gameplay`]
 #[derive(SystemSet, Copy, Clone, Eq, PartialEq, Hash, Debug)]
-pub(crate) enum InputSystems {
+enum InputSystems {
     Cache,
     Mock,
 }

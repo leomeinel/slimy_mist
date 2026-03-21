@@ -21,10 +21,17 @@
 //        will be just fine. That is a world of 4096x4096 chunks with 16 16x16 tiles.
 //        Also see: https://github.com/bevyengine/bevy/issues/1680
 
-pub(crate) mod characters;
-pub(crate) mod chunks;
-pub(crate) mod lights;
-pub(crate) mod navmesh;
+mod characters;
+mod chunks;
+mod common;
+mod lights;
+
+pub(crate) mod prelude {
+    pub(crate) use super::{
+        CHUNK_SIZE, DespawnProcGen, PROCGEN_DISTANCE, ProcGen, ProcGenCache, ProcGenInit,
+        ProcGenRng, ProcGenState, ProcGenerated,
+    };
+}
 
 use std::marker::PhantomData;
 
@@ -35,100 +42,78 @@ use bevy::{
 };
 
 use crate::{
-    AppSystems, PausableSystems,
-    camera::CanvasCamera,
-    characters::npc::Slime,
-    levels::{
-        Level,
-        overworld::{Overworld, OverworldAssets, OverworldProcGen},
-    },
-    light::StreetLight,
-    log::error::*,
-    procgen::{
-        characters::spawn_on_procgen_characters,
-        chunks::{spawn_chunks, spawn_on_procgen_chunks},
-        lights::spawn_on_procgen_lights,
-        navmesh::move_navmesh,
-    },
-    screens::Screen,
-    utils::rng::{ForkedRng, setup_rng},
+    characters::prelude::*, core::prelude::*, levels::prelude::*, log::prelude::*,
+    render::prelude::*, screens::prelude::*, utils::prelude::*,
 };
 
-pub(super) fn plugin(app: &mut App) {
-    // Add child plugins
-    app.add_plugins(navmesh::plugin);
+pub(super) struct ProcGenPlugin;
+impl Plugin for ProcGenPlugin {
+    fn build(&self, app: &mut App) {
+        app.init_state::<ProcGenState>();
+        app.init_state::<ProcGenInit>();
+        app.init_state::<DespawnProcGen>();
 
-    // Init states
-    app.init_state::<ProcGenState>();
-    app.init_state::<ProcGenInit>();
-    app.init_state::<DespawnProcGen>();
-    // Reset states
-    app.add_systems(
-        OnExit(Screen::Gameplay),
-        (
-            reset_procgen_state,
-            reset_procgen_init,
-            reset_procgen_despawning,
-        ),
-    );
-
-    // Add rng for procedural generation
-    app.add_systems(Startup, setup_rng::<ProcGenRng>);
-
-    // Despawn procgen
-    app.add_systems(
-        Update,
-        (
-            collect_to_despawn::<OverworldProcGen, OverworldProcGen, true>,
-            collect_to_despawn::<Slime, OverworldProcGen, false>,
-            collect_to_despawn::<StreetLight, OverworldProcGen, false>,
-        )
-            .run_if(in_state(ProcGenState::Despawn).and(in_state(Screen::Gameplay)))
-            .in_set(AppSystems::Update)
-            .in_set(PausableSystems),
-    );
-    // NOTE: Since we are running despawing in `PostUpdate`, `DespawnProcGen` is not necessary.
-    //       It will however allow other systems to verify that state in the future.
-    app.add_systems(
-        PostUpdate,
-        (
+        app.add_systems(
+            OnEnter(ProcGenState::Spawn),
             (
-                set_despawning::<OverworldProcGen>,
-                set_despawning::<Slime>,
-                set_despawning::<StreetLight>,
-            ),
-            (
-                despawn::<Slime>,
-                despawn::<StreetLight>,
-                despawn::<OverworldProcGen>,
+                chunks::spawn_chunks::<OverworldProcGen, Overworld>,
+                (
+                    common::spawn_objects::<Slime, OverworldProcGen, Overworld>,
+                    common::spawn_objects::<StreetLight, OverworldProcGen, Overworld>,
+                ),
             )
-                .run_if(in_state(DespawnProcGen(true)))
+                .run_if(in_state(Screen::Gameplay))
                 .chain(),
-        )
-            .run_if(in_state(Screen::Gameplay)),
-    );
-    // Spawn procgen
-    app.add_systems(
-        OnEnter(ProcGenState::Spawn),
-        (
-            spawn_chunks::<OverworldProcGen, Overworld>,
+        );
+        app.add_systems(
+            OnExit(Screen::Gameplay),
             (
-                spawn_objects::<Slime, OverworldProcGen, Overworld>,
-                spawn_objects::<StreetLight, OverworldProcGen, Overworld>,
+                reset_procgen_state,
+                reset_procgen_init,
+                reset_procgen_despawning,
             ),
-        )
-            .run_if(in_state(Screen::Gameplay))
-            .chain(),
-    );
-    // Move navmesh
-    app.add_systems(
-        OnEnter(ProcGenState::MoveNavMesh),
-        move_navmesh::<OverworldProcGen>.run_if(in_state(Screen::Gameplay)),
-    );
+        );
+        app.add_systems(Startup, setup_rng::<ProcGenRng>);
+        app.add_systems(
+            Update,
+            (
+                common::collect_to_despawn::<OverworldProcGen, OverworldProcGen, true>,
+                common::collect_to_despawn::<Slime, OverworldProcGen, false>,
+                common::collect_to_despawn::<StreetLight, OverworldProcGen, false>,
+            )
+                .run_if(in_state(ProcGenState::Despawn).and(in_state(Screen::Gameplay)))
+                .in_set(AppSystems::Update)
+                .in_set(PausableSystems),
+        );
+        app.add_systems(
+            PostUpdate,
+            (
+                (
+                    common::set_despawning::<OverworldProcGen>,
+                    common::set_despawning::<Slime>,
+                    common::set_despawning::<StreetLight>,
+                ),
+                (
+                    common::despawn::<Slime>,
+                    common::despawn::<StreetLight>,
+                    common::despawn::<OverworldProcGen>,
+                )
+                    .run_if(in_state(DespawnProcGen(true)))
+                    .chain(),
+            )
+                .run_if(in_state(Screen::Gameplay)),
+        );
 
-    app.add_observer(spawn_on_procgen_chunks::<OverworldProcGen, OverworldAssets, Overworld>);
-    app.add_observer(spawn_on_procgen_characters::<Slime, OverworldProcGen, Overworld>);
-    app.add_observer(spawn_on_procgen_lights::<StreetLight, OverworldProcGen, Overworld>);
+        app.add_observer(
+            chunks::spawn_on_procgen_chunks::<OverworldProcGen, OverworldAssets, Overworld>,
+        );
+        app.add_observer(
+            characters::spawn_on_procgen_characters::<Slime, OverworldProcGen, Overworld>,
+        );
+        app.add_observer(
+            lights::spawn_on_procgen_lights::<StreetLight, OverworldProcGen, Overworld>,
+        );
+    }
 }
 
 /// Size of a single chunk
@@ -202,195 +187,10 @@ where
     }
 }
 
-/// Animation data deserialized from a ron file as a generic
-///
-/// ## Traits
-///
-/// - `T` must implement [`ProcGenerated`] and is used as a level's procedurally generated item.
-#[derive(serde::Deserialize, Asset, TypePath, Default)]
-pub(crate) struct TileData<T>
-where
-    T: ProcGenerated,
-{
-    pub(crate) tile_size: f32,
-    #[serde(default)]
-    pub(crate) full_dirt: Option<HashSet<UVec2>>,
-    #[serde(default)]
-    pub(crate) full_grass: Option<HashSet<UVec2>>,
-    #[serde(default)]
-    pub(crate) corner_outer_grass_to_dirt: Option<HashSet<UVec2>>,
-    #[serde(default)]
-    pub(crate) corner_outer_dirt_to_grass: Option<HashSet<UVec2>>,
-    #[serde(default)]
-    pub(crate) side_dirt_and_grass: Option<HashSet<UVec2>>,
-    #[serde(default)]
-    pub(crate) diag_stripe_grass_in_dirt: Option<HashSet<UVec2>>,
-    #[serde(skip)]
-    pub(crate) _phantom: PhantomData<T>,
-}
-
-/// Handle for [`TileData`] as a generic
-///
-/// ## Traits
-///
-/// - `T` must implement [`ProcGenerated`] and is used as a level's procedurally generated item.
-#[derive(Resource)]
-pub(crate) struct TileHandle<T>(pub(crate) Handle<TileData<T>>)
-where
-    T: ProcGenerated;
-
-/// Cache for [`TileData`]
-///
-/// This is to allow easier access.
-///
-/// ## Traits
-///
-/// - `T` must implement [`ProcGenerated`].
-#[derive(Resource, Default)]
-pub(crate) struct TileDataCache<T>
-where
-    T: ProcGenerated,
-{
-    pub(crate) tile_size: f32,
-    pub(crate) _full_dirt: Option<HashSet<UVec2>>,
-    pub(crate) _full_grass: Option<HashSet<UVec2>>,
-    pub(crate) _corner_outer_grass_to_dirt: Option<HashSet<UVec2>>,
-    pub(crate) _corner_outer_dirt_to_grass: Option<HashSet<UVec2>>,
-    pub(crate) _side_dirt_and_grass: Option<HashSet<UVec2>>,
-    pub(crate) _diag_stripe_grass_in_dirt: Option<HashSet<UVec2>>,
-    pub(crate) _phantom: PhantomData<T>,
-}
-
-/// Cache for data that is related to [`TileData`]
-///
-/// This is to allow easier access.
-///
-/// ## Traits
-///
-/// - `T` must implement [`ProcGenerated`].
-#[derive(Resource, Default)]
-pub(crate) struct TileDataRelatedCache<T>
-where
-    T: ProcGenerated,
-{
-    pub(crate) chunk_size_px: Vec2,
-    pub(crate) world_height: f32,
-    pub(crate) _phantom: PhantomData<T>,
-}
-
 /// Rng for procedural generation
 #[derive(Component, Default)]
 pub(crate) struct ProcGenRng;
 impl ForkedRng for ProcGenRng {}
-
-/// Spawn objects in every chunk contained in [`ProcGenCache<A>`]
-///
-/// ## Traits
-///
-/// - `T` must implement [`ProcGenerated`] and is used as the procedurally generated object associated with a [`ProcGenCache<T>`].
-/// - `A` must implement [`ProcGenerated`] and is used as a level's procedurally generated item.
-/// - `B` must implement [`Level`].
-pub(crate) fn spawn_objects<T, A, B>(
-    level: Single<Entity, With<B>>,
-    mut commands: Commands,
-    chunk_cache: Res<ProcGenCache<A>>,
-    object_cache: Res<ProcGenCache<T>>,
-) where
-    T: ProcGenerated,
-    A: ProcGenerated,
-    B: Level,
-{
-    for (_, chunk_pos) in &chunk_cache.chunk_positions {
-        // Continue if chunk has already been stored
-        if object_cache
-            .chunk_positions
-            .values()
-            .any(|&v| v == *chunk_pos)
-        {
-            continue;
-        }
-
-        commands.trigger(ProcGen::<T> {
-            entity: *level,
-            chunk_pos: *chunk_pos,
-            _phantom: PhantomData,
-        });
-    }
-}
-
-/// Collect procedurally generated [`Entity`]s to despawn outside of [`PROCGEN_DISTANCE`]
-///
-/// ## Traits
-///
-/// - `T` must implement [`ProcGenerated`] and is used as the procedurally generated item associated with a [`ProcGenCache<T>`].
-/// - `A` must implement [`ProcGenerated`] and is used as a level's procedurally generated item.
-/// - `const PROCEED` determines whether we should proceed to the next state.
-pub(crate) fn collect_to_despawn<T, A, const PROCEED: bool>(
-    camera: Single<&Transform, (Changed<Transform>, With<CanvasCamera>, Without<T>)>,
-    query: Query<(Entity, &Transform), (With<T>, Without<CanvasCamera>)>,
-    mut cache: ResMut<ProcGenCache<T>>,
-    mut next_state: ResMut<NextState<ProcGenState>>,
-    tile_data_related: Res<TileDataRelatedCache<A>>,
-) where
-    T: ProcGenerated,
-    A: ProcGenerated,
-{
-    let chunk_size_px = tile_data_related.chunk_size_px;
-    cache.camera_chunk_pos = (camera.translation.xy() / chunk_size_px).floor().as_ivec2();
-
-    // Add entities outside of `PROCGEN_DISTANCE` to `to_despawn`
-    for (entity, transform) in query {
-        let chunk_pos = (transform.translation.xy() / chunk_size_px)
-            .floor()
-            .as_ivec2();
-
-        // NOTE: We are using `chebyshev_distance` because we are spawning in a square.
-        if cache.camera_chunk_pos.chebyshev_distance(chunk_pos) > PROCGEN_DISTANCE as u32 {
-            cache.to_despawn.insert(entity);
-        }
-    }
-
-    // Transition state if required
-    if PROCEED && (!cache.to_despawn.is_empty() || query.is_empty()) {
-        (*next_state).set_if_neq(ProcGenState::Spawn);
-    }
-}
-
-/// Despawn procedurally generated [`Entity`]s from [`ProcGenCache<T>::to_despawn`] and remove entries in [`ProcGenCache<T>::chunk_positions`]
-///
-/// ## Traits
-///
-/// - `T` must implement [`ProcGenerated`] and is used as the procedurally generated item associated with a [`ProcGenCache<T>`].
-fn despawn<T>(
-    mut commands: Commands,
-    mut cache: ResMut<ProcGenCache<T>>,
-    mut next_state: ResMut<NextState<DespawnProcGen>>,
-) where
-    T: ProcGenerated,
-{
-    // Despawn collected entities
-    let entities: Vec<_> = cache.to_despawn.drain().collect();
-    for entity in entities {
-        cache.chunk_positions.remove(&entity);
-        commands.entity(entity).despawn();
-    }
-
-    (*next_state).set_if_neq(DespawnProcGen(false));
-}
-
-/// Enable [`DespawnProcGen`] if [`ProcGenCache<T>::to_despawn`] is not empty.
-///
-/// ## Traits
-///
-/// - `T` must implement [`ProcGenerated`] and is used as the procedurally generated item associated with a [`ProcGenCache<T>`].
-fn set_despawning<T>(mut next_state: ResMut<NextState<DespawnProcGen>>, cache: Res<ProcGenCache<T>>)
-where
-    T: ProcGenerated,
-{
-    if !cache.to_despawn.is_empty() {
-        (*next_state).set_if_neq(DespawnProcGen(true));
-    }
-}
 
 /// Reset [`ProcGenState`]
 fn reset_procgen_state(mut next_state: ResMut<NextState<ProcGenState>>) {

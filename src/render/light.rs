@@ -112,7 +112,7 @@ impl Default for DayUpdateTimer {
 /// Minimum [`AmbientLight2d::intensity`].
 const MIN_AMBIENT: f32 = 0.05;
 /// Maximum [`AmbientLight2d::intensity`].
-const MAX_AMBIENT: f32 = 0.5;
+const MAX_AMBIENT: f32 = 0.8;
 
 /// Initialize [`AmbientLight2d`].
 fn init_ambient(mut ambient: Single<&mut AmbientLight2d, With<CanvasCamera>>) {

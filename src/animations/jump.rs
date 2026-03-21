@@ -46,7 +46,7 @@ pub(super) fn apply_jump(
     jump_height.0 = target;
 }
 
-/// Limit jump by setting fall after specific time and then switching to walk
+/// Limit jump by setting fall after specific time and then switching to idle
 pub(super) fn limit_jump(
     player: Single<(Entity, &mut AnimationCache, &mut JumpHeight, &JumpTimer), With<Player>>,
     mut commands: Commands,

@@ -65,6 +65,7 @@ impl Character for Player {
                 },
                 LockedAxes::ROTATION_LOCKED,
                 FacingDirection::default(),
+                JumpHeight::default(),
                 WalkSpeed(PLAYER_WALK_SPEED),
             ),
             // Navigation

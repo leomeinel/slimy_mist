@@ -133,19 +133,15 @@ pub(super) fn refresh_path<T>(
 ) where
     T: ProcGenerated,
 {
-    // Return if target transforms is empty
     if target_transforms.is_empty() {
         return;
     }
 
-    let (navmesh_handle, status) = navmesh.deref();
-    // Return if navmesh is not built
+    let (navmesh, status) = navmesh.deref();
     if **status != NavMeshStatus::Built && *delta == 0. {
         return;
     }
-    let navmesh = navmeshes
-        .get_mut(*navmesh_handle)
-        .expect(ERR_INVALID_NAVMESH);
+    let navmesh = navmeshes.get_mut(*navmesh).expect(ERR_INVALID_NAVMESH);
 
     let mut updated: HashMap<Entity, Vec2> = HashMap::new();
     for (entity, transform, mut path) in navigator_query {

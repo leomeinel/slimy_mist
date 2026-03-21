@@ -16,7 +16,7 @@ pub(crate) const ERR_INVALID_DOMAIN_EASING: &str =
     "Invalid domain of easing curve. This might be a bug.";
 /// Error on invalid [`Image`](bevy::prelude::Image).
 pub(crate) const ERR_INVALID_IMAGE: &str = "Invalid image. The config might be invalid.";
-/// Error on invalid [`chunk_positions`](crate::procgen::ProcGenCache::chunk_positions).
+/// Error on invalid [`ProcGenCache::chunk_positions`](crate::procgen::ProcGenCache::chunk_positions).
 pub(crate) const ERR_INVALID_CHUNK_POSITIONS: &str =
     "Invalid chunk positions. This might be a bug.";
 /// Error on invalid [`NavMesh`](vleue_navigator::NavMesh).

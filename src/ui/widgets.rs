@@ -50,7 +50,7 @@ fn ui_root_bundle(name: &'static str, overflow: Overflow) -> impl Bundle {
     )
 }
 
-/// A simple header label. Bigger than [`label`].
+/// A simple header label. Bigger than [`label_widget`].
 pub(crate) fn header_widget(text: impl Into<String>, font: Handle<Font>) -> impl Bundle {
     styled_text("Header", HEADER_TEXT, text, font, HEADER_FONT_SIZE)
 }

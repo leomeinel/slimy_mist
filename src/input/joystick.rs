@@ -132,7 +132,7 @@ pub(crate) struct JoystickAssets {
 
 /// Enum representation of a joystick ID to have a single source of truth for IDs.
 ///
-/// This can be used as a [`virtual_joystick::VirtualJoystickID`] after casting to [`u8`].
+/// This can be used as a [`VirtualJoystickID`](virtual_joystick::VirtualJoystickID) after casting to [`u8`].
 #[repr(u8)]
 #[derive(Default)]
 pub(crate) enum JoystickID {

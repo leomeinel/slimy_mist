@@ -156,7 +156,7 @@ pub(super) fn override_interaction_on_release(
     }
 }
 
-/// Navigate to [`UiNavActionSet::direction()`].
+/// Navigate to [`UiNavActionSet::direction`].
 pub(super) fn navigate(mut navigator: AutoDirectionalNavigator, action_set: Res<UiNavActionSet>) {
     // Navigate to `maybe_direction`.
     let direction = action_set.direction().map(CompassOctant::from);

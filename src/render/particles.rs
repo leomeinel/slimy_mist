@@ -62,7 +62,7 @@ impl ParticleSpawnerExt for ParticleSpawnerState {
     }
 }
 
-/// Marker component for walking dust particles
+/// Marker component for walking dust particles.
 #[derive(Component, Default)]
 pub(crate) struct ParticleWalkingDust(AnimationState);
 impl Particle for ParticleWalkingDust {
@@ -71,7 +71,7 @@ impl Particle for ParticleWalkingDust {
     }
 }
 
-/// Marker component for [`crate::characters::attack::MeleeAttack`] particles
+/// Marker component for [`MeleeAttack`] particles.
 #[derive(Component, Default)]
 pub(crate) struct ParticleMeleeAttack;
 impl Particle for ParticleMeleeAttack {}

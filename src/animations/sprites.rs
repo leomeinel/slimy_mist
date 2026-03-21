@@ -38,7 +38,7 @@ pub(super) fn setup_animations<T>(
     );
     let sprite = sprite_sheet
         .with_loaded_image(&images)
-        .expect(ERR_NOT_LOADED_SPRITE_IMAGE)
+        .expect(ERR_NONEXISTENT_IMAGE)
         .sprite(&mut atlas_layouts);
 
     // Idle animation: This is the only required animation
@@ -49,7 +49,7 @@ pub(super) fn setup_animations<T>(
         animation_data.idle_interval_ms,
         AnimationRepeat::Loop,
     )
-    .expect(ERR_INVALID_REQUIRED_ANIMATION_DATA);
+    .expect(ERR_INVALID_IDLE_ANIMATION_DATA);
 
     // Walk animation
     let walk = animation_handle(
@@ -199,7 +199,7 @@ fn switch_to_new_animation(
     new_animation: Option<Handle<Animation>>,
     cache: &mut AnimationCache,
 ) {
-    let new_animation = new_animation.expect(ERR_UNINITIALIZED_REQUIRED_ANIMATION);
+    let new_animation = new_animation.expect(ERR_NONEXISTENT_ANIMATION);
 
     if animation.animation != new_animation {
         animation.switch(new_animation);

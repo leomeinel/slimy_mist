@@ -72,18 +72,18 @@ where
             .map(|image| {
                 let descriptor = &images
                     .get(image)
-                    .expect(ERR_INVALID_LAYER_MAP)
+                    .expect(ERR_INVALID_IMAGE)
                     .texture_descriptor;
                 (descriptor.size, descriptor.dimension, descriptor.format)
             })
-            .expect(ERR_INVALID_LAYER_MAP);
+            .expect(ERR_INVALID_IMAGE);
 
         // Combine `Images` into a single `Image` by overriding non-transparent pixels in each previous iteration of `data`.
         let data: Vec<_> = self
             .images
             .iter()
             .map(|image| {
-                let image = images.get(image).expect(ERR_INVALID_LAYER_MAP);
+                let image = images.get(image).expect(ERR_INVALID_IMAGE);
                 image.data.clone().expect(ERR_INVALID_IMAGE)
             })
             .collect();

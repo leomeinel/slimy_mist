@@ -7,55 +7,47 @@
  * URL: https://www.apache.org/licenses/LICENSE-2.0
  */
 
-/// Error message if loading animation data failed
-pub(crate) const ERR_LOADING_ANIMATION_DATA: &str =
-    "Could not load animation data. The file is probably missing.";
-/// Error message if loading collision data failed
-pub(crate) const ERR_LOADING_COLLISION_DATA: &str =
-    "Could not load collision data. The file is probably missing.";
-/// Error message if loading animation data failed
-pub(crate) const ERR_LOADING_CREDITS_DATA: &str =
-    "Could not load credits data. The file is probably missing.";
-/// Error message if loading layer data failed
-pub(crate) const ERR_LOADING_LAYER_DATA: &str =
-    "Could not load layer data. The file is probably missing.";
-/// Error message if loading tile data failed
-pub(crate) const ERR_LOADING_TILE_DATA: &str =
-    "Could not load tile data. The file is probably missing.";
-
-/// Error message if attacker entity is invalid
-pub(crate) const ERR_INVALID_ATTACKER: &str = "The attacker is invalid. This is a bug.";
-/// Error message if an error has been encountered while processing [`bevy::prelude::Children`].
-pub(crate) const ERR_INVALID_CHILDREN: &str = "The processed children are invalid. This is a bug.";
-/// Error message if the domain for [`bevy::prelude::EasingCurve`] is invalid.
+/// Error on invalid attacker [`Entity`](bevy::prelude::Entity).
+pub(crate) const ERR_INVALID_ATTACKER: &str = "Invalid attacker entity. This might be a bug.";
+/// Error on invalid [`bevy::prelude::Children`].
+pub(crate) const ERR_INVALID_CHILDREN: &str = "Invalid children. This might be a bug.";
+/// Error on invalid domain of [`bevy::prelude::EasingCurve`].
 pub(crate) const ERR_INVALID_DOMAIN_EASING: &str =
-    "The specified domain for an easing curve is invalid. This is a bug.";
-/// Error message if a layer map is invalid.
-pub(crate) const ERR_INVALID_IMAGE: &str = "The processed image is invalid. This might be due to an invalid image with no data having been referenced in any '*.ron'";
-/// Error message if a layer map is invalid.
-pub(crate) const ERR_INVALID_LAYER_MAP: &str = "The processed layer map is invalid. This might be due to fields in '*.layers.ron' not matching '*.layermap.ron'.";
-/// Error message if an error has been encountered while calculating minimum chunk pos
-pub(crate) const ERR_INVALID_MINIMUM_CHUNK_POS: &str =
-    "Could not determine correct minimum chunk position. This is a bug.";
-/// Error message if navmesh is invalid
-pub(crate) const ERR_INVALID_NAVMESH: &str = "The navmesh is invalid. This is a bug.";
-/// Error message if nav target is invalid
-pub(crate) const ERR_INVALID_NAV_TARGET: &str = "The navigation target is invalid. This is a bug.";
-/// Error message if [`bevy_rapier2d::prelude::ReadRapierContext`] is invalid
-pub(crate) const ERR_INVALID_RAPIER_CONTEXT: &str = "ReadRapierContext is invalid. This is a bug.";
-/// Error message if animation data is invalid or incomplete
-///
-/// Since only the idle animation is required, the error message includes that.
-pub(crate) const ERR_INVALID_REQUIRED_ANIMATION_DATA: &str =
-    "The animation data for required idle animation is invalid or incomplete.";
-/// Error message if an error has been encountered while processing texture atlas
-pub(crate) const ERR_INVALID_TEXTURE_ATLAS: &str =
-    "The loaded texture atlas is invalid. This is a bug.";
+    "Invalid domain of easing curve. This might be a bug.";
+/// Error on invalid [`Image`](bevy::prelude::Image).
+pub(crate) const ERR_INVALID_IMAGE: &str = "Invalid image. The config might be invalid.";
+/// Error on invalid [`chunk_positions`](crate::procgen::ProcGenCache::chunk_positions).
+pub(crate) const ERR_INVALID_CHUNK_POSITIONS: &str =
+    "Invalid chunk positions. This might be a bug.";
+/// Error on invalid [`NavMesh`](vleue_navigator::NavMesh).
+pub(crate) const ERR_INVALID_NAVMESH: &str = "Invalid nav mesh. This might be a bug.";
+/// Error on invalid [`NavTarget`](crate::characters::prelude::NavTarget).
+pub(crate) const ERR_INVALID_NAV_TARGET: &str = "Invalid nav target. This might be a bug.";
+/// Error on invalid [`ReadRapierContext`](bevy_rapier2d::prelude::ReadRapierContext).
+pub(crate) const ERR_INVALID_RAPIER_CONTEXT: &str = "Invalid rapier context. This might be a bug.";
+/// Error on invalid or incomplete idle [`AnimationData`](crate::animations::prelude::AnimationData).
+pub(crate) const ERR_INVALID_IDLE_ANIMATION_DATA: &str =
+    "Invalid or incomplete idle animation data. The config might be invalid.";
+/// Error on invalid [`TextureAtlas`](bevy::prelude::TextureAtlas).
+pub(crate) const ERR_INVALID_TEXTURE_ATLAS: &str = "Invalid texture atlas. This might be a bug.";
 
-/// Error message if sprite image is not loaded
-pub(crate) const ERR_NOT_LOADED_SPRITE_IMAGE: &str =
-    "The given image for the sprite sheet is not loaded. This is a bug.";
+/// Error on loading [`AnimationData`](crate::animations::prelude::AnimationData).
+pub(crate) const ERR_LOADING_ANIMATION_DATA: &str =
+    "Could not load animation data. The config might be missing.";
+/// Error on loading [`CollisionData`](crate::characters::prelude::CollisionData).
+pub(crate) const ERR_LOADING_COLLISION_DATA: &str =
+    "Could not load collision data. The config might be missing.";
+/// Error on loading [`CreditsData`](crate::ui::prelude::CreditsData).
+pub(crate) const ERR_LOADING_CREDITS_DATA: &str =
+    "Could not load credits data. The config might be missing.";
+/// Error on loading [`LayerData`](crate::images::prelude::LayerData).
+pub(crate) const ERR_LOADING_LAYER_DATA: &str =
+    "Could not load layer data. The config might be missing.";
+/// Error on loading [`TileData`](crate::images::prelude::TileData).
+pub(crate) const ERR_LOADING_TILE_DATA: &str =
+    "Could not load tile data. The config might be missing.";
 
-/// Error message if animation has not been initialized
-pub(crate) const ERR_UNINITIALIZED_REQUIRED_ANIMATION: &str =
-    "The requested animation has not been initialized.";
+/// Error on nonexistent [`Image`](bevy::prelude::Image).
+pub(crate) const ERR_NONEXISTENT_IMAGE: &str = "Nonexistent image. This might be a bug.";
+/// Error on nonexistent [`Animation`](bevy_spritesheet_animation::animation::Animation).
+pub(crate) const ERR_NONEXISTENT_ANIMATION: &str = "Nonexistent animation. This might be a bug.";

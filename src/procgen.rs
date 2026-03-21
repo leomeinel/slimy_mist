@@ -183,7 +183,7 @@ where
         self.chunk_positions
             .values()
             .min_by_key(|pos| (pos.x, pos.y))
-            .expect(ERR_INVALID_MINIMUM_CHUNK_POS)
+            .expect(ERR_INVALID_CHUNK_POSITIONS)
     }
 }
 

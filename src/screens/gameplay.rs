@@ -116,7 +116,6 @@ fn insert_resources(mut commands: Commands) {
     commands.init_resource::<JoystickMap>();
     commands.init_resource::<JoystickRect<{ JoystickID::Movement as u8 }>>();
     commands.init_resource::<MouseDrag>();
-    commands.init_resource::<NavTargetPosMap>();
     commands.init_resource::<PointerStartTimeSecs>();
     commands.init_resource::<ProcGenCache<OverworldProcGen>>();
     commands.init_resource::<ProcGenCache<Slime>>();
@@ -132,7 +131,6 @@ fn remove_resources(mut commands: Commands) {
     commands.remove_resource::<JoystickMap>();
     commands.remove_resource::<JoystickRect<{ JoystickID::Movement as u8 }>>();
     commands.remove_resource::<MouseDrag>();
-    commands.remove_resource::<NavTargetPosMap>();
     commands.remove_resource::<PointerStartTimeSecs>();
     commands.remove_resource::<ProcGenCache<OverworldProcGen>>();
     commands.remove_resource::<ProcGenCache<Slime>>();

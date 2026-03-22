@@ -11,18 +11,11 @@
 
 use std::ops::Deref;
 
-use bevy::{math::FloatPow, platform::collections::HashMap, prelude::*};
+use bevy::{math::FloatPow, prelude::*};
 use bevy_rapier2d::prelude::*;
 use vleue_navigator::prelude::*;
 
-use crate::{
-    animations::prelude::*, characters::prelude::*, images::prelude::*, log::prelude::*,
-    procgen::prelude::*,
-};
-
-/// Map of target entities mapped to their last updated position.
-#[derive(Resource, Default)]
-pub(crate) struct NavTargetPosMap(HashMap<Entity, Vec2>);
+use crate::{animations::prelude::*, characters::prelude::*, log::prelude::*, procgen::prelude::*};
 
 /// Navigation target
 ///
@@ -42,6 +35,12 @@ pub(crate) struct Path {
     target: Entity,
 }
 
+/// [`EntityEvent`] to stop navigation.
+///
+/// This removes [`Path`] and switches to [`AnimationState::Idle`].
+#[derive(EntityEvent)]
+pub(super) struct StopNav(Entity);
+
 /// Find [`Path`] to [`NavTarget`]
 ///
 /// ## Traits
@@ -56,67 +55,42 @@ pub(super) fn find_path<T>(
     >,
     mut commands: Commands,
     mut navmeshes: ResMut<Assets<NavMesh>>,
-    mut target_map: ResMut<NavTargetPosMap>,
-    tile_data: Res<TileDataCache<T>>,
     mut delta: Local<f32>,
 ) where
     T: ProcGenerated,
 {
-    let (navmesh_handle, status) = navmesh.deref();
-    // Return if navmesh is not built
+    let (navmesh, status) = navmesh.deref();
     if **status != NavMeshStatus::Built && *delta == 0. {
         return;
     }
-    let navmesh = navmeshes
-        .get_mut(*navmesh_handle)
-        .expect(ERR_INVALID_NAVMESH);
+    let navmesh = navmeshes.get_mut(*navmesh).expect(ERR_INVALID_NAVMESH);
 
     // Get target with maximum priority
-    let Some((target, target_pos, _)) = target_query.iter().max_by_key(|q| q.2.0) else {
+    let Some((target, target_pos, _)) = target_query.iter().max_by_key(|(_, _, t)| t.0) else {
         return;
     };
-    // Validate target pos in `NavTargetPosMap`
-    let target_pos = target_pos.translation.xy();
-    if let Some(pos) = target_map.0.get(&target)
-        && target_pos.distance_squared(*pos) < tile_data.tile_size.squared()
-    {
-        return;
-    }
-    let target_pos_vec3 = target_pos.extend(0.);
-    // Return if target pos is not in mesh
-    if !navmesh.transformed_is_in_mesh(target_pos_vec3) {
+    let target_pos = target_pos.translation;
+    if !navmesh.transformed_is_in_mesh(target_pos) {
         return;
     }
 
-    let mut updated: HashMap<Entity, Vec2> = HashMap::new();
+    let mut path_found = false;
     for (entity, transform) in &navigator_query {
-        let origin_pos = transform.translation;
-
-        // Increase search delta each time the navigator is found to be outside of the navmesh
-        if !navmesh.transformed_is_in_mesh(origin_pos) {
-            *delta += 0.1;
-            navmesh.set_search_delta(*delta);
-            continue;
-        }
-        // Find path to target
-        let Some((current, next)) = next_path_step(navmesh, origin_pos, target_pos_vec3) else {
+        let Some((current, next)) =
+            next_path_step(&mut delta, navmesh, transform.translation, target_pos)
+        else {
             continue;
         };
 
-        // Insert path
         commands.entity(entity).insert(Path {
             current,
             next,
             target,
         });
-        *delta = 0.;
-
-        updated.insert(target, target_pos);
+        path_found = true;
     }
-
-    // Insert updated positions into target map
-    if !updated.is_empty() {
-        target_map.0.extend(updated);
+    if path_found {
+        *delta = 0.
     }
 }
 
@@ -126,9 +100,7 @@ pub(super) fn refresh_path<T>(
     navigator_query: Query<(Entity, &Transform, &mut Path), With<Navigator>>,
     target_transforms: Query<&Transform, With<NavTarget>>,
     mut commands: Commands,
-    mut target_map: ResMut<NavTargetPosMap>,
     mut navmeshes: ResMut<Assets<NavMesh>>,
-    tile_data: Res<TileDataCache<T>>,
     mut delta: Local<f32>,
 ) where
     T: ProcGenerated,
@@ -143,57 +115,46 @@ pub(super) fn refresh_path<T>(
     }
     let navmesh = navmeshes.get_mut(*navmesh).expect(ERR_INVALID_NAVMESH);
 
-    let mut updated: HashMap<Entity, Vec2> = HashMap::new();
+    let mut path_found = false;
     for (entity, transform, mut path) in navigator_query {
-        // Get transform for `path.target`
         let target_pos = target_transforms
             .get(path.target)
             .expect(ERR_INVALID_NAV_TARGET)
-            .translation
-            .xy();
-        // Validate target pos in target map
-        if let Some(pos) = target_map.0.get(&path.target)
-            && target_pos.distance_squared(*pos) < tile_data.tile_size.squared()
-        {
+            .translation;
+        if !navmesh.transformed_is_in_mesh(target_pos) {
             continue;
-        }
-        let target_pos_vec3 = target_pos.extend(0.);
-        let origin_pos = transform.translation;
-
-        // Increase search delta each time the navigator is found to be outside of the navmesh
-        if !navmesh.transformed_is_in_mesh(origin_pos) {
-            *delta += 0.1;
-            navmesh.set_search_delta(*delta);
-            continue;
-        }
-        // Remove `Path` if target is outside of navmesh
-        if !navmesh.transformed_is_in_mesh(target_pos_vec3) {
-            commands.entity(entity).remove::<Path>();
-            continue;
-        }
-
-        // Find path to target or remove path
-        let Some((current, next)) = next_path_step(navmesh, origin_pos, target_pos_vec3) else {
-            commands.entity(entity).remove::<Path>();
+        };
+        let Some((current, next)) =
+            next_path_step(&mut delta, navmesh, transform.translation, target_pos)
+        else {
+            commands.trigger(StopNav(entity));
             continue;
         };
 
-        // Modify path
         path.current = current;
         path.next = next;
-        *delta = 0.0;
-
-        updated.insert(path.target, target_pos);
+        path_found = true;
     }
-
-    // Insert updated positions into target map
-    if !updated.is_empty() {
-        target_map.0.extend(updated);
+    if path_found {
+        *delta = 0.
     }
 }
 
-/// Next step for the [`Path`]
-fn next_path_step(navmesh: &mut NavMesh, start: Vec3, end: Vec3) -> Option<(Vec2, Vec<Vec2>)> {
+/// Next step for the [`Path`].
+///
+/// This also validates if `start` is inside of `navmesh`.
+fn next_path_step(
+    delta: &mut f32,
+    navmesh: &mut NavMesh,
+    start: Vec3,
+    end: Vec3,
+) -> Option<(Vec2, Vec<Vec2>)> {
+    if !navmesh.transformed_is_in_mesh(start) {
+        *delta += 0.1;
+        navmesh.set_search_delta(*delta);
+        return None;
+    }
+
     let path = navmesh.transformed_path(start, end)?;
     let (first, remaining) = path.path.split_first()?;
     let mut next: Vec<_> = remaining.iter().map(|p| p.xy()).collect();
@@ -225,7 +186,6 @@ pub(super) fn apply_path(
     for (entity, transform, mut cache, mut controller, controller_output, mut path, walk_speed) in
         navigator_query
     {
-        // Set movement direction to normalized vector and apply translation
         let navigator_pos = transform.translation.xy();
         let direction = path.current - navigator_pos;
         let direction = direction.normalize_or_zero() * walk_speed.0 * time.delta_secs();
@@ -238,32 +198,39 @@ pub(super) fn apply_path(
         if let Some(output) = controller_output
             && output.collisions.iter().any(|c| c.entity == path.target)
         {
-            stop_apply_path(&mut commands, entity, &mut cache);
+            commands.trigger(StopNav(entity));
             return;
         }
 
-        // Set animation state if we are `Idle`
         if cache.state == AnimationState::Idle {
             cache.set_new_state(AnimationState::Walk);
         }
 
-        // Loop while distance to `path.current` is smaller than threshold to allow multiple next
+        // NOTE: We are looping until threshold to allow multiple next
         while navigator_pos.distance_squared(path.current)
             < (walk_speed.0 / PATH_OVERSHOOT_THRESHOLD_DIVISOR).squared()
         {
-            // Set `path.current` to `path.next` if it exists or stop applying path and break from loop.
             if let Some(next) = path.next.pop() {
                 path.current = next;
             } else {
-                stop_apply_path(&mut commands, entity, &mut cache);
+                commands.trigger(StopNav(entity));
                 break;
             }
         }
     }
 }
 
-/// Remove [`Path`] and set [`AnimationCache`] state to [`AnimationState::Idle`]
-fn stop_apply_path(commands: &mut Commands, entity: Entity, cache: &mut AnimationCache) {
+/// Remove [`Path`] and set [`AnimationCache`] state to [`AnimationState::Idle`].
+pub(super) fn on_stop_nav(
+    event: On<StopNav>,
+    mut cache_query: Query<&mut AnimationCache, With<Navigator>>,
+    mut commands: Commands,
+) {
+    let entity = event.0;
+    let Ok(mut cache) = cache_query.get_mut(entity) else {
+        return;
+    };
+
     // NOTE: We are using `try_remove` to avoid use after despawn because of `procgen::despawn`.
     commands.entity(entity).try_remove::<Path>();
     cache.set_new_state(AnimationState::Idle);

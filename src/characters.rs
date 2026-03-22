@@ -30,7 +30,7 @@ pub(crate) mod prelude {
     pub(crate) use super::movement::{
         FacingDirection, JUMP_DURATION_SECS, JumpHeight, JumpTimer, WalkSpeed,
     };
-    pub(crate) use super::nav::{NavTarget, NavTargetPosMap, Navigator, Path};
+    pub(crate) use super::nav::{NavTarget, Navigator, Path};
     pub(crate) use super::npc::{Npc, Slime, SlimeAssets};
     pub(crate) use super::player::{Player, PlayerAssets};
     pub(crate) use super::{
@@ -68,13 +68,13 @@ impl Plugin for CharactersPlugin {
                 nav::apply_path.in_set(PausableSystems),
             )
                 .run_if(in_state(ProcGenInit(true)).and(in_state(Screen::Gameplay)))
+                .chain()
                 .in_set(AppSystems::Update),
         );
         app.add_systems(
             PostUpdate,
             movement::update_facing.run_if(in_state(Screen::Gameplay)),
         );
-
         app.add_systems(
             Update,
             (
@@ -87,6 +87,7 @@ impl Plugin for CharactersPlugin {
         app.add_observer(attack::on_melee_attack::<Player>);
         app.add_observer(attack::on_delay_attack);
         app.add_observer(health::on_damage);
+        app.add_observer(nav::on_stop_nav);
         app.add_observer(on_spawn_character::<Player, Overworld>);
         app.add_observer(on_spawn_character::<Slime, Overworld>);
     }

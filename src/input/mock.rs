@@ -16,7 +16,7 @@ use crate::{characters::prelude::*, input::prelude::*, render::prelude::*};
 /// Mock [`Walk`] from virtual [`VirtualJoystickMessage`].
 pub(super) fn mock_walk_from_virtual_joystick(
     mut reader: MessageReader<VirtualJoystickMessage<u8>>,
-    player: Single<(Entity, &WalkSpeed), With<Player>>,
+    player: Single<Entity, With<Player>>,
     mut commands: Commands,
 ) {
     for joystick in reader.read() {
@@ -28,10 +28,9 @@ pub(super) fn mock_walk_from_virtual_joystick(
         if input == &Vec2::ZERO {
             continue;
         }
-        let (entity, walk_speed) = *player;
         commands
-            .entity(entity)
-            .mock_once::<Player, Walk>(TriggerState::Fired, *input * walk_speed.0);
+            .entity(*player)
+            .mock_once::<Player, Walk>(TriggerState::Fired, *input);
     }
 }
 

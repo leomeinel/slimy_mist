@@ -79,7 +79,7 @@ impl Plugin for AnimationsPlugin {
         );
         app.add_systems(
             Update,
-            tick_component_timer::<AnimationTimer>.in_set(AppSystems::TickTimers),
+            tick_component_timers::<AnimationTimer>.in_set(AppSystems::TickTimers),
         );
     }
 }

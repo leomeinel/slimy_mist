@@ -78,8 +78,8 @@ impl Plugin for CharactersPlugin {
         app.add_systems(
             Update,
             (
-                tick_component_timer::<attack::AttackTimer>,
-                tick_component_timer::<movement::JumpTimer>,
+                tick_component_timers::<attack::AttackTimer>,
+                tick_component_timers::<movement::JumpTimer>,
             )
                 .in_set(AppSystems::TickTimers),
         );

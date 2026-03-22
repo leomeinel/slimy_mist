@@ -11,7 +11,12 @@ use std::ops::DerefMut;
 
 use bevy::{ecs::component::Mutable, prelude::*};
 
-pub(crate) fn tick_component_timer<T>(mut query: Query<&mut T>, time: Res<Time>)
+/// Tick [`Timer`]s wrapped in [`Component`]s.
+///
+/// ## Traits
+///
+/// - `T` must implement [`Component<Mutability = Mutable>`] and [`DerefMut<Target = Timer>`].
+pub(crate) fn tick_component_timers<T>(mut query: Query<&mut T>, time: Res<Time>)
 where
     T: Component<Mutability = Mutable> + DerefMut<Target = Timer>,
 {
@@ -20,6 +25,11 @@ where
     }
 }
 
+/// Tick [`Timer`] wrapped in [`Resource`].
+///
+/// ## Traits
+///
+/// - `T` must implement [`Resource`] and [`DerefMut<Target = Timer>`].
 pub(crate) fn tick_resource_timer<T>(mut timer: ResMut<T>, time: Res<Time>)
 where
     T: Resource + DerefMut<Target = Timer>,

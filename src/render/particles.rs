@@ -34,7 +34,7 @@ impl Plugin for ParticlesPlugin {
         );
         app.add_systems(
             Update,
-            tick_component_timer::<ParticleTimer>.in_set(AppSystems::TickTimers),
+            tick_component_timers::<ParticleTimer>.in_set(AppSystems::TickTimers),
         );
 
         app.add_observer(on_spawn_particle_once::<ParticleMeleeAttack>);

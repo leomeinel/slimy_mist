@@ -2,7 +2,7 @@
 
 This is a learning project.
 
-You can play the game [here](https://leomeinel.github.io/slimy-mist) or download a [release](https://github.com/leomeinel/slimy-mist/releases).
+You can play the game [here](https://leomeinel.github.io/slimy_mist) or download a [release](https://github.com/leomeinel/slimy_mist/releases).
 
 ## Packages
 

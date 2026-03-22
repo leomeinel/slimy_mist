@@ -8,7 +8,6 @@
  */
 
 use bevy::prelude::*;
-use bevy_rapier2d::prelude::*;
 use bevy_spritesheet_animation::prelude::*;
 
 use crate::{animations::prelude::*, characters::prelude::*, log::prelude::*};
@@ -43,30 +42,13 @@ pub(super) fn move_sprite(
     jump_height.0 = target;
 }
 
-/// Switch [`AnimationState`] out of [`AnimationState::Jump`] after [JumpTimer] has finished.
-pub(super) fn switch_animation(
-    player: Single<
-        (
-            &mut AnimationCache,
-            &JumpTimer,
-            Option<&KinematicCharacterControllerOutput>,
-        ),
-        With<Player>,
-    >,
-) {
-    let (mut cache, timer, controller_output) = player.into_inner();
+/// Switch [`AnimationState`] out of [`AnimationState::Jump`] after [`JumpTimer`] has finished.
+pub(super) fn switch_animation(player: Single<(&mut AnimationCache, &JumpTimer), With<Player>>) {
+    let (mut cache, timer) = player.into_inner();
     if !timer.0.just_finished() {
         return;
     }
-    if cache.state != AnimationState::Jump {
-        return;
+    if cache.state == AnimationState::Jump {
+        cache.state = AnimationState::Idle;
     }
-
-    cache.state = if let Some(controller_output) = controller_output
-        && controller_output.desired_translation != Vec2::ZERO
-    {
-        AnimationState::Walk
-    } else {
-        AnimationState::Idle
-    };
 }

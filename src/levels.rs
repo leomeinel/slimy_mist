@@ -14,13 +14,15 @@ mod overworld;
 
 pub(crate) mod prelude {
     pub(crate) use super::overworld::{Overworld, OverworldAssets, OverworldProcGen};
-    pub(crate) use super::{Level, LevelAssets, LevelRng, impl_level_assets};
+    pub(crate) use super::{Level, LevelAssets, LevelDimensions, LevelRng, impl_level_assets};
 }
+
+use std::marker::PhantomData;
 
 use bevy::{prelude::*, reflect::Reflectable};
 use bevy_asset_loader::asset_collection::AssetCollection;
 
-use crate::{screens::prelude::*, utils::prelude::*};
+use crate::{procgen::prelude::*, screens::prelude::*, utils::prelude::*};
 
 pub(super) struct LevelsPlugin;
 impl Plugin for LevelsPlugin {
@@ -68,3 +70,20 @@ pub(crate) use impl_level_assets;
 #[derive(Component, Default)]
 pub(crate) struct LevelRng;
 impl ForkedRng for LevelRng {}
+
+/// Dimensions for a [`Level`] of type `T`.
+///
+/// This is related to [`TileData`](crate::images::prelude::TileData).
+///
+/// ## Traits
+///
+/// - `T` must implement [`ProcGenerated`].
+#[derive(Resource, Default)]
+pub(crate) struct LevelDimensions<T>
+where
+    T: ProcGenerated,
+{
+    pub(crate) chunk_size_px: Vec2,
+    pub(crate) world_height: f32,
+    pub(crate) _phantom: PhantomData<T>,
+}

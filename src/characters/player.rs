@@ -41,7 +41,7 @@ impl_character_assets!(PlayerAssets);
 #[reflect(Component)]
 pub(crate) struct Player;
 impl Character for Player {
-    fn container_bundle(&self, animation_delay: f32, pos: Vec2) -> impl Bundle {
+    fn container_bundle(pos: Vec2, animation_delay: f32) -> impl Bundle {
         (
             // Identity
             (Name::new("Player")),

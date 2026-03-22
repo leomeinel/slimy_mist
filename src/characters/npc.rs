@@ -44,7 +44,7 @@ const SLIME_WALK_SPEED: f32 = 60.;
 #[derive(Component, Default, Reflect)]
 pub(crate) struct Slime;
 impl Character for Slime {
-    fn container_bundle(&self, animation_delay: f32, pos: Vec2) -> impl Bundle {
+    fn container_bundle(pos: Vec2, animation_delay: f32) -> impl Bundle {
         (
             // Identity
             (Name::new("Slime"), Npc),

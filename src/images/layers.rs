@@ -49,14 +49,14 @@ where
 ///
 /// - `T` must implement [`Visible`].
 #[derive(Resource, Default)]
-pub(crate) struct LayerDataRelatedCache<T>
+pub(crate) struct LayerDataCache<T>
 where
     T: Visible,
 {
     pub(crate) images: Vec<Handle<Image>>,
     pub(crate) _phantom: PhantomData<T>,
 }
-impl<T> LayerDataRelatedCache<T>
+impl<T> LayerDataCache<T>
 where
     T: Visible,
 {
@@ -113,7 +113,7 @@ where
 pub(super) fn insert_display_image<T>(
     mut commands: Commands,
     mut images: ResMut<Assets<Image>>,
-    data: Res<LayerDataRelatedCache<T>>,
+    data: Res<LayerDataCache<T>>,
 ) where
     T: Visible,
 {

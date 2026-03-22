@@ -91,14 +91,14 @@ pub(super) fn on_melee_attack<T>(
     target_query: Query<&Health>,
     origin_query: Query<(&Transform, &FacingDirection, &AttackStats), With<T>>,
     mut commands: Commands,
-    collision_data: Res<CollisionDataCache<T>>,
+    character_dimensions: Res<CharacterDimensions<T>>,
     rapier_context: ReadRapierContext,
     particle_handle: Res<ParticleHandle<ParticleMeleeAttack>>,
 ) where
     T: Character,
 {
     let rapier_context = rapier_context.single().expect(ERR_INVALID_RAPIER_CONTEXT);
-    let (width, height) = (collision_data.width, collision_data.height);
+    let (width, height) = (character_dimensions.width, character_dimensions.height);
 
     let (origin, event_direction) = (event.entity, event.direction);
     let (transform, facing, stats) = origin_query.get(origin).expect(ERR_INVALID_ATTACKER);

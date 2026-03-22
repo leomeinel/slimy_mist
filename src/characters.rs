@@ -22,10 +22,7 @@ pub(crate) mod prelude {
     pub(crate) use super::attack::{
         Attack, AttackData, AttackStats, AttackTimer, AttackType, MeleeAttack, punch,
     };
-    pub(crate) use super::collision::{
-        CollisionData, CollisionDataCache, CollisionDataRelatedCache, CollisionHandle,
-        character_collider,
-    };
+    pub(crate) use super::collision::{CollisionData, CollisionDataCache, CollisionHandle};
     pub(crate) use super::health::{Damage, Health};
     pub(crate) use super::movement::{
         FacingDirection, JUMP_DURATION_SECS, JumpHeight, JumpTimer, WalkSpeed,
@@ -34,7 +31,8 @@ pub(crate) mod prelude {
     pub(crate) use super::npc::{Npc, Slime, SlimeAssets};
     pub(crate) use super::player::{Player, PlayerAssets};
     pub(crate) use super::{
-        Character, CharacterAssets, SpawnCharacter, StaticShadow, impl_character_assets,
+        Character, CharacterAssets, CharacterDimensions, CharacterShadow, SpawnCharacter,
+        StaticShadow, impl_character_assets,
     };
 }
 
@@ -43,6 +41,7 @@ use std::marker::PhantomData;
 use bevy::{prelude::*, reflect::Reflectable};
 use bevy_asset_loader::asset_collection::AssetCollection;
 use bevy_prng::WyRand;
+use bevy_rapier2d::prelude::*;
 use bevy_spritesheet_animation::prelude::*;
 use rand::RngExt as _;
 
@@ -120,24 +119,72 @@ pub(crate) trait Character
 where
     Self: Component + Default + Reflectable,
 {
-    fn container_bundle(&self, animation_delay: f32, pos: Vec2) -> impl Bundle;
+    fn container_bundle(pos: Vec2, animation_delay: f32) -> impl Bundle;
 
-    fn animation_bundle(&self, animations: &Res<Animations<Self>>) -> impl Bundle {
+    fn animation_bundle(animations: &Res<Animations<Self>>, offset: f32) -> impl Bundle {
         (
             animations.sprite.clone(),
             SpritesheetAnimation::new(animations.idle.clone()),
+            Transform::from_xyz(0., -offset, 0.),
         )
     }
 
-    fn shadow_bundle(&self, height: f32, shadow: &StaticShadow) -> impl Bundle {
+    fn collider(shape: String, width: f32, height: f32) -> Collider {
+        match shape.as_str() {
+            "ball" => Collider::ball(width / 2.),
+            "capsule" => {
+                if width > height {
+                    Collider::capsule_x((height - width) / 2., height / 2.)
+                } else {
+                    Collider::capsule_y((width - height) / 2., width / 2.)
+                }
+            }
+            _ => Collider::cuboid(width / 2., height / 2.),
+        }
+    }
+
+    fn shadow_bundle(shadow: &StaticShadow, height: f32) -> impl Bundle {
         (
             Mesh2d(shadow.mesh.clone()),
             // FIXME: Using `LightOccluder2d` might be a good idea instead, but we will
             //        have to wait for occluder support in `bevy_fast_light`.
             MeshMaterial2d(shadow.material.clone()),
-            Transform::from_xyz(0., -height / 2., BACKGROUND_Z_DELTA),
+            Transform::from_xyz(0., -height / 4., BACKGROUND_Z_DELTA),
         )
     }
+}
+
+/// Dimensions for all [`Character`]s of type `T`.
+///
+/// This is related to [`CollisionData`].
+///
+/// ## Traits
+///
+/// - `T` must implement [`Character`].
+#[derive(Resource, Default)]
+pub(crate) struct CharacterDimensions<T>
+where
+    T: Character,
+{
+    pub(crate) width: f32,
+    pub(crate) height: f32,
+    pub(crate) _phantom: PhantomData<T>,
+}
+
+/// Shadow for all [`Character`]s of type `T`.
+///
+/// This is related to [`CollisionData`]
+///
+/// ## Traits
+///
+/// - `T` must implement [`Character`].
+#[derive(Resource, Default)]
+pub(crate) struct CharacterShadow<T>
+where
+    T: Character,
+{
+    pub(crate) shadow: StaticShadow,
+    pub(crate) _phantom: PhantomData<T>,
 }
 
 /// Artificial shadow.
@@ -177,29 +224,31 @@ fn on_spawn_character<T, A>(
     mut commands: Commands,
     animations: Res<Animations<T>>,
     collision_data: Res<CollisionDataCache<T>>,
-    collision_data_related: Res<CollisionDataRelatedCache<T>>,
+    shadow: Res<CharacterShadow<T>>,
 ) where
     T: Character,
     A: Level,
 {
-    let character = T::default();
     let animation_delay = animation_rng.random_range(ANIMATION_DELAY_RANGE_SECS);
-    let (shape, width, height) = (
+    let (shape, width, height, offset) = (
         collision_data.shape.clone(),
         collision_data.width,
         collision_data.height,
+        collision_data.offset,
     );
 
     let container = commands
         .entity(event.entity)
         .insert((
-            character.container_bundle(animation_delay, event.pos),
-            character_collider(shape, width, height),
+            T::container_bundle(event.pos, animation_delay),
+            T::collider(shape, width, height),
         ))
         .id();
-    let animation = commands.spawn(character.animation_bundle(&animations)).id();
+    let animation = commands
+        .spawn(T::animation_bundle(&animations, offset))
+        .id();
     let shadow = commands
-        .spawn(character.shadow_bundle(height, &collision_data_related.shadow))
+        .spawn(T::shadow_bundle(&shadow.shadow, height))
         .id();
 
     // Add entity to level so that level handles despawning

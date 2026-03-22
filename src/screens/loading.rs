@@ -204,10 +204,11 @@ fn cache_collision_data_and_related<T>(
     let data = data
         .remove(handle.0.id())
         .expect(ERR_LOADING_COLLISION_DATA);
-    let (shape, width, height) = (
+    let (shape, width, height, offset) = (
         data.shape.clone().unwrap_or("ball".to_string()),
         data.width.unwrap_or(0.),
         data.height.unwrap_or(0.),
+        data.offset.unwrap_or(0.),
     );
     if data.shape.is_none() || data.width.is_none() || data.height.is_none() {
         warn_once!("{}", WARN_INCOMPLETE_COLLISION_DATA);
@@ -216,12 +217,19 @@ fn cache_collision_data_and_related<T>(
         shape,
         width,
         height,
+        offset,
         ..default()
     });
-    commands.insert_resource(CollisionDataRelatedCache::<T> {
+    commands.insert_resource(CharacterDimensions::<T> {
+        width,
+        // NOTE: We are multiplying collider height by 2 because of 2:1 pixel ratio.
+        height: height * 2.,
+        ..default()
+    });
+    commands.insert_resource(CharacterShadow::<T> {
         shadow: StaticShadow {
-            // NOTE: We are dividing height by 4 because of 2:1 pixel ratio
-            mesh: meshes.add(Ellipse::new(width / 2., height / 4.)),
+            // NOTE: We are dividing collider height by 2, not 4 because of 2:1 pixel ratio.
+            mesh: meshes.add(Ellipse::new(width / 2., height / 2.)),
             material: materials.add(Color::from(SHADOW_COLOR.with_alpha(0.25))),
         },
         ..default()
@@ -267,7 +275,7 @@ fn cache_layer_data_related<T>(
 {
     let data = data.remove(handle.0.id()).expect(ERR_LOADING_LAYER_DATA);
     let images = data.layers.iter().map(|l| assets.load(l)).collect();
-    commands.insert_resource(LayerDataRelatedCache::<T> {
+    commands.insert_resource(LayerDataCache::<T> {
         images,
         ..default()
     });
@@ -301,7 +309,7 @@ fn cache_tile_data_and_related<T>(
     });
     let chunk_size_px = CHUNK_SIZE.as_vec2() * data.tile_size;
     let world_height = PROCGEN_DISTANCE as f32 * 2. + 1. * chunk_size_px.y;
-    commands.insert_resource(TileDataRelatedCache::<T> {
+    commands.insert_resource(LevelDimensions::<T> {
         chunk_size_px,
         world_height,
         ..default()

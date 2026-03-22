@@ -11,7 +11,7 @@ use std::marker::PhantomData;
 
 use bevy::prelude::*;
 
-use crate::{images::prelude::*, levels::prelude::*, procgen::prelude::*, render::prelude::*};
+use crate::{levels::prelude::*, procgen::prelude::*, render::prelude::*};
 
 /// Spawn objects in every chunk contained in [`ProcGenCache<A>`]
 ///
@@ -60,12 +60,12 @@ pub(super) fn collect_to_despawn<T, A, const PROCEED: bool>(
     query: Query<(Entity, &Transform), (With<T>, Without<CanvasCamera>)>,
     mut cache: ResMut<ProcGenCache<T>>,
     mut next_state: ResMut<NextState<ProcGenState>>,
-    tile_data_related: Res<TileDataRelatedCache<A>>,
+    level_dimensions: Res<LevelDimensions<A>>,
 ) where
     T: ProcGenerated,
     A: ProcGenerated,
 {
-    let chunk_size_px = tile_data_related.chunk_size_px;
+    let chunk_size_px = level_dimensions.chunk_size_px;
     cache.camera_chunk_pos = (camera.translation.xy() / chunk_size_px).floor().as_ivec2();
 
     // Add entities outside of `PROCGEN_DISTANCE` to `to_despawn`

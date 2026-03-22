@@ -71,20 +71,3 @@ where
     pub(crate) _diag_stripe_grass_in_dirt: Option<HashSet<UVec2>>,
     pub(crate) _phantom: PhantomData<T>,
 }
-
-/// Cache for data that is related to [`TileData`]
-///
-/// This is to allow easier access.
-///
-/// ## Traits
-///
-/// - `T` must implement [`ProcGenerated`].
-#[derive(Resource, Default)]
-pub(crate) struct TileDataRelatedCache<T>
-where
-    T: ProcGenerated,
-{
-    pub(crate) chunk_size_px: Vec2,
-    pub(crate) world_height: f32,
-    pub(crate) _phantom: PhantomData<T>,
-}

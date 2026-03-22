@@ -1,5 +1,6 @@
 CollisionData (
-    shape: Some("ball"),
-    width: Some(14),
-    height: Some(14),
+    shape: Some("capsule"),
+    width: Some(16),
+    height: Some(8.0),
+    offset: Some(-4.0),
 )

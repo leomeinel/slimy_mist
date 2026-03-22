@@ -21,8 +21,8 @@ mod transitions;
 
 pub(crate) mod prelude {
     pub(crate) use super::ImageMeta;
-    pub(crate) use super::layers::{DisplayImage, LayerData, LayerDataRelatedCache, LayerHandle};
-    pub(crate) use super::tiles::{TileData, TileDataCache, TileDataRelatedCache, TileHandle};
+    pub(crate) use super::layers::{DisplayImage, LayerData, LayerDataCache, LayerHandle};
+    pub(crate) use super::tiles::{TileData, TileDataCache, TileHandle};
     pub(crate) use super::transitions::{FadeInOut, apply_fade_in_out, tick_fade_in_out};
 }
 

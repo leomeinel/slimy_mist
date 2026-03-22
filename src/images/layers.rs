@@ -60,6 +60,7 @@ impl<T> LayerDataCache<T>
 where
     T: Visible,
 {
+    // FIXME: Use two images. One for floating and one for the rest.
     pub(crate) fn to_display_image(&self, images: &mut ResMut<Assets<Image>>) -> DisplayImage<T>
     where
         T: Visible,

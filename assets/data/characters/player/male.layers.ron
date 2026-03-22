@@ -1,14 +1,10 @@
 LayerData (
     layers:
         [
-            "images/characters/human/male/top/clothing/head/hat-feather-purple.webp",
+            "images/characters/human/male/floating/skin/hands/default.webp",
             "images/characters/human/male/top/hair/head/short-flat-blonde.webp",
+            "images/characters/human/male/top/skin/eyes/blue.webp",
             "images/characters/human/male/top/skin/head/default.webp",
-            "images/characters/human/male/middle/clothing/body/coat-buttons-purple.webp",
-            "images/characters/human/male/bottom/clothing/upper-body/shirt-white.webp",
-            "images/characters/human/male/bottom/clothing/feet/boots-black.webp",
-            "images/characters/human/male/bottom/clothing/legs/pants-brown.webp",
-            "images/characters/human/male/bottom/skin/arms/default.webp",
             "images/characters/human/male/bottom/skin/torso/default.webp",
             "images/characters/human/male/bottom/skin/legs/default.webp",
         ],

@@ -80,8 +80,7 @@ where
 
 /// [`Collider`] for different shapes
 pub(crate) fn character_collider(shape: String, width: f32, height: f32) -> Collider {
-    // Set correct collider for each shape
-    // NOTE: For capsules, we just assume that the values are correct, meaning that for x: `width < height` and for y: `width > height`
+    // NOTE: For capsules, we just assume that the values are correct, meaning that for x: `width > height` and for y: `width < height`
     match shape.as_str() {
         "ball" => Collider::ball(width / 2.),
         "capsule_x" => Collider::capsule_x((height - width) / 2., height / 2.),

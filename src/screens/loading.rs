@@ -260,7 +260,7 @@ fn cache_credits_data(
     commands.remove_resource::<CreditsHandle>();
 }
 
-/// Cache data from [`LayerData`] in [`LayerDataRelatedCache`]
+/// Cache data from [`LayerData`] in [`LayerDataCache`]
 ///
 /// ## Traits
 ///
@@ -284,7 +284,7 @@ fn cache_layer_data_related<T>(
     commands.remove_resource::<LayerHandle<T>>();
 }
 
-/// Cache data from [`TileData`] in [`TileDataCache`] and related data in [`TileDataRelatedCache`]
+/// Cache data from [`TileData`] in [`TileDataCache`] and [`LevelDimensions`]
 ///
 /// ## Traits
 ///

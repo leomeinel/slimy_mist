@@ -11,6 +11,7 @@ use std::marker::PhantomData;
 
 use bevy::prelude::*;
 use bevy_enoki::prelude::*;
+use bevy_spritesheet_animation::prelude::*;
 
 use crate::{
     animations::prelude::*, characters::prelude::*, core::prelude::*, images::prelude::*,
@@ -130,7 +131,8 @@ const WALKING_DUST_SECS: f32 = 0.5;
 ///
 /// - `T` must implement [`Visible`].
 fn add_walking_dust<T>(
-    query: Query<Entity, With<T>>,
+    animation_query: Query<(), With<SpritesheetAnimation>>,
+    query: Query<&Children, With<T>>,
     mut commands: Commands,
     texture_info: Res<ImageMeta<T>>,
     handle: Res<ParticleHandle<ParticleWalkingDust>>,
@@ -139,7 +141,11 @@ fn add_walking_dust<T>(
 {
     let texture_offset = texture_info.size.y as f32 / 2.;
 
-    for container in query {
+    for children in query {
+        let child = children
+            .iter()
+            .find(|e| animation_query.contains(*e))
+            .expect(ERR_INVALID_CHILDREN);
         let particle = commands
             .spawn((
                 ParticleWalkingDust(AnimationState::Walk),
@@ -154,7 +160,7 @@ fn add_walking_dust<T>(
                 Transform::from_translation(Vec3::new(0., -texture_offset, BACKGROUND_Z_DELTA)),
             ))
             .id();
-        commands.entity(container).add_child(particle);
+        commands.entity(child).add_child(particle);
     }
 }
 
@@ -165,6 +171,7 @@ fn add_walking_dust<T>(
 /// - `T` must implement [`Character`] and [`Visible`].
 /// - `A` must implement [`Particle`].
 fn update_character_particles<T, A>(
+    animation_query: Query<&Children, With<SpritesheetAnimation>>,
     character_query: Query<(&mut AnimationCache, &Children), With<T>>,
     mut particle_query: Query<
         (
@@ -179,6 +186,11 @@ fn update_character_particles<T, A>(
     A: Particle,
 {
     for (cache, children) in character_query {
+        let child = children
+            .iter()
+            .find(|e| animation_query.contains(*e))
+            .expect(ERR_INVALID_CHILDREN);
+        let children = animation_query.get(child).expect(ERR_INVALID_CHILDREN);
         let child = children
             .iter()
             .find(|e| particle_query.contains(*e))

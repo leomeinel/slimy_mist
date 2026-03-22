@@ -37,6 +37,10 @@ pub(crate) enum UiNavAction {
     Down,
     Left,
     Right,
+    /// Select action.
+    ///
+    /// - `true` indicates a press.
+    /// - `false` indicates a release.
     Select(bool),
 }
 impl UiNavAction {

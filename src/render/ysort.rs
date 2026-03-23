@@ -16,7 +16,6 @@ use crate::{images::prelude::*, levels::prelude::*, procgen::prelude::*, render:
 #[reflect(Component)]
 pub(crate) struct YSort(pub(crate) f32);
 
-// NOTE: Currently `YSortOffset` is not used, but will be useful in the future
 /// Applies an offset to the [`YSort`].
 ///
 /// The offset is expected to be in px.

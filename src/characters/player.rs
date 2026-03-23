@@ -41,7 +41,7 @@ impl_character_assets!(PlayerAssets);
 #[reflect(Component)]
 pub(crate) struct Player;
 impl Character for Player {
-    fn container_bundle(pos: Vec2, animation_delay: f32) -> impl Bundle {
+    fn container_bundle(pos: Vec2, animation_delay: f32, offset: f32) -> impl Bundle {
         (
             // Identity
             (Name::new("Player")),
@@ -49,6 +49,7 @@ impl Character for Player {
             (
                 Transform::from_translation(pos.extend(FOREGROUND_Z)),
                 YSort(FOREGROUND_Z),
+                YSortOffset(-offset),
                 Visibility::Inherited,
             ),
             // Physics

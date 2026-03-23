@@ -119,7 +119,7 @@ pub(crate) trait Character
 where
     Self: Component + Default + Reflectable,
 {
-    fn container_bundle(pos: Vec2, animation_delay: f32) -> impl Bundle;
+    fn container_bundle(pos: Vec2, animation_delay: f32, offset: f32) -> impl Bundle;
 
     fn animation_bundle(animations: &Res<Animations<Self>>, offset: f32) -> impl Bundle {
         (
@@ -223,6 +223,7 @@ fn on_spawn_character<T, A>(
     level: Single<Entity, With<A>>,
     mut commands: Commands,
     animations: Res<Animations<T>>,
+    character_dimensions: Res<CharacterDimensions<T>>,
     collision_data: Res<CollisionDataCache<T>>,
     shadow: Res<CharacterShadow<T>>,
 ) where
@@ -230,30 +231,25 @@ fn on_spawn_character<T, A>(
     A: Level,
 {
     let animation_delay = animation_rng.random_range(ANIMATION_DELAY_RANGE_SECS);
-    let (shape, width, height, offset) = (
+    let (collider_shape, collider_width, collider_height, collider_offset) = (
         collision_data.shape.clone(),
         collision_data.width,
         collision_data.height,
         collision_data.offset,
     );
 
-    let container = commands
+    let entity = commands
         .entity(event.entity)
         .insert((
-            T::container_bundle(event.pos, animation_delay),
-            T::collider(shape, width, height),
+            T::container_bundle(event.pos, animation_delay, collider_offset),
+            T::collider(collider_shape, collider_width, collider_height),
+            children![
+                T::animation_bundle(&animations, collider_offset),
+                T::shadow_bundle(&shadow.shadow, character_dimensions.height),
+            ],
         ))
         .id();
-    let animation = commands
-        .spawn(T::animation_bundle(&animations, offset))
-        .id();
-    let shadow = commands
-        .spawn(T::shadow_bundle(&shadow.shadow, height))
-        .id();
 
-    // Add entity to level so that level handles despawning
-    commands
-        .entity(container)
-        .add_children(&[animation, shadow]);
-    commands.entity(*level).add_child(container);
+    // Add `entity` to level so that level handles despawning
+    commands.entity(*level).add_child(entity);
 }

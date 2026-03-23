@@ -22,6 +22,7 @@ for file in "${SCRIPT_DIR}"/colliders/*.webp; do
     TRIM_H="$(magick "${file}" -trim -format "%h" info:)"
     # NOTE: We are adding 2 because of the outline.
     HEIGHT="$(printf '%s\n' "scale=1; (${TRIM_H} + 2) / 2" | bc)"
+    # FIXME: This should (subtract transparent_pixels_on_top / 2) - 1
     OFFSET="$(printf '%s\n' "scale=1; -${HEIGHT} / 2" | bc)"
 
     printf '%s\n' "Valid shapes are:"

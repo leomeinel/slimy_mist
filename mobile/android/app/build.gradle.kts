@@ -46,9 +46,9 @@ android {
         minSdk = 31
         targetSdk = 36
         // NOTE: Increase by 1 on each release
-        versionCode = 44
+        versionCode = 45
         // NOTE: Update with full semantic version on each release
-        versionName = "0.22.0"
+        versionName = "0.22.1"
         // https://developer.android.com/reference/tools/gradle-api/9.1/com/android/build/api/variant/ExternalNativeBuild
         // NOTE: We need this, otherwise libc++_shared.so will not be inserted
         @Suppress("UnstableApiUsage")

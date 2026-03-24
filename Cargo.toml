@@ -59,15 +59,7 @@ vleue_navigator = "0.15.0"
 [target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dependencies]
 bevy_rand = { version = "0.14.2", features = ["wasm_js"] }
 
-# FIXME: android-activity 0.6.0 is only compatible with major version 2 of games-activity which is now at 4.0.0.
-#        This is why we are using a fix from: https://mevlyshkin.com/notes/bevy-android-input/
-#        Also see:
-#        - https://github.com/rust-mobile/android-activity/discussions/208
-#        - https://github.com/rust-mobile/android-activity/issues/210
-#        - https://github.com/bevyengine/bevy/issues/10945
-#        - https://github.com/rust-mobile/android-activity/pull/178
 [patch.crates-io]
-android-activity = { git = "https://github.com/rust-mobile/android-activity", rev = "2b20da72bd9f1a24747d84d68d67cbaeb1f059da" }
 # FIXME: Wait for new version to be released.
 #        We need this because `geo` uses `rand ^0.8.0` in their latest release.
 #        Also see: https://github.com/vleue/polyanya/issues/132

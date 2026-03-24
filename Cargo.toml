@@ -28,7 +28,7 @@ bevy_asset_loader = { version = "0.25.0", features = [
  "standard_dynamic_assets",
  "progress_tracking",
 ] }
-bevy_common_assets = { version = "0.15.0", features = ["ron"] }
+bevy_common_assets = { version = "0.16.0", features = ["ron"] }
 bevy_ecs_tilemap = "0.18.1"
 bevy_enhanced_input = "0.24.1"
 bevy_enoki = "0.6.0"

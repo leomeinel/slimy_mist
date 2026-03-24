@@ -587,7 +587,7 @@ dependencies = [
  "bevy_app",
  "bevy_asset",
  "bevy_asset_loader_derive",
- "bevy_common_assets",
+ "bevy_common_assets 0.15.0",
  "bevy_ecs",
  "bevy_image",
  "bevy_log",
@@ -691,6 +691,21 @@ name = "bevy_common_assets"
 version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ad51a6e9def88caadc4ce2a5670382d6ff19fa1e7e7af934326c5c0b376bdd9f"
+dependencies = [
+ "anyhow",
+ "bevy_app",
+ "bevy_asset",
+ "bevy_reflect",
+ "ron 0.11.0",
+ "serde",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "bevy_common_assets"
+version = "0.16.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "481157b530915653dc6c6ba2799f4285d5cda25b9819ff6dd3c02181d18136fc"
 dependencies = [
  "anyhow",
  "bevy_app",
@@ -5518,7 +5533,7 @@ dependencies = [
  "bevy",
  "bevy-inspector-egui",
  "bevy_asset_loader",
- "bevy_common_assets",
+ "bevy_common_assets 0.16.0",
  "bevy_ecs_tilemap",
  "bevy_enhanced_input",
  "bevy_enoki",

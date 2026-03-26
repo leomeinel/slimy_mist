@@ -7,12 +7,34 @@
  * URL: https://www.apache.org/licenses/LICENSE-2.0
  */
 
-use bevy::prelude::*;
+use std::marker::PhantomData;
+
+use bevy::{platform::collections::HashMap, prelude::*};
 use bevy_prng::WyRand;
 use bevy_spritesheet_animation::prelude::*;
 use rand::seq::IndexedRandom as _;
 
 use crate::{animations::prelude::*, audio::prelude::*, characters::prelude::*, log::prelude::*};
+
+/// Animation audio index that indicates the current/last played audio frame.
+#[derive(Component, Default)]
+pub(crate) struct AnimationAudioIndex(pub(crate) Option<usize>);
+
+/// Animation audio map for a [`Character`].
+///
+/// This stores a map of [`AnimationState`] to audio indexes.
+///
+/// ## Traits
+///
+/// - `T` must implement [`Character`].
+#[derive(Resource, Default)]
+pub(crate) struct AnimationAudioMap<T>
+where
+    T: Character,
+{
+    pub(crate) map: HashMap<AnimationState, Vec<usize>>,
+    pub(crate) _phantom: PhantomData<T>,
+}
 
 /// Update animation sounds
 ///
@@ -22,21 +44,16 @@ use crate::{animations::prelude::*, audio::prelude::*, characters::prelude::*, l
 /// - `A` must implement [`CharacterAssets`]
 pub(super) fn update_animation_sounds<T, A>(
     mut rng: Single<&mut WyRand, With<AnimationRng>>,
-    character_query: Query<(&mut AnimationCache, &Children), With<T>>,
+    character_query: Query<(&mut AnimationAudioIndex, &AnimationState, &Children), With<T>>,
     animation_query: Query<&mut SpritesheetAnimation>,
     mut commands: Commands,
-    animation_data: Res<AnimationDataCache<T>>,
+    audio_map: Res<AnimationAudioMap<T>>,
     assets: Res<A>,
 ) where
     T: Character,
     A: CharacterAssets,
 {
-    let frame_set = (
-        animation_data.walk_sound_frames.clone(),
-        animation_data.jump_sound_frames.clone(),
-    );
-
-    for (mut cache, children) in character_query {
+    for (mut audio_index, animation_state, children) in character_query {
         let child = children
             .iter()
             .find(|e| animation_query.contains(*e))
@@ -45,29 +62,26 @@ pub(super) fn update_animation_sounds<T, A>(
 
         // Continue if sound has already been played
         let current_frame = animation.progress.frame;
-        if let Some(sound_frame) = cache.sound_frame
+        if let Some(sound_frame) = audio_index.0
             && sound_frame == current_frame
         {
             continue;
         }
 
-        // Match to current `AnimationState`
-        let Some(sound) = (match cache.state {
-            AnimationState::Walk => {
-                choose_sound(&mut rng, &current_frame, &frame_set.0, assets.walk_sounds())
-            }
-            AnimationState::Jump => {
-                choose_sound(&mut rng, &current_frame, &frame_set.1, assets.jump_sounds())
-            }
-            _ => None,
-        }) else {
-            cache.sound_frame = None;
+        let Some(sound) = choose_sound(
+            &mut rng,
+            &current_frame,
+            animation_state,
+            &audio_map.map,
+            assets.sounds(animation_state.0.0),
+        ) else {
+            audio_index.0 = None;
             continue;
         };
 
         // Play sound
         commands.spawn(sound_effect(sound));
-        cache.sound_frame = Some(current_frame);
+        audio_index.0 = Some(current_frame);
     }
 }
 
@@ -78,18 +92,17 @@ pub(super) fn update_animation_sounds<T, A>(
 fn choose_sound(
     rng: &mut WyRand,
     current_frame: &usize,
-    sound_frames: &Option<Vec<usize>>,
+    animation_state: &AnimationState,
+    audio_map: &HashMap<AnimationState, Vec<usize>>,
     sounds: &Option<Vec<Handle<AudioSource>>>,
 ) -> Option<Handle<AudioSource>> {
-    // Return `None` if frame data is missing or does not contain current frame
-    let Some(sound_frames) = sound_frames else {
+    let Some(audio_indexes) = audio_map.get(animation_state) else {
         warn_once!("{}", WARN_INCOMPLETE_ANIMATION_DATA);
         return None;
     };
-    if !sound_frames.contains(current_frame) {
+    if !audio_indexes.contains(current_frame) {
         return None;
     }
-    // Return `None` if asset data is missing
     let Some(sounds) = sounds else {
         warn_once!("{}", WARN_INCOMPLETE_ASSET_DATA);
         return None;

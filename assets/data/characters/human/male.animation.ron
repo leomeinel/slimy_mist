@@ -1,14 +1,64 @@
 AnimationData (
     atlas_columns: 6,
     atlas_rows: 9,
-    idle_frames: Some([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0)]),
-    idle_interval_ms: Some(300),
-    walk_frames: Some([(0, 0)]),
-    walk_interval_ms: Some(150),
-    walk_sound_frames: Some([2, 4]),
-    run_frames: Some([(0, 0)]),
-    run_interval_ms: Some(75),
-    run_sound_frames: Some([4, 8]),
-    jump_frames: Some([(0, 0)]),
-    jump_sound_frames: Some([3]),
+    idle_clips: (
+        AnimationClip (
+            state: AnimationState((Idle, South)),
+            sprite_coords: [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0)],
+            audio_indexes: [],
+            frame_duration_ms: 300,
+        ),
+        AnimationClip (
+            state: AnimationState((Idle, North)),
+            sprite_coords: [(0, 1), (1, 1), (2, 1), (3, 1), (4, 1), (5, 1)],
+            audio_indexes: [],
+            frame_duration_ms: 300,
+        ),
+        AnimationClip (
+            state: AnimationState((Idle, East)),
+            sprite_coords: [(0, 2), (1, 2), (2, 2), (3, 2), (4, 2), (5, 2)],
+            audio_indexes: [],
+            frame_duration_ms: 300,
+        )
+    ),
+    walk_clips: Some((
+        AnimationClip (
+            state: AnimationState((Walk, South)),
+            sprite_coords: [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0)],
+            audio_indexes: [0, 3],
+            frame_duration_ms: 150,
+        ),
+        AnimationClip (
+            state: AnimationState((Walk, North)),
+            sprite_coords: [(0, 1), (1, 1), (2, 1), (3, 1), (4, 1), (5, 1)],
+            audio_indexes: [0, 3],
+            frame_duration_ms: 150,
+        ),
+        AnimationClip (
+            state: AnimationState((Walk, East)),
+            sprite_coords: [(0, 2), (1, 2), (2, 2), (3, 2), (4, 2), (5, 2)],
+            audio_indexes: [0, 3],
+            frame_duration_ms: 150,
+        )
+    )),
+    jump_clips: Some((
+        AnimationClip (
+            state: AnimationState((Jump, South)),
+            sprite_coords: [(0, 0)],
+            audio_indexes: [],
+            frame_duration_ms: 75,
+        ),
+        AnimationClip (
+            state: AnimationState((Jump, North)),
+            sprite_coords: [(0, 0)],
+            audio_indexes: [],
+            frame_duration_ms: 75,
+        ),
+        AnimationClip (
+            state: AnimationState((Jump, East)),
+            sprite_coords: [(0, 0)],
+            audio_indexes: [],
+            frame_duration_ms: 75,
+        )
+    )),
 )

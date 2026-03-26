@@ -15,7 +15,6 @@
 //            - Part of: https://github.com/bevyengine/bevy/milestone/40 (0.19)
 
 mod layers;
-mod sprites;
 mod tiles;
 mod transitions;
 
@@ -31,7 +30,10 @@ use std::marker::PhantomData;
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 
-use crate::{characters::prelude::*, render::prelude::*, screens::prelude::*};
+use crate::{
+    animations::prelude::*, characters::prelude::*, log::prelude::*, render::prelude::*,
+    screens::prelude::*,
+};
 
 pub(super) struct ImagesPlugin;
 impl Plugin for ImagesPlugin {
@@ -41,16 +43,13 @@ impl Plugin for ImagesPlugin {
         app.add_systems(
             OnEnter(Screen::Gameplay),
             (
-                layers::insert_display_image::<Player>,
-                layers::insert_display_image::<Slime>,
-            )
-                .in_set(EnterGameplaySystems::Sprites),
-        );
-        app.add_systems(
-            Update,
-            (
-                sprites::flip_sprites::<Player>,
-                sprites::flip_sprites::<Slime>,
+                (
+                    layers::insert_display_image::<Player>,
+                    layers::insert_display_image::<Slime>,
+                )
+                    .in_set(EnterGameplaySystems::Sprites),
+                (insert_image_meta::<Player>, insert_image_meta::<Slime>)
+                    .in_set(EnterGameplaySystems::ImageMeta),
             ),
         );
     }
@@ -68,4 +67,35 @@ where
 {
     pub(crate) size: UVec2,
     pub(crate) _phantom: PhantomData<T>,
+}
+
+/// Insert [`ImageMeta`] from [`CharacterAnimations`].
+///
+/// ## Traits
+///
+/// - `T` must implement [`Character`] and [`Visible`].
+fn insert_image_meta<T>(
+    mut commands: Commands,
+    animations: Res<CharacterAnimations<T>>,
+    atlas_layouts: Res<Assets<TextureAtlasLayout>>,
+) where
+    T: Character + Visible,
+{
+    let layout_id = animations
+        .sprite
+        .clone()
+        .texture_atlas
+        .as_ref()
+        .expect(ERR_INVALID_TEXTURE_ATLAS)
+        .layout
+        .id();
+    let size = atlas_layouts
+        .get(layout_id)
+        .expect(ERR_INVALID_TEXTURE_ATLAS)
+        .textures
+        .first()
+        .expect(ERR_INVALID_TEXTURE_ATLAS)
+        .size();
+
+    commands.insert_resource(ImageMeta::<T> { size, ..default() });
 }

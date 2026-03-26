@@ -29,6 +29,9 @@ const PLAYER_WALK_SPEED: f32 = 60.;
 /// Assets that are serialized from a ron file
 #[derive(AssetCollection, Resource, Reflect, Default)]
 pub(crate) struct PlayerAssets {
+    #[asset(key = "male.idle_sounds", collection(typed), optional)]
+    pub(crate) idle_sounds: Option<Vec<Handle<AudioSource>>>,
+
     #[asset(key = "male.walk_sounds", collection(typed), optional)]
     pub(crate) walk_sounds: Option<Vec<Handle<AudioSource>>>,
 
@@ -82,7 +85,8 @@ impl Character for Player {
             ),
             // Animations
             (
-                AnimationCache::default(),
+                AnimationAudioIndex::default(),
+                AnimationState::default(),
                 AnimationTimer(Timer::from_seconds(animation_delay, TimerMode::Once)),
             ),
         )

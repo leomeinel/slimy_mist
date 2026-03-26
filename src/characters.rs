@@ -53,8 +53,8 @@ use crate::{
 pub(super) struct CharactersPlugin;
 impl Plugin for CharactersPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<Animations<Slime>>();
-        app.init_resource::<Animations<Player>>();
+        app.init_resource::<CharacterAnimations<Slime>>();
+        app.init_resource::<CharacterAnimations<Player>>();
 
         app.add_systems(
             Update,
@@ -102,17 +102,17 @@ pub(crate) trait CharacterAssets
 where
     Self: AssetCollection + Resource + Default + Reflectable,
 {
-    fn walk_sounds(&self) -> &Option<Vec<Handle<AudioSource>>>;
-    fn jump_sounds(&self) -> &Option<Vec<Handle<AudioSource>>>;
+    fn sounds(&self, action: AnimationAction) -> &Option<Vec<Handle<AudioSource>>>;
 }
 macro_rules! impl_character_assets {
     ($type: ty) => {
         impl CharacterAssets for $type {
-            fn walk_sounds(&self) -> &Option<Vec<Handle<AudioSource>>> {
-                &self.walk_sounds
-            }
-            fn jump_sounds(&self) -> &Option<Vec<Handle<AudioSource>>> {
-                &self.jump_sounds
+            fn sounds(&self, action: AnimationAction) -> &Option<Vec<Handle<AudioSource>>> {
+                match action {
+                    AnimationAction::Idle => &self.idle_sounds,
+                    AnimationAction::Walk => &self.walk_sounds,
+                    AnimationAction::Jump => &self.jump_sounds,
+                }
             }
         }
     };
@@ -126,10 +126,12 @@ where
 {
     fn container_bundle(pos: Vec2, animation_delay: f32, offset: f32) -> impl Bundle;
 
-    fn animation_bundle(animations: &Res<Animations<Self>>, offset: f32) -> impl Bundle {
+    fn animation_bundle(animations: &Res<CharacterAnimations<Self>>, offset: f32) -> impl Bundle {
+        let animation = AnimationState::default().animation(animations);
+
         (
             animations.sprite.clone(),
-            SpritesheetAnimation::new(animations.idle.clone()),
+            SpritesheetAnimation::new(animation),
             Transform::from_xyz(0., -offset, 0.),
         )
     }
@@ -227,7 +229,7 @@ fn on_spawn_character<T, A>(
     mut animation_rng: Single<&mut WyRand, With<AnimationRng>>,
     level: Single<Entity, With<A>>,
     mut commands: Commands,
-    animations: Res<Animations<T>>,
+    animations: Res<CharacterAnimations<T>>,
     character_dimensions: Res<CharacterDimensions<T>>,
     collision_data: Res<CollisionDataCache<T>>,
     shadow: Res<CharacterShadow<T>>,

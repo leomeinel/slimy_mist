@@ -79,7 +79,7 @@ pub(super) fn apply_walk(
     event: On<Fire<Walk>>,
     player: Single<
         (
-            &mut AnimationCache,
+            &mut AnimationState,
             &mut KinematicCharacterController,
             &WalkSpeed,
         ),
@@ -92,33 +92,33 @@ pub(super) fn apply_walk(
         return;
     }
 
-    let (mut cache, mut controller, walk_speed) = player.into_inner();
+    let (mut animation_state, mut controller, walk_speed) = player.into_inner();
     let direction = event.value * walk_speed.0 * time.delta_secs();
     controller.translation = Some(direction);
 
-    if cache.state == AnimationState::Idle {
-        cache.set_new_state(AnimationState::Walk);
+    if animation_state.0.0 == AnimationAction::Idle {
+        animation_state.set_new_action(AnimationAction::Walk);
     }
 }
 
 /// On a completed [`Walk`], set translation to zero.
 pub(super) fn reset_walk(
     _: On<Complete<Walk>>,
-    player: Single<(&mut AnimationCache, &mut KinematicCharacterController), With<Player>>,
+    player: Single<(&mut AnimationState, &mut KinematicCharacterController), With<Player>>,
 ) {
-    let (mut cache, mut controller) = player.into_inner();
+    let (mut animation_state, mut controller) = player.into_inner();
 
-    if cache.state != AnimationState::Jump {
+    if animation_state.0.0 != AnimationAction::Jump {
         let direction = Vec2::ZERO;
         controller.translation = Some(direction);
-        cache.set_new_state(AnimationState::Idle);
+        animation_state.set_new_action(AnimationAction::Idle);
     }
 }
 
 /// On a fired [`Jump`], add [`JumpTimer`].
 pub(super) fn set_jump(
     _: On<Fire<Jump>>,
-    player: Single<(Entity, &mut AnimationCache), With<Player>>,
+    player: Single<(Entity, &mut AnimationState), With<Player>>,
     mut commands: Commands,
     pause: Res<State<Pause>>,
 ) {
@@ -126,11 +126,11 @@ pub(super) fn set_jump(
         return;
     }
 
-    let (entity, mut cache) = player.into_inner();
+    let (entity, mut animation_state) = player.into_inner();
 
-    if cache.state != AnimationState::Jump {
+    if animation_state.0.0 != AnimationAction::Jump {
         commands.entity(entity).insert(JumpTimer::default());
-        cache.set_new_state(AnimationState::Jump);
+        animation_state.set_new_action(AnimationAction::Jump);
     }
 }
 

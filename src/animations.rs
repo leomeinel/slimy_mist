@@ -21,20 +21,27 @@ mod audio;
 mod jump;
 mod sprites;
 
+#[allow(unused_imports)]
 pub(crate) mod prelude {
+    pub(crate) use super::audio::{AnimationAudioIndex, AnimationAudioMap};
     pub(crate) use super::{
-        ANIMATION_DELAY_RANGE_SECS, AnimationCache, AnimationData, AnimationDataCache,
-        AnimationHandle, AnimationRng, AnimationState, AnimationTimer, Animations,
+        ANIMATION_DELAY_RANGE_SECS, AnimationAction, AnimationClip, AnimationData,
+        AnimationDataCache, AnimationHandle, AnimationOrientation, AnimationRng, AnimationState,
+        AnimationTimer, CharacterAnimations,
     };
 }
 
-use std::{marker::PhantomData, ops::Range};
+use std::{borrow::Borrow, marker::PhantomData, ops::Range};
 
-use bevy::prelude::*;
+use bevy::{platform::collections::HashMap, prelude::*};
 use bevy_rapier2d::prelude::*;
 use bevy_spritesheet_animation::prelude::*;
+use serde::Deserialize;
 
-use crate::{characters::prelude::*, core::prelude::*, screens::prelude::*, utils::prelude::*};
+use crate::{
+    animations::prelude::*, characters::prelude::*, core::prelude::*, log::prelude::*,
+    screens::prelude::*, utils::prelude::*,
+};
 
 pub(super) struct AnimationsPlugin;
 impl Plugin for AnimationsPlugin {
@@ -55,11 +62,13 @@ impl Plugin for AnimationsPlugin {
             (
                 (
                     sprites::update_animations::<Player>,
+                    sprites::update_animation_orientations::<Player>,
                     audio::update_animation_sounds::<Player, PlayerAssets>,
                 )
                     .chain(),
                 (
                     sprites::update_animations::<Slime>,
+                    sprites::update_animation_orientations::<Slime>,
                     audio::update_animation_sounds::<Slime, SlimeAssets>,
                 )
                     .chain(),
@@ -87,12 +96,12 @@ impl Plugin for AnimationsPlugin {
 /// Animation delay [`Range`] in seconds
 pub(crate) const ANIMATION_DELAY_RANGE_SECS: Range<f32> = 0.0..10.0;
 
-/// Animation data deserialized from a ron file as a generic.
+/// Animation data deserialized from a ron file.
 ///
 /// ## Traits
 ///
 /// - `T` must implement [`Character`].
-#[derive(serde::Deserialize, Asset, TypePath, Default)]
+#[derive(Deserialize, Asset, TypePath, Default)]
 pub(crate) struct AnimationData<T>
 where
     T: Character,
@@ -100,30 +109,18 @@ where
     pub(crate) atlas_columns: usize,
     pub(crate) atlas_rows: usize,
     #[serde(default)]
-    pub(crate) idle_frames: Option<Vec<(usize, usize)>>,
+    pub(crate) idle_clips: [AnimationClip; 3],
     #[serde(default)]
-    pub(crate) idle_interval_ms: Option<u32>,
+    pub(crate) walk_clips: Option<[AnimationClip; 3]>,
     #[serde(default)]
-    pub(crate) walk_frames: Option<Vec<(usize, usize)>>,
+    pub(crate) run_clips: Option<[AnimationClip; 3]>,
     #[serde(default)]
-    pub(crate) walk_interval_ms: Option<u32>,
-    #[serde(default)]
-    pub(crate) walk_sound_frames: Option<Vec<usize>>,
-    #[serde(default)]
-    pub(crate) run_frames: Option<Vec<(usize, usize)>>,
-    #[serde(default)]
-    pub(crate) run_interval_ms: Option<u32>,
-    #[serde(default)]
-    pub(crate) run_sound_frames: Option<Vec<usize>>,
-    #[serde(default)]
-    pub(crate) jump_frames: Option<Vec<(usize, usize)>>,
-    #[serde(default)]
-    pub(crate) jump_sound_frames: Option<Vec<usize>>,
+    pub(crate) jump_clips: Option<[AnimationClip; 3]>,
     #[serde(skip)]
     pub(crate) _phantom: PhantomData<T>,
 }
 
-/// Handle for [`AnimationData`] as a generic
+/// Handle for [`AnimationData`].
 ///
 /// ## Traits
 ///
@@ -147,62 +144,131 @@ where
 {
     pub(crate) atlas_columns: usize,
     pub(crate) atlas_rows: usize,
-    pub(crate) idle_frames: Option<Vec<(usize, usize)>>,
-    pub(crate) idle_interval_ms: Option<u32>,
-    pub(crate) walk_frames: Option<Vec<(usize, usize)>>,
-    pub(crate) walk_interval_ms: Option<u32>,
-    pub(crate) walk_sound_frames: Option<Vec<usize>>,
+    pub(crate) idle_clips: [AnimationClip; 3],
+    pub(crate) walk_clips: Option<[AnimationClip; 3]>,
     // FIXME: We should use fields prefixed with `_`
-    pub(crate) _run_frames: Option<Vec<(usize, usize)>>,
-    pub(crate) _run_interval_ms: Option<u32>,
-    pub(crate) _run_sound_frames: Option<Vec<usize>>,
-    pub(crate) jump_frames: Option<Vec<(usize, usize)>>,
-    pub(crate) jump_sound_frames: Option<Vec<usize>>,
+    pub(crate) _run_clips: Option<[AnimationClip; 3]>,
+    pub(crate) jump_clips: Option<[AnimationClip; 3]>,
     pub(crate) _phantom: PhantomData<T>,
 }
 
-/// Animations with generics
+/// [`Character`] animations
 ///
-/// This serves as the main interface for other modules
+/// This stores the [`Sprite`] for the animation and a map of [`AnimationState`] to [`Handle<Animation>`].
 ///
 /// ## Traits
 ///
 /// - `T` must implement [`Character`].
 #[derive(Resource, Default)]
-pub(crate) struct Animations<T>
+pub(crate) struct CharacterAnimations<T>
 where
     T: Character,
 {
     pub(crate) sprite: Sprite,
-    pub(crate) idle: Handle<Animation>,
-    pub(crate) walk: Option<Handle<Animation>>,
-    pub(crate) jump: Option<Handle<Animation>>,
+    pub(crate) map: HashMap<AnimationState, Handle<Animation>>,
     _phantom: PhantomData<T>,
 }
 
-/// Current state of animation
-#[derive(Default, Clone, Copy, PartialEq, Reflect, Debug)]
-pub(crate) enum AnimationState {
+/// Animation action.
+#[derive(Deserialize, Clone, Copy, Default, PartialEq, Eq, Hash, Reflect, Debug)]
+pub(crate) enum AnimationAction {
     #[default]
     Idle,
     Walk,
     Jump,
 }
 
-/// Cache for animations
-#[derive(Component, Default)]
-pub(crate) struct AnimationCache {
-    /// Used to determine next animation
-    pub(crate) state: AnimationState,
-    /// Used to determine if we should play sound again
-    pub(crate) sound_frame: Option<usize>,
+/// Animation orientation in cardinal directions.
+#[derive(Deserialize, Clone, Copy, Default, PartialEq, Eq, Hash, Reflect, Debug)]
+pub(crate) enum AnimationOrientation {
+    #[default]
+    South,
+    North,
+    East,
 }
-impl AnimationCache {
-    /// Sets a new [`AnimationState`] if it has not already been set.
-    pub(crate) fn set_new_state(&mut self, new: AnimationState) {
-        if self.state != new {
-            self.state = new;
+impl AnimationOrientation {
+    pub(crate) fn try_from_vec2(vec2: Vec2) -> Option<AnimationOrientation> {
+        if vec2.x.abs() > vec2.y.abs() {
+            Some(Self::East)
+        } else if vec2.y != 0. {
+            Some(if vec2.y > 0. {
+                Self::North
+            } else {
+                Self::South
+            })
+        } else {
+            None
         }
+    }
+}
+
+/// Animation state containing [`AnimationAction`] and [`AnimationOrientation`].
+#[derive(Component, Deserialize, Default, Clone, Copy, PartialEq, Eq, Hash, Reflect, Debug)]
+pub(crate) struct AnimationState(pub(crate) (AnimationAction, AnimationOrientation));
+impl AnimationState {
+    /// Sets a new [`AnimationState`] if it has not already been set.
+    pub(crate) fn set_new_action(&mut self, new: AnimationAction) {
+        if self.0.0 != new {
+            self.0.0 = new;
+        }
+    }
+
+    pub(crate) fn animation<T>(&self, animations: &Res<CharacterAnimations<T>>) -> Handle<Animation>
+    where
+        T: Character,
+    {
+        animations
+            .map
+            .get(&self.0)
+            .expect(ERR_NONEXISTENT_ANIMATION)
+            .clone()
+    }
+
+    pub(crate) fn switch<T>(
+        &self,
+        animations: &Res<CharacterAnimations<T>>,
+        animation: &mut SpritesheetAnimation,
+        audio_index: &mut AnimationAudioIndex,
+    ) where
+        T: Character,
+    {
+        let new_animation = self.animation(animations);
+
+        if animation.animation != new_animation {
+            animation.switch(new_animation);
+            audio_index.0 = None;
+        }
+    }
+}
+impl Borrow<(AnimationAction, AnimationOrientation)> for AnimationState {
+    fn borrow(&self) -> &(AnimationAction, AnimationOrientation) {
+        &self.0
+    }
+}
+
+/// Deserializable animation clip containing animation data for every [`AnimationState`].
+#[derive(Deserialize, Clone, Debug, Default)]
+pub(crate) struct AnimationClip {
+    pub(crate) state: AnimationState,
+    pub(crate) sprite_coords: Vec<(usize, usize)>,
+    pub(crate) audio_indexes: Vec<usize>,
+    pub(crate) frame_duration_ms: u32,
+}
+impl AnimationClip {
+    pub(crate) fn build_animation(
+        &self,
+        animations: &mut ResMut<Assets<Animation>>,
+        sprite_sheet: &Spritesheet,
+        repetitions: AnimationRepeat,
+    ) -> Handle<Animation> {
+        animations.add(
+            sprite_sheet
+                .create_animation()
+                .add_cells(self.sprite_coords.clone())
+                .set_clip_duration(AnimationDuration::PerFrame(self.frame_duration_ms))
+                .set_repetitions(repetitions)
+                .build(),
+        )
     }
 }
 

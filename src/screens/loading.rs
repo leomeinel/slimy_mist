@@ -14,7 +14,7 @@
 //! A loading screen during which game assets are loaded if necessary.
 //! This reduces stuttering, especially for audio on Wasm.
 
-use bevy::{color::palettes::tailwind, prelude::*};
+use bevy::{color::palettes::tailwind, platform::collections::HashMap, prelude::*};
 use bevy_asset_loader::prelude::*;
 use bevy_common_assets::ron::RonAssetPlugin;
 use iyes_progress::ProgressPlugin;
@@ -75,13 +75,13 @@ impl Plugin for LoadingPlugin {
             OnEnter(Screen::LoadingCache),
             (
                 (
-                    cache_animation_data::<Player>,
-                    cache_animation_data::<Slime>,
+                    cache_animation_data_and_related::<Player>,
+                    cache_animation_data_and_related::<Slime>,
                     cache_collision_data_and_related::<Player>,
                     cache_collision_data_and_related::<Slime>,
                     cache_credits_data,
-                    cache_layer_data_related::<Player>,
-                    cache_layer_data_related::<Slime>,
+                    cache_layer_data::<Player>,
+                    cache_layer_data::<Slime>,
                     cache_tile_data_and_related::<OverworldProcGen>,
                 ),
                 enter_splash_screen,
@@ -154,7 +154,7 @@ fn insert_handle_resources(mut commands: Commands, assets: Res<AssetServer>) {
 /// ## Traits
 ///
 /// - `T` must implement [`Character`].
-fn cache_animation_data<T>(
+fn cache_animation_data_and_related<T>(
     mut commands: Commands,
     mut data: ResMut<Assets<AnimationData<T>>>,
     handle: Res<AnimationHandle<T>>,
@@ -167,16 +167,29 @@ fn cache_animation_data<T>(
     commands.insert_resource(AnimationDataCache::<T> {
         atlas_columns: data.atlas_columns,
         atlas_rows: data.atlas_rows,
-        idle_frames: data.idle_frames,
-        idle_interval_ms: data.idle_interval_ms,
-        walk_frames: data.walk_frames,
-        walk_interval_ms: data.walk_interval_ms,
-        walk_sound_frames: data.walk_sound_frames,
-        _run_frames: data.run_frames,
-        _run_interval_ms: data.run_interval_ms,
-        _run_sound_frames: data.run_sound_frames,
-        jump_frames: data.jump_frames,
-        jump_sound_frames: data.jump_sound_frames,
+        idle_clips: data.idle_clips.clone(),
+        walk_clips: data.walk_clips.clone(),
+        _run_clips: data.run_clips,
+        jump_clips: data.jump_clips.clone(),
+        ..default()
+    });
+
+    let mut audio_map = HashMap::new();
+    for clip in data.idle_clips.as_ref() {
+        audio_map.insert(clip.state, clip.audio_indexes.clone());
+    }
+    if let Some(walk_clips) = data.walk_clips.as_ref() {
+        for clip in walk_clips {
+            audio_map.insert(clip.state, clip.audio_indexes.clone());
+        }
+    }
+    if let Some(jump_clips) = data.jump_clips.as_ref() {
+        for clip in jump_clips {
+            audio_map.insert(clip.state, clip.audio_indexes.clone());
+        }
+    }
+    commands.insert_resource(AnimationAudioMap::<T> {
+        map: audio_map,
         ..default()
     });
 
@@ -265,7 +278,7 @@ fn cache_credits_data(
 /// ## Traits
 ///
 /// - `T` must implement [`Visible`].
-fn cache_layer_data_related<T>(
+fn cache_layer_data<T>(
     mut commands: Commands,
     mut data: ResMut<Assets<LayerData<T>>>,
     assets: Res<AssetServer>,

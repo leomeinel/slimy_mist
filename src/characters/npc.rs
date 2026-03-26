@@ -25,6 +25,9 @@ use crate::{
 /// Assets that are serialized from a ron file
 #[derive(AssetCollection, Resource, Default, Reflect)]
 pub(crate) struct SlimeAssets {
+    #[asset(key = "slime.idle_sounds", collection(typed), optional)]
+    pub(crate) idle_sounds: Option<Vec<Handle<AudioSource>>>,
+
     #[asset(key = "slime.walk_sounds", collection(typed), optional)]
     pub(crate) walk_sounds: Option<Vec<Handle<AudioSource>>>,
 
@@ -79,7 +82,8 @@ impl Character for Slime {
             ),
             // Animations
             (
-                AnimationCache::default(),
+                AnimationAudioIndex::default(),
+                AnimationState::default(),
                 AnimationTimer(Timer::from_seconds(animation_delay, TimerMode::Once)),
             ),
         )

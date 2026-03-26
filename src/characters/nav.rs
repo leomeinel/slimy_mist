@@ -172,7 +172,7 @@ pub(super) fn apply_path(
         (
             Entity,
             &Transform,
-            &mut AnimationCache,
+            &mut AnimationState,
             &mut KinematicCharacterController,
             Option<&KinematicCharacterControllerOutput>,
             &mut Path,
@@ -183,8 +183,15 @@ pub(super) fn apply_path(
     mut commands: Commands,
     time: Res<Time>,
 ) {
-    for (entity, transform, mut cache, mut controller, controller_output, mut path, walk_speed) in
-        navigator_query
+    for (
+        entity,
+        transform,
+        mut animation_state,
+        mut controller,
+        controller_output,
+        mut path,
+        walk_speed,
+    ) in navigator_query
     {
         let navigator_pos = transform.translation.xy();
         let direction = path.current - navigator_pos;
@@ -202,8 +209,8 @@ pub(super) fn apply_path(
             return;
         }
 
-        if cache.state == AnimationState::Idle {
-            cache.set_new_state(AnimationState::Walk);
+        if animation_state.0.0 == AnimationAction::Idle {
+            animation_state.set_new_action(AnimationAction::Walk);
         }
 
         // NOTE: We are looping until threshold to allow multiple next
@@ -223,15 +230,15 @@ pub(super) fn apply_path(
 /// Remove [`Path`] and set [`AnimationCache`] state to [`AnimationState::Idle`].
 pub(super) fn on_stop_nav(
     event: On<StopNav>,
-    mut cache_query: Query<&mut AnimationCache, With<Navigator>>,
+    mut animation_state_query: Query<&mut AnimationState, With<Navigator>>,
     mut commands: Commands,
 ) {
     let entity = event.0;
-    let Ok(mut cache) = cache_query.get_mut(entity) else {
+    let Ok(mut animation_state) = animation_state_query.get_mut(entity) else {
         return;
     };
 
     // NOTE: We are using `try_remove` to avoid use after despawn because of `procgen::despawn`.
     commands.entity(entity).try_remove::<Path>();
-    cache.set_new_state(AnimationState::Idle);
+    animation_state.set_new_action(AnimationAction::Idle);
 }

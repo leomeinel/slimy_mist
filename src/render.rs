@@ -60,6 +60,7 @@ impl Plugin for RenderPlugin {
                 ysort::relative_sort::<Player, OverworldProcGen>,
                 ysort::relative_sort::<Slime, OverworldProcGen>,
             )
+                .after(EnterGameplaySystems::ImageMeta)
                 .before(TransformSystems::Propagate)
                 .run_if(in_state(ProcGenInit(true)).and(in_state(Screen::Gameplay))),
         );

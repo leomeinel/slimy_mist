@@ -47,7 +47,7 @@ pub(crate) trait Particle
 where
     Self: Component + Default,
 {
-    fn is_active(&self, _state: AnimationState) -> bool {
+    fn is_active(&self, _action: AnimationAction) -> bool {
         true
     }
 }
@@ -65,10 +65,10 @@ impl ParticleSpawnerExt for ParticleSpawnerState {
 
 /// Marker component for walking dust particles.
 #[derive(Component, Default)]
-pub(crate) struct ParticleWalkingDust(AnimationState);
+pub(crate) struct ParticleWalkingDust(AnimationAction);
 impl Particle for ParticleWalkingDust {
-    fn is_active(&self, animation_state: AnimationState) -> bool {
-        self.0 == animation_state
+    fn is_active(&self, action: AnimationAction) -> bool {
+        self.0 == action
     }
 }
 
@@ -84,7 +84,7 @@ pub(crate) struct SpawnParticleOnce {
     pub(crate) handle: Handle<Particle2dEffect>,
 }
 
-/// Handle for [`Particle2dEffect`] as a generic.
+/// Handle for [`Particle2dEffect`].
 ///
 /// ## Traits
 ///
@@ -148,7 +148,7 @@ fn add_walking_dust<T>(
             .expect(ERR_INVALID_CHILDREN);
         let particle = commands
             .spawn((
-                ParticleWalkingDust(AnimationState::Walk),
+                ParticleWalkingDust(AnimationAction::Walk),
                 ParticleTimer(Timer::from_seconds(WALKING_DUST_SECS, TimerMode::Repeating)),
                 ParticleSpawner::default(),
                 NoAutoAabb,
@@ -172,7 +172,7 @@ fn add_walking_dust<T>(
 /// - `A` must implement [`Particle`].
 fn update_character_particles<T, A>(
     animation_query: Query<&Children, With<SpritesheetAnimation>>,
-    character_query: Query<(&mut AnimationCache, &Children), With<T>>,
+    character_query: Query<(&mut AnimationState, &Children), With<T>>,
     mut particle_query: Query<
         (
             &ParticleWalkingDust,
@@ -185,7 +185,7 @@ fn update_character_particles<T, A>(
     T: Character + Visible,
     A: Particle,
 {
-    for (cache, children) in character_query {
+    for (animation_state, children) in character_query {
         let child = children
             .iter()
             .find(|e| animation_query.contains(*e))
@@ -198,11 +198,10 @@ fn update_character_particles<T, A>(
         let (particle, timer, mut state) =
             particle_query.get_mut(child).expect(ERR_INVALID_CHILDREN);
 
-        // Continue if timer has not finished
         if !timer.0.just_finished() {
             continue;
         }
 
-        state.set_new_active(particle.is_active(cache.state));
+        state.set_new_active(particle.is_active(animation_state.0.0));
     }
 }

@@ -17,11 +17,11 @@ const JUMP_HEIGHT: f32 = 12.;
 
 /// Move sprite from [`EaseFunction::QuadraticOut`].
 pub(super) fn move_sprite(
-    player: Single<(&AnimationCache, &mut JumpHeight, &JumpTimer, &Children), With<Player>>,
+    player: Single<(&AnimationState, &mut JumpHeight, &JumpTimer, &Children), With<Player>>,
     mut transform_query: Query<&mut Transform, With<SpritesheetAnimation>>,
 ) {
-    let (cache, mut jump_height, timer, children) = player.into_inner();
-    if cache.state != AnimationState::Jump {
+    let (animation_state, mut jump_height, timer, children) = player.into_inner();
+    if animation_state.0.0 != AnimationAction::Jump {
         return;
     }
 
@@ -43,12 +43,12 @@ pub(super) fn move_sprite(
 }
 
 /// Switch [`AnimationState`] out of [`AnimationState::Jump`] after [`JumpTimer`] has finished.
-pub(super) fn switch_animation(player: Single<(&mut AnimationCache, &JumpTimer), With<Player>>) {
-    let (mut cache, timer) = player.into_inner();
+pub(super) fn switch_animation(player: Single<(&mut AnimationState, &JumpTimer), With<Player>>) {
+    let (mut animation_state, timer) = player.into_inner();
     if !timer.0.just_finished() {
         return;
     }
-    if cache.state == AnimationState::Jump {
-        cache.state = AnimationState::Idle;
+    if animation_state.0.0 == AnimationAction::Jump {
+        animation_state.0.0 = AnimationAction::Idle;
     }
 }

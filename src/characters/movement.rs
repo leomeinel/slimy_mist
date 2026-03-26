@@ -10,8 +10,8 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-// FIXME: This should be influenced by aiming direction and should determine sprite flip.
-//        Movement direction should be secondary.
+use crate::characters::prelude::*;
+
 /// Direction the [`Character`](crate::characters::Character) is facing.
 #[derive(Component)]
 pub(crate) struct FacingDirection(pub(crate) Vec2);
@@ -42,18 +42,36 @@ impl Default for JumpTimer {
     }
 }
 
-/// Update [`FacingDirection`] from [`KinematicCharacterControllerOutput::desired_translation`].
-pub(super) fn update_facing(
+/// Update [`FacingDirection`].
+pub(super) fn update_facing_direction(
     query: Query<
-        (&mut FacingDirection, &KinematicCharacterControllerOutput),
-        Changed<KinematicCharacterControllerOutput>,
+        (
+            &mut FacingDirection,
+            Option<&AttackTimer>,
+            &AimDirection,
+            Option<&KinematicCharacterControllerOutput>,
+        ),
+        Or<(
+            Changed<AimDirection>,
+            Changed<KinematicCharacterControllerOutput>,
+        )>,
     >,
 ) {
-    for (mut facing, controller_output) in query {
-        // NOTE: This only checks for desired movement, not actual movement. This is to ensure that
-        //       even if a character can't move, it can still change its' facing direction.
-        if controller_output.desired_translation != Vec2::ZERO {
-            facing.0 = controller_output.desired_translation.normalize_or_zero();
+    for (mut facing, timer, aim_direction, controller_output) in query {
+        let direction = if let Some(timer) = timer
+            && !timer.0.is_finished()
+            && aim_direction.0 != Vec2::ZERO
+        {
+            aim_direction.0
+        } else if let Some(controller_output) = controller_output
+            && controller_output.desired_translation != Vec2::ZERO
+        {
+            controller_output.desired_translation
+        } else {
+            return;
         }
+        .normalize_or_zero();
+
+        facing.0 = direction;
     }
 }

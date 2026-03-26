@@ -20,7 +20,7 @@ mod player;
 #[allow(unused_imports)]
 pub(crate) mod prelude {
     pub(crate) use super::attack::{
-        Attack, AttackData, AttackStats, AttackTimer, AttackType, MeleeAttack, punch,
+        AimDirection, Attack, AttackData, AttackStats, AttackTimer, DelayAttack, InitAttack, punch,
     };
     pub(crate) use super::collision::{CollisionData, CollisionDataCache, CollisionHandle};
     pub(crate) use super::health::{Damage, Health};
@@ -71,8 +71,14 @@ impl Plugin for CharactersPlugin {
                 .in_set(AppSystems::Update),
         );
         app.add_systems(
-            PostUpdate,
-            movement::update_facing.run_if(in_state(Screen::Gameplay)),
+            Update,
+            (
+                player::on_init_attack,
+                movement::update_facing_direction,
+                attack::on_melee_attack::<Player>,
+            )
+                .run_if(in_state(Screen::Gameplay))
+                .chain(),
         );
         app.add_systems(
             Update,
@@ -83,7 +89,6 @@ impl Plugin for CharactersPlugin {
                 .in_set(AppSystems::TickTimers),
         );
 
-        app.add_observer(attack::on_melee_attack::<Player>);
         app.add_observer(attack::on_delay_attack);
         app.add_observer(health::on_damage);
         app.add_observer(nav::on_stop_nav);

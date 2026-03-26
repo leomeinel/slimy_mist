@@ -7,20 +7,20 @@
  * URL: https://www.apache.org/licenses/LICENSE-2.0
  */
 
-use std::marker::PhantomData;
-
 use bevy::{platform::collections::HashSet, prelude::*};
 use bevy_rapier2d::{parry::shape, prelude::*};
 use ordered_float::OrderedFloat;
 
 use crate::{characters::prelude::*, log::prelude::*, render::prelude::*};
 
-/// Applies to anything that is a type of [`Attack`].
-pub(crate) trait AttackType {}
-
-/// Melee [`Attack`].
-pub(crate) struct MeleeAttack;
-impl AttackType for MeleeAttack {}
+/// Direction the [`Character`](crate::characters::Character) is aiming.
+#[derive(Component, Deref, DerefMut)]
+pub(crate) struct AimDirection(pub(crate) Vec2);
+impl Default for AimDirection {
+    fn default() -> Self {
+        Self(Vec2::ZERO)
+    }
+}
 
 /// Relevant data for an attack.
 #[derive(Default, PartialEq, Eq, Hash)]
@@ -35,26 +35,39 @@ pub(crate) struct AttackData {
     pub(crate) cooldown_secs: OrderedFloat<f32>,
 }
 
-/// [`EntityEvent`] that is triggered if the contained [`Entity`] has attacked.
+/// [`Message`] that is written if the source [`Entity`] has attacked.
+#[derive(Message)]
+pub(crate) enum Attack {
+    Melee(Entity),
+    // TODO: Implement this.
+    #[allow(dead_code)]
+    Ranged(Entity),
+}
+impl From<&InitAttack> for Attack {
+    fn from(attack: &InitAttack) -> Self {
+        match attack {
+            InitAttack::Melee(entity) => Attack::Melee(*entity),
+            InitAttack::Ranged(entity) => Attack::Ranged(*entity),
+        }
+    }
+}
+
+/// [`Message`] that is written if the source [`Entity`] has attacked.
 ///
-/// ## Traits
-///
-/// - `T` must implement [`AttackType`].
-#[derive(EntityEvent)]
-pub(crate) struct Attack<T>
-where
-    T: AttackType,
-{
-    pub(crate) entity: Entity,
-    pub(crate) direction: Vec2,
-    pub(crate) _phantom: PhantomData<T>,
+/// This initiates [`Attack`].
+#[derive(Message)]
+pub(crate) enum InitAttack {
+    Melee(Entity),
+    // TODO: Implement this.
+    #[allow(dead_code)]
+    Ranged(Entity),
 }
 
 /// [`EntityEvent`] that is triggered if the contained [`Entity`]'s next [`Attack`] should be delayed.
 #[derive(EntityEvent)]
-pub(super) struct DelayAttack {
-    entity: Entity,
-    cooldown_secs: f32,
+pub(crate) struct DelayAttack {
+    pub(crate) entity: Entity,
+    pub(crate) cooldown_secs: f32,
 }
 
 /// Stats for [`Attack`]
@@ -81,15 +94,15 @@ pub(crate) fn punch() -> AttackData {
     }
 }
 
-/// On a triggered [`Attack<MeleeAttack>`], fire [`Damage`] on [Entity]s within range.
+/// On [`Attack::Melee`], trigger [`Damage`] on [Entity]s within range.
 ///
 /// ## Traits
 ///
-/// - `T` must implement [`Character`] and is used as the character associated with a [`AttackStats`].
+/// - `T` must implement [`Character`].
 pub(super) fn on_melee_attack<T>(
-    event: On<Attack<MeleeAttack>>,
+    mut reader: MessageReader<Attack>,
     target_query: Query<&Health>,
-    origin_query: Query<(&Transform, &FacingDirection, &AttackStats), With<T>>,
+    origin_query: Query<(&Transform, &AimDirection, &AttackStats), With<T>>,
     mut commands: Commands,
     character_dimensions: Res<CharacterDimensions<T>>,
     rapier_context: ReadRapierContext,
@@ -97,63 +110,59 @@ pub(super) fn on_melee_attack<T>(
 ) where
     T: Character,
 {
-    let rapier_context = rapier_context.single().expect(ERR_INVALID_RAPIER_CONTEXT);
-    let (width, height) = (character_dimensions.width, character_dimensions.height);
+    for attack in reader.read() {
+        let Attack::Melee(entity) = attack else {
+            continue;
+        };
 
-    let (origin, event_direction) = (event.entity, event.direction);
-    let (transform, facing, stats) = origin_query.get(origin).expect(ERR_INVALID_ATTACKER);
-    let Some(melee) = &stats.melee else {
-        warn_once!("{}", WARN_INVALID_ATTACK_DATA);
-        return;
-    };
-    let direction = if event_direction == Vec2::ZERO {
-        facing.0
-    } else {
-        event_direction
-    };
+        let rapier_context = rapier_context.single().expect(ERR_INVALID_RAPIER_CONTEXT);
+        let (width, height) = (character_dimensions.width, character_dimensions.height);
+        let (transform, direction, stats) = origin_query.get(*entity).expect(ERR_INVALID_ATTACKER);
+        let Some(melee) = &stats.melee else {
+            warn_once!("{}", WARN_INVALID_ATTACK_DATA);
+            return;
+        };
 
-    // Cast ray to determine boundary of `Collider`
-    // NOTE: We have to add an offset to max_toi to ensure that the ray reaches the boundary.
-    let max_toi = (width / 2.).max(height / 2.) + 1.;
-    // Filter for `origin` itself
-    let filter = &|e| e == origin;
-    let filter = QueryFilter::exclude_dynamic()
-        .exclude_sensors()
-        .predicate(filter);
-    let pos = transform.translation.xy();
-    let Some((_, extent)) = rapier_context.cast_ray(pos, direction, max_toi, false, filter) else {
-        return;
-    };
+        // Cast ray to determine boundary of `Collider`
+        // NOTE: We have to add an offset to max_toi to ensure that the ray reaches the boundary.
+        let max_toi = (width / 2.).max(height / 2.) + 1.;
+        // Filter for the source itself
+        let filter = &|e| e == *entity;
+        let filter = QueryFilter::exclude_dynamic()
+            .exclude_sensors()
+            .predicate(filter);
+        let pos = transform.translation.xy();
+        let Some((_, extent)) = rapier_context.cast_ray(pos, direction.0, max_toi, false, filter)
+        else {
+            return;
+        };
 
-    // Collect all entities within attack range
-    let shape_half_size = Vec2::new(*melee.range.0, *melee.range.1) / 2.;
-    let offset = extent + shape_half_size.x;
-    let shape_pos = pos + direction * offset;
-    let shape_rot = direction.to_angle();
-    let shape = shape::Cuboid::new(shape_half_size.into());
-    // Filter for anything that is not `origin`
-    let filter = QueryFilter::exclude_dynamic()
-        .exclude_sensors()
-        .exclude_rigid_body(origin);
-    let mut targets = Vec::new();
-    rapier_context.intersect_shape(shape_pos, shape_rot, &shape, filter, |e| {
-        if target_query.contains(e) {
-            targets.push(e);
-        }
-        true
-    });
+        // Collect all entities within attack range
+        let shape_half_size = Vec2::new(*melee.range.0, *melee.range.1) / 2.;
+        let offset = extent + shape_half_size.x;
+        let shape_pos = pos + direction.0 * offset;
+        let shape_rot = direction.0.to_angle();
+        let shape = shape::Cuboid::new(shape_half_size.into());
+        // Filter for anything that is not the source
+        let filter = QueryFilter::exclude_dynamic()
+            .exclude_sensors()
+            .exclude_rigid_body(*entity);
+        let mut targets = Vec::new();
+        rapier_context.intersect_shape(shape_pos, shape_rot, &shape, filter, |e| {
+            if target_query.contains(e) {
+                targets.push(e);
+            }
+            true
+        });
 
-    // Apply attack
-    let damage = stats.damage_factor * *melee.damage;
-    commands.trigger(Damage { targets, damage });
-    commands.trigger(DelayAttack {
-        entity: origin,
-        cooldown_secs: *melee.cooldown_secs,
-    });
-    commands.trigger(SpawnParticleOnce {
-        pos: shape_pos.extend(OVERLAY_Z),
-        handle: particle_handle.handle.clone(),
-    });
+        // Apply attack
+        let damage = stats.damage_factor * *melee.damage;
+        commands.trigger(Damage { targets, damage });
+        commands.trigger(SpawnParticleOnce {
+            pos: shape_pos.extend(OVERLAY_Z),
+            handle: particle_handle.handle.clone(),
+        });
+    }
 }
 
 /// Insert [`AttackTimer`] to delay [`Attack`]s.

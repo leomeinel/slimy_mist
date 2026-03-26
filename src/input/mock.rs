@@ -164,3 +164,12 @@ pub(super) fn mock_aim_from_click(
         );
     }
 }
+
+/// On a completed [`Melee`], reset [`ActionMock`] for [`Aim`].
+pub(super) fn reset_aim_mock(
+    _: On<Complete<Melee>>,
+    mock: Single<&mut ActionMock, With<Action<Aim>>>,
+) {
+    let mut mock = mock.into_inner();
+    mock.enabled = false;
+}

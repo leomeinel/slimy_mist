@@ -35,6 +35,9 @@ impl Plugin for GameplayPlugin {
                 .chain(),
         );
 
+        app.add_message::<Attack>();
+        app.add_message::<InitAttack>();
+
         app.add_systems(
             OnEnter(Screen::Gameplay),
             insert_resources.in_set(EnterGameplaySystems::Resources),

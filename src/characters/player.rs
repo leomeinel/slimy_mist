@@ -16,6 +16,7 @@
 
 use bevy::{platform::collections::HashSet, prelude::*};
 use bevy_asset_loader::prelude::*;
+use bevy_enhanced_input::prelude::*;
 use bevy_rapier2d::prelude::*;
 
 use crate::{
@@ -71,6 +72,7 @@ impl Character for Player {
             // Attack
             (
                 Health(10.),
+                AimDirection::default(),
                 AttackStats {
                     _attacks: HashSet::from([punch()]),
                     damage_factor: 1.,
@@ -87,3 +89,16 @@ impl Character for Player {
     }
 }
 impl Visible for Player {}
+
+/// On [`InitAttack`], set [`AimDirection`] and write [`Attack`].
+pub(super) fn on_init_attack(
+    mut reader: MessageReader<InitAttack>,
+    mut writer: MessageWriter<Attack>,
+    aim: Single<&mut Action<Aim>, Changed<Action<Aim>>>,
+    mut aim_direction: Single<&mut AimDirection, With<Player>>,
+) {
+    for attack in reader.read() {
+        ***aim_direction = ***aim;
+        writer.write(Attack::from(attack));
+    }
+}

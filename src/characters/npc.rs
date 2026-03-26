@@ -69,6 +69,7 @@ impl Character for Slime {
             // Attack
             (
                 Health(5.),
+                AimDirection::default(),
                 AttackStats {
                     _attacks: HashSet::from([punch()]),
                     damage_factor: 1.,

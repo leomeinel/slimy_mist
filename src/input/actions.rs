@@ -7,13 +7,11 @@
  * URL: https://www.apache.org/licenses/LICENSE-2.0
  */
 
-use std::marker::PhantomData;
-
 use bevy::prelude::*;
 use bevy_enhanced_input::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::{animations::prelude::*, characters::prelude::*, core::prelude::*};
+use crate::{animations::prelude::*, characters::prelude::*, core::prelude::*, log::prelude::*};
 
 /// Walk [`InputAction`]
 #[derive(InputAction)]
@@ -90,18 +88,14 @@ pub(super) fn apply_walk(
     pause: Res<State<Pause>>,
     time: Res<Time>,
 ) {
-    // Return if game is paused
     if pause.get().0 {
         return;
     }
 
     let (mut cache, mut controller, walk_speed) = player.into_inner();
-
-    // Apply movement from input
     let direction = event.value * walk_speed.0 * time.delta_secs();
     controller.translation = Some(direction);
 
-    // Set animation state if we are `Idle`
     if cache.state == AnimationState::Idle {
         cache.set_new_state(AnimationState::Walk);
     }
@@ -114,7 +108,6 @@ pub(super) fn reset_walk(
 ) {
     let (mut cache, mut controller) = player.into_inner();
 
-    // Stop movement if we are not jumping
     if cache.state != AnimationState::Jump {
         let direction = Vec2::ZERO;
         controller.translation = Some(direction);
@@ -129,57 +122,43 @@ pub(super) fn set_jump(
     mut commands: Commands,
     pause: Res<State<Pause>>,
 ) {
-    // Return if game is paused
     if pause.get().0 {
         return;
     }
 
     let (entity, mut cache) = player.into_inner();
 
-    // Set state to jump if we are not jumping
     if cache.state != AnimationState::Jump {
         commands.entity(entity).insert(JumpTimer::default());
         cache.set_new_state(AnimationState::Jump);
     }
 }
 
-/// On a fired [`Melee`], trigger [`Attack`].
-pub(super) fn trigger_melee_attack(
+/// On a fired [`Melee`], write [`InitAttack`].
+pub(super) fn init_melee_attack(
     _: On<Fire<Melee>>,
-    aim: Single<&Action<Aim>>,
-    player: Single<(Entity, Option<&AttackTimer>), With<Player>>,
+    mut writer: MessageWriter<InitAttack>,
+    player: Single<(Entity, &AttackStats, Option<&AttackTimer>), With<Player>>,
     mut commands: Commands,
     pause: Res<State<Pause>>,
 ) {
-    // Return if game is paused
     if pause.get().0 {
         return;
     }
-    // Return if `timer` has not finished
-    let (entity, timer) = *player;
+    let (entity, stats, timer) = *player;
     if let Some(timer) = timer
         && !timer.0.is_finished()
     {
         return;
     }
+    let Some(melee) = &stats.melee else {
+        warn_once!("{}", WARN_INVALID_ATTACK_DATA);
+        return;
+    };
 
-    commands.trigger(Attack::<MeleeAttack> {
+    commands.trigger(DelayAttack {
         entity,
-        direction: ***aim,
-        _phantom: PhantomData,
+        cooldown_secs: *melee.cooldown_secs,
     });
-}
-
-/// On a completed [`Melee`], reset [`Aim`].
-pub(super) fn reset_aim(
-    _: On<Complete<Melee>>,
-    aim: Single<(&mut Action<Aim>, Option<&mut ActionMock>)>,
-) {
-    let (mut aim, mock) = aim.into_inner();
-
-    // Reset `aim` and `mock`
-    **aim = Vec2::ZERO;
-    if let Some(mut mock) = mock {
-        mock.enabled = false;
-    }
+    writer.write(InitAttack::Melee(entity));
 }

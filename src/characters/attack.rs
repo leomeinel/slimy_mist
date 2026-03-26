@@ -13,7 +13,7 @@ use ordered_float::OrderedFloat;
 
 use crate::{characters::prelude::*, log::prelude::*, render::prelude::*};
 
-/// Direction the [`Character`](crate::characters::Character) is aiming.
+/// Direction the [`Character`] is aiming.
 #[derive(Component, Deref, DerefMut)]
 pub(crate) struct AimDirection(pub(crate) Vec2);
 impl Default for AimDirection {

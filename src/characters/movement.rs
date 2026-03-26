@@ -12,7 +12,7 @@ use bevy_rapier2d::prelude::*;
 
 use crate::characters::prelude::*;
 
-/// Direction the [`Character`](crate::characters::Character) is facing.
+/// Direction the [`Character`] is facing.
 #[derive(Component)]
 pub(crate) struct FacingDirection(pub(crate) Vec2);
 impl Default for FacingDirection {
@@ -21,11 +21,11 @@ impl Default for FacingDirection {
     }
 }
 
-/// [`Character`](crate::characters::Character) jump height.
+/// [`Character`] jump height.
 #[derive(Component, Default)]
 pub(crate) struct JumpHeight(pub(crate) f32);
 
-/// [`Character`](crate::characters::Character) walking speed.
+/// [`Character`] walking speed.
 #[derive(Component)]
 pub(crate) struct WalkSpeed(pub(crate) f32);
 

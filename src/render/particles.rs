@@ -72,7 +72,7 @@ impl Particle for ParticleWalkingDust {
     }
 }
 
-/// Marker component for [`MeleeAttack`] particles.
+/// Marker component for [`Attack::Melee`] particles.
 #[derive(Component, Default)]
 pub(crate) struct ParticleMeleeAttack;
 impl Particle for ParticleMeleeAttack {}

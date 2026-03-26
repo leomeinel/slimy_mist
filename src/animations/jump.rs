@@ -42,7 +42,7 @@ pub(super) fn move_sprite(
     jump_height.0 = target;
 }
 
-/// Switch [`AnimationState`] out of [`AnimationState::Jump`] after [`JumpTimer`] has finished.
+/// Switch [`AnimationState`] out of [`AnimationAction::Jump`] after [`JumpTimer`] has finished.
 pub(super) fn switch_animation(player: Single<(&mut AnimationState, &JumpTimer), With<Player>>) {
     let (mut animation_state, timer) = player.into_inner();
     if !timer.0.just_finished() {

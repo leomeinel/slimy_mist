@@ -15,7 +15,7 @@ use crate::{
     render::prelude::*,
 };
 
-/// Setup the [`Animations`] struct and add animations
+/// Setup [`CharacterAnimations`] and add animations.
 ///
 /// ## Traits
 ///

@@ -37,7 +37,7 @@ pub(crate) struct Path {
 
 /// [`EntityEvent`] to stop navigation.
 ///
-/// This removes [`Path`] and switches to [`AnimationState::Idle`].
+/// This removes [`Path`] and switches to [`AnimationAction::Idle`].
 #[derive(EntityEvent)]
 pub(super) struct StopNav(Entity);
 
@@ -227,7 +227,7 @@ pub(super) fn apply_path(
     }
 }
 
-/// Remove [`Path`] and set [`AnimationCache`] state to [`AnimationState::Idle`].
+/// Remove [`Path`] and set [`AnimationState`] state to [`AnimationAction::Idle`].
 pub(super) fn on_stop_nav(
     event: On<StopNav>,
     mut animation_state_query: Query<&mut AnimationState, With<Navigator>>,

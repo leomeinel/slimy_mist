@@ -53,14 +53,14 @@ pub(super) fn setup_animations<T>(
     for clip in idle_clips {
         character_animations.map.insert(
             clip.state,
-            clip.build_animation(&mut animations, &sprite_sheet, AnimationRepeat::Loop),
+            clip.create_animation(&mut animations, &sprite_sheet, AnimationRepeat::Loop),
         );
     }
     if let Some(walk_clips) = walk_clips {
         for clip in walk_clips {
             character_animations.map.insert(
                 clip.state,
-                clip.build_animation(&mut animations, &sprite_sheet, AnimationRepeat::Loop),
+                clip.create_animation(&mut animations, &sprite_sheet, AnimationRepeat::Loop),
             );
         }
     }
@@ -68,7 +68,7 @@ pub(super) fn setup_animations<T>(
         for clip in jump_clips {
             character_animations.map.insert(
                 clip.state,
-                clip.build_animation(&mut animations, &sprite_sheet, AnimationRepeat::Times(1)),
+                clip.create_animation(&mut animations, &sprite_sheet, AnimationRepeat::Times(1)),
             );
         }
     }

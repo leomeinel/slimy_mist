@@ -255,7 +255,7 @@ pub(crate) struct AnimationClip {
     pub(crate) frame_duration_ms: u32,
 }
 impl AnimationClip {
-    pub(crate) fn build_animation(
+    pub(crate) fn create_animation(
         &self,
         animations: &mut ResMut<Assets<Animation>>,
         sprite_sheet: &Spritesheet,

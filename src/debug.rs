@@ -119,7 +119,7 @@ fn toggle_debug_navmeshes(
 }
 
 /// Display [`Path`]s
-pub fn display_navigator_path(navigator: Query<(&Transform, &Path)>, mut gizmos: Gizmos) {
+fn display_navigator_path(navigator: Query<(&Transform, &Path)>, mut gizmos: Gizmos) {
     for (transform, path) in navigator {
         let mut to_display = path.next.clone();
         to_display.push(path.current);

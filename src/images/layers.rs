@@ -12,15 +12,16 @@
 use std::marker::PhantomData;
 
 use bevy::{asset::RenderAssetUsages, prelude::*};
+use serde::Deserialize;
 
 use crate::{log::prelude::*, render::prelude::*};
 
-/// Layer data deserialized from a ron file as a generic
+/// Layer data deserialized from a ron file.
 ///
 /// ## Traits
 ///
 /// - `T` must implement [`Visible`].
-#[derive(serde::Deserialize, Asset, TypePath, Default)]
+#[derive(Deserialize, Asset, TypePath, Default)]
 pub(crate) struct LayerData<T>
 where
     T: Visible,
@@ -31,7 +32,7 @@ where
     _phantom: PhantomData<T>,
 }
 
-/// Handle for [`LayerData`] as a generic
+/// Handle for [`LayerData`].
 ///
 /// ## Traits
 ///

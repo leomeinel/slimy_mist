@@ -10,15 +10,16 @@
 use std::marker::PhantomData;
 
 use bevy::prelude::*;
+use serde::Deserialize;
 
 use crate::characters::prelude::*;
 
-/// Collision data deserialized from a ron file as a generic
+/// Collision data deserialized from a ron file.
 ///
 /// ## Traits
 ///
 /// - `T` must implement [`Character`].
-#[derive(serde::Deserialize, Asset, TypePath, Default)]
+#[derive(Deserialize, Asset, TypePath, Default)]
 pub(crate) struct CollisionData<T>
 where
     T: Character,
@@ -35,7 +36,7 @@ where
     _phantom: PhantomData<T>,
 }
 
-/// Handle for [`CollisionData`] as a generic
+/// Handle for [`CollisionData`].
 ///
 /// ## Traits
 ///

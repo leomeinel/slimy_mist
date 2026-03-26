@@ -13,11 +13,12 @@
 
 use bevy::{ecs::spawn::SpawnIter, prelude::*};
 use bevy_asset_loader::prelude::*;
+use serde::Deserialize;
 
 use crate::{audio::prelude::*, ui::prelude::*};
 
-/// Credits data deserialized from a ron file as a generic.
-#[derive(serde::Deserialize, Asset, TypePath, Default)]
+/// Credits data deserialized from a ron file.
+#[derive(Deserialize, Asset, TypePath, Default)]
 pub(crate) struct CreditsData {
     #[serde(default)]
     pub(crate) created_by: Vec<[String; 2]>,
@@ -27,7 +28,7 @@ pub(crate) struct CreditsData {
     pub(crate) code: Vec<[String; 2]>,
 }
 
-/// Handle for [`CreditsData`] as a generic
+/// Handle for [`CreditsData`].
 #[derive(Resource)]
 pub(crate) struct CreditsHandle(pub(crate) Handle<CreditsData>);
 

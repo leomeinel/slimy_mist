@@ -46,8 +46,8 @@ pub(crate) enum Attack {
 impl From<&InitAttack> for Attack {
     fn from(attack: &InitAttack) -> Self {
         match attack {
-            InitAttack::Melee(entity) => Attack::Melee(*entity),
-            InitAttack::Ranged(entity) => Attack::Ranged(*entity),
+            InitAttack::Melee(entity) => Self::Melee(*entity),
+            InitAttack::Ranged(entity) => Self::Ranged(*entity),
         }
     }
 }

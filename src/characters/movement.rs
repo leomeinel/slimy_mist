@@ -17,7 +17,7 @@ use crate::characters::prelude::*;
 pub(crate) struct FacingDirection(pub(crate) Vec2);
 impl Default for FacingDirection {
     fn default() -> Self {
-        Self(Vec2::X)
+        Self(Vec2::NEG_Y)
     }
 }
 

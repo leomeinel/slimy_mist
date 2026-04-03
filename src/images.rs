@@ -20,7 +20,7 @@ mod transitions;
 
 pub(crate) mod prelude {
     pub(crate) use super::ImageMeta;
-    pub(crate) use super::layers::{DisplayImage, LayerData, LayerDataCache, LayerHandle};
+    pub(crate) use super::layers::{DisplayLayers, LayerData, LayerDataCache, LayerHandle};
     pub(crate) use super::tiles::{TileData, TileDataCache, TileHandle};
     pub(crate) use super::transitions::{FadeInOut, apply_fade_in_out, tick_fade_in_out};
 }
@@ -44,8 +44,8 @@ impl Plugin for ImagesPlugin {
             OnEnter(Screen::Gameplay),
             (
                 (
-                    layers::insert_display_image::<Player>,
-                    layers::insert_display_image::<Slime>,
+                    layers::insert_display_layers::<Player>,
+                    layers::insert_display_layers::<Slime>,
                 )
                     .in_set(EnterGameplaySystems::Sprites),
                 (insert_image_meta::<Player>, insert_image_meta::<Slime>)
@@ -76,26 +76,20 @@ where
 /// - `T` must implement [`Character`] and [`Visible`].
 fn insert_image_meta<T>(
     mut commands: Commands,
-    animations: Res<CharacterAnimations<T>>,
+    character_animations: Res<CharacterAnimations<T>>,
     atlas_layouts: Res<Assets<TextureAtlasLayout>>,
 ) where
     T: Character + Visible,
 {
-    let layout_id = animations
+    let size = character_animations
+        .base
         .sprite
-        .clone()
         .texture_atlas
         .as_ref()
-        .expect(ERR_INVALID_TEXTURE_ATLAS)
-        .layout
-        .id();
-    let size = atlas_layouts
-        .get(layout_id)
-        .expect(ERR_INVALID_TEXTURE_ATLAS)
-        .textures
-        .first()
-        .expect(ERR_INVALID_TEXTURE_ATLAS)
-        .size();
+        .and_then(|atlas| atlas_layouts.get(atlas.layout.id()))
+        .and_then(|layout| layout.textures.first())
+        .map(|texture| texture.size())
+        .expect(ERR_INVALID_TEXTURE_ATLAS);
 
     commands.insert_resource(ImageMeta::<T> { size, ..default() });
 }

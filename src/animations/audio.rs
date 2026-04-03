@@ -45,7 +45,7 @@ where
 pub(super) fn update_animation_sounds<T, A>(
     mut rng: Single<&mut WyRand, With<AnimationRng>>,
     character_query: Query<(&mut AnimationAudioIndex, &AnimationState, &Children), With<T>>,
-    animation_query: Query<&mut SpritesheetAnimation>,
+    base_query: Query<&mut SpritesheetAnimation, With<AnimationBase>>,
     mut commands: Commands,
     audio_map: Res<AnimationAudioMap<T>>,
     assets: Res<A>,
@@ -56,9 +56,9 @@ pub(super) fn update_animation_sounds<T, A>(
     for (mut audio_index, animation_state, children) in character_query {
         let child = children
             .iter()
-            .find(|e| animation_query.contains(*e))
+            .find(|e| base_query.contains(*e))
             .expect(ERR_INVALID_CHILDREN);
-        let animation = animation_query.get(child).expect(ERR_INVALID_CHILDREN);
+        let animation = base_query.get(child).expect(ERR_INVALID_CHILDREN);
 
         // Continue if sound has already been played
         let current_frame = animation.progress.frame;

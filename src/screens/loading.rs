@@ -287,9 +287,13 @@ fn cache_layer_data<T>(
     T: Visible,
 {
     let data = data.remove(handle.0.id()).expect(ERR_LOADING_LAYER_DATA);
-    let images = data.layers.iter().map(|l| assets.load(l)).collect();
+    let base = data.base.iter().map(|l| assets.load(l)).collect();
+    let floating = data
+        .floating
+        .map(|layers| layers.iter().map(|l| assets.load(l)).collect());
     commands.insert_resource(LayerDataCache::<T> {
-        images,
+        floating,
+        base,
         ..default()
     });
 

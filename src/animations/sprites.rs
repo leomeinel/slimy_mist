@@ -25,23 +25,36 @@ pub(super) fn setup_animations<T>(
     mut atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
     mut animations: ResMut<Assets<Animation>>,
     animation_data: Res<AnimationDataCache<T>>,
-    display_image: Res<DisplayImage<T>>,
+    layers: Res<DisplayLayers<T>>,
     images: Res<Assets<Image>>,
 ) where
     T: Character + Visible,
 {
-    // Set sprite sheet and generate sprite from it
-    let sprite_sheet = Spritesheet::new(
-        &display_image.image,
+    let base_sheet = Spritesheet::new(
+        &layers.base,
         animation_data.atlas_columns,
         animation_data.atlas_rows,
     );
-    let sprite = sprite_sheet
-        .with_loaded_image(&images)
-        .expect(ERR_NONEXISTENT_IMAGE)
-        .sprite(&mut atlas_layouts);
+    let floating_sheet = layers
+        .floating
+        .as_ref()
+        .map(|i| Spritesheet::new(i, animation_data.atlas_columns, animation_data.atlas_rows));
+    let floating_sheet = floating_sheet.as_ref();
     let mut character_animations = CharacterAnimations::<T> {
-        sprite,
+        base: CharacterAnimation {
+            sprite: base_sheet
+                .with_loaded_image(&images)
+                .expect(ERR_NONEXISTENT_IMAGE)
+                .sprite(&mut atlas_layouts),
+            ..default()
+        },
+        floating: floating_sheet.map(|s| CharacterAnimation {
+            sprite: s
+                .with_loaded_image(&images)
+                .expect(ERR_NONEXISTENT_IMAGE)
+                .sprite(&mut atlas_layouts),
+            ..default()
+        }),
         ..default()
     };
 
@@ -50,27 +63,30 @@ pub(super) fn setup_animations<T>(
         animation_data.walk_clips.as_ref(),
         animation_data.jump_clips.as_ref(),
     );
-    for clip in idle_clips {
-        character_animations.map.insert(
-            clip.state,
-            clip.create_animation(&mut animations, &sprite_sheet, AnimationRepeat::Loop),
+    character_animations.insert_animations(
+        idle_clips,
+        &mut animations,
+        &base_sheet,
+        floating_sheet,
+        AnimationRepeat::Loop,
+    );
+    if let Some(walk_clips) = walk_clips {
+        character_animations.insert_animations(
+            walk_clips,
+            &mut animations,
+            &base_sheet,
+            floating_sheet,
+            AnimationRepeat::Loop,
         );
     }
-    if let Some(walk_clips) = walk_clips {
-        for clip in walk_clips {
-            character_animations.map.insert(
-                clip.state,
-                clip.create_animation(&mut animations, &sprite_sheet, AnimationRepeat::Loop),
-            );
-        }
-    }
     if let Some(jump_clips) = jump_clips {
-        for clip in jump_clips {
-            character_animations.map.insert(
-                clip.state,
-                clip.create_animation(&mut animations, &sprite_sheet, AnimationRepeat::Times(1)),
-            );
-        }
+        character_animations.insert_animations(
+            jump_clips,
+            &mut animations,
+            &base_sheet,
+            floating_sheet,
+            AnimationRepeat::Times(1),
+        );
     }
 
     commands.insert_resource(character_animations);
@@ -91,25 +107,37 @@ pub(super) fn update_animations<T>(
         ),
         With<T>,
     >,
-    mut animation_query: Query<&mut SpritesheetAnimation, With<SpritesheetAnimation>>,
+    mut base_query: Query<(&mut SpritesheetAnimation, Option<&Children>), With<AnimationBase>>,
+    mut floating_query: Query<&mut SpritesheetAnimation, Without<AnimationBase>>,
     animations: Res<CharacterAnimations<T>>,
 ) where
     T: Character,
 {
     for (mut audio_index, animation_state, timer, children) in character_query {
-        let child = children
+        let children: Vec<_> = children.iter().collect();
+        let entity = children
             .iter()
-            .find(|e| animation_query.contains(*e))
+            .find(|entity| base_query.contains(**entity))
             .expect(ERR_INVALID_CHILDREN);
-        let mut animation = animation_query.get_mut(child).expect(ERR_INVALID_CHILDREN);
-
-        // Reset animation after timer has finished
+        let (mut base_animation, children) =
+            base_query.get_mut(*entity).expect(ERR_INVALID_CHILDREN);
         if timer.0.just_finished() {
-            animation.reset();
+            base_animation.reset();
         }
+        animation_state.switch(&animations.base, &mut base_animation, &mut audio_index);
 
-        // Match to current `AnimationState`
-        animation_state.switch(&animations, &mut animation, &mut audio_index)
+        if let Some(children) = children
+            && let Some(entity) = children
+                .iter()
+                .find(|entity| floating_query.contains(*entity))
+            && let Ok(mut floating_animation) = floating_query.get_mut(entity)
+            && let Some(animation) = &&animations.floating
+        {
+            if timer.0.just_finished() {
+                floating_animation.reset();
+            }
+            animation_state.switch(animation, &mut floating_animation, &mut audio_index);
+        }
     }
 }
 
@@ -120,7 +148,8 @@ pub(super) fn update_animations<T>(
 /// - `T` must implement [`Character`].
 pub(super) fn update_animation_orientations<T>(
     character_query: Query<(&mut AnimationState, &FacingDirection, &Children), With<T>>,
-    mut sprite_query: Query<&mut Sprite, With<SpritesheetAnimation>>,
+    mut base_query: Query<(&mut Sprite, Option<&Children>), With<AnimationBase>>,
+    mut floating_query: Query<&mut Sprite, Without<AnimationBase>>,
 ) where
     T: Character,
 {
@@ -133,10 +162,18 @@ pub(super) fn update_animation_orientations<T>(
         if animation_state.0.1 == AnimationOrientation::East {
             let child = children
                 .iter()
-                .find(|e| sprite_query.contains(*e))
+                .find(|e| base_query.contains(*e))
                 .expect(ERR_INVALID_CHILDREN);
-            let mut sprite = sprite_query.get_mut(child).expect(ERR_INVALID_CHILDREN);
-            sprite.flip_x = direction.0.x < 0.;
+            let (mut base_sprite, children) =
+                base_query.get_mut(child).expect(ERR_INVALID_CHILDREN);
+            base_sprite.flip_x = direction.0.x < 0.;
+
+            if let Some(children) = children
+                && let Some(child) = children.iter().find(|e| floating_query.contains(*e))
+                && let Ok(mut floating_sprite) = floating_query.get_mut(child)
+            {
+                floating_sprite.flip_x = direction.0.x < 0.;
+            }
         }
     }
 }

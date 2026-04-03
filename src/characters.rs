@@ -126,13 +126,10 @@ where
 {
     fn container_bundle(pos: Vec2, animation_delay: f32, offset: f32) -> impl Bundle;
 
-    fn animation_bundle(animations: &Res<CharacterAnimations<Self>>, offset: f32) -> impl Bundle {
-        let animation = AnimationState::default().animation(animations);
-
+    fn animation_bundle(animation: &CharacterAnimation) -> impl Bundle {
         (
-            animations.sprite.clone(),
-            SpritesheetAnimation::new(animation),
-            Transform::from_xyz(0., -offset, 0.),
+            animation.sprite.clone(),
+            SpritesheetAnimation::new(AnimationState::default().animation(animation)),
         )
     }
 
@@ -229,7 +226,7 @@ fn on_spawn_character<T, A>(
     mut animation_rng: Single<&mut WyRand, With<AnimationRng>>,
     level: Single<Entity, With<A>>,
     mut commands: Commands,
-    animations: Res<CharacterAnimations<T>>,
+    character_animations: Res<CharacterAnimations<T>>,
     character_dimensions: Res<CharacterDimensions<T>>,
     collision_data: Res<CollisionDataCache<T>>,
     shadow: Res<CharacterShadow<T>>,
@@ -250,11 +247,26 @@ fn on_spawn_character<T, A>(
         .insert((
             T::container_bundle(event.pos, animation_delay, collider_offset),
             T::collider(collider_shape, collider_width, collider_height),
-            children![
-                T::animation_bundle(&animations, collider_offset),
-                T::shadow_bundle(&shadow.shadow, character_dimensions.height),
-            ],
+            children![T::shadow_bundle(
+                &shadow.shadow,
+                character_dimensions.height
+            )],
         ))
+        .with_children(|commands| {
+            let mut animation = commands.spawn((
+                T::animation_bundle(&character_animations.base),
+                Transform::from_xyz(0., -collider_offset, 0.),
+                AnimationBase,
+            ));
+            if let Some(floating) = &character_animations.floating {
+                animation.with_children(|commands| {
+                    commands.spawn((
+                        T::animation_bundle(floating),
+                        Transform::from_xyz(0., 0., LAYER_Z_DELTA),
+                    ));
+                });
+            }
+        })
         .id();
 
     // Add `entity` to level so that level handles despawning

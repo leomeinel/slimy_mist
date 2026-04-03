@@ -25,9 +25,9 @@ mod sprites;
 pub(crate) mod prelude {
     pub(crate) use super::audio::{AnimationAudioIndex, AnimationAudioMap};
     pub(crate) use super::{
-        ANIMATION_DELAY_RANGE_SECS, AnimationAction, AnimationClip, AnimationData,
+        ANIMATION_DELAY_RANGE_SECS, AnimationAction, AnimationBase, AnimationClip, AnimationData,
         AnimationDataCache, AnimationHandle, AnimationOrientation, AnimationRng, AnimationState,
-        AnimationTimer, CharacterAnimations,
+        AnimationTimer, CharacterAnimation, CharacterAnimations,
     };
 }
 
@@ -152,7 +152,7 @@ where
     pub(crate) _phantom: PhantomData<T>,
 }
 
-/// [`Character`] animations
+/// Animations for [`Character`]s of type `T`.
 ///
 /// This stores the [`Sprite`] for the animation and a map of [`AnimationState`] to [`Handle<Animation>`].
 ///
@@ -164,9 +164,48 @@ pub(crate) struct CharacterAnimations<T>
 where
     T: Character,
 {
+    pub(crate) base: CharacterAnimation,
+    pub(crate) floating: Option<CharacterAnimation>,
+    _phantom: PhantomData<T>,
+}
+impl<T> CharacterAnimations<T>
+where
+    T: Character,
+{
+    pub(crate) fn insert_animations(
+        &mut self,
+        clips: &[AnimationClip],
+        animations: &mut ResMut<Assets<Animation>>,
+        base_sheet: &Spritesheet,
+        floating_sheet: Option<&Spritesheet>,
+        repetitions: AnimationRepeat,
+    ) {
+        for clip in clips {
+            self.base.map.insert(
+                clip.state,
+                clip.create_animation(animations, base_sheet, repetitions),
+            );
+            if let Some(ref mut floating) = self.floating
+                && let Some(floating_sheet) = floating_sheet
+            {
+                floating.map.insert(
+                    clip.state,
+                    clip.create_animation(animations, floating_sheet, repetitions),
+                );
+            }
+        }
+    }
+}
+
+/// Marker [`Component`] for the animation base.
+#[derive(Component)]
+pub(crate) struct AnimationBase;
+
+/// Animation for a single [`Character`].
+#[derive(Default)]
+pub(crate) struct CharacterAnimation {
     pub(crate) sprite: Sprite,
     pub(crate) map: HashMap<AnimationState, Handle<Animation>>,
-    _phantom: PhantomData<T>,
 }
 
 /// Animation action.
@@ -184,6 +223,9 @@ pub(crate) enum AnimationOrientation {
     #[default]
     South,
     North,
+    /// Eastwards orientation.
+    ///
+    /// This can also be flipped to represent west.
     East,
 }
 impl AnimationOrientation {
@@ -213,29 +255,23 @@ impl AnimationState {
         }
     }
 
-    pub(crate) fn animation<T>(&self, animations: &Res<CharacterAnimations<T>>) -> Handle<Animation>
-    where
-        T: Character,
-    {
-        animations
+    pub(crate) fn animation(&self, animation: &CharacterAnimation) -> Handle<Animation> {
+        animation
             .map
             .get(&self.0)
             .expect(ERR_NONEXISTENT_ANIMATION)
             .clone()
     }
 
-    pub(crate) fn switch<T>(
+    pub(crate) fn switch(
         &self,
-        animations: &Res<CharacterAnimations<T>>,
-        animation: &mut SpritesheetAnimation,
+        animation: &CharacterAnimation,
+        sprite_animation: &mut SpritesheetAnimation,
         audio_index: &mut AnimationAudioIndex,
-    ) where
-        T: Character,
-    {
-        let new_animation = self.animation(animations);
-
-        if animation.animation != new_animation {
-            animation.switch(new_animation);
+    ) {
+        let new_animation = self.animation(animation);
+        if sprite_animation.animation != new_animation {
+            sprite_animation.switch(new_animation);
             audio_index.0 = None;
         }
     }

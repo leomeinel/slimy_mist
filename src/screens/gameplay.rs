@@ -131,8 +131,8 @@ fn insert_resources(mut commands: Commands) {
 fn remove_resources(mut commands: Commands) {
     commands.remove_resource::<DayTimer>();
     commands.remove_resource::<DayUpdateTimer>();
-    commands.remove_resource::<DisplayImage<Player>>();
-    commands.remove_resource::<DisplayImage<Slime>>();
+    commands.remove_resource::<DisplayLayers<Player>>();
+    commands.remove_resource::<DisplayLayers<Slime>>();
     commands.remove_resource::<JoystickMap>();
     commands.remove_resource::<JoystickRect<{ JoystickID::Movement as u8 }>>();
     commands.remove_resource::<MouseDrag>();

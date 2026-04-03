@@ -1,7 +1,6 @@
 LayerData (
-    layers:
-        [
-            "images/characters/npc/slime/top/skin/eyes/default.webp",
-            "images/characters/npc/slime/top/skin/body/default.webp",
-        ],
+    base: [
+        "images/characters/npc/slime/top/skin/eyes/default.webp",
+        "images/characters/npc/slime/top/skin/body/default.webp",
+    ],
 )

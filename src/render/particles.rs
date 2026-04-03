@@ -11,7 +11,6 @@ use std::marker::PhantomData;
 
 use bevy::prelude::*;
 use bevy_enoki::prelude::*;
-use bevy_spritesheet_animation::prelude::*;
 
 use crate::{
     animations::prelude::*, characters::prelude::*, core::prelude::*, images::prelude::*,
@@ -131,7 +130,7 @@ const WALKING_DUST_SECS: f32 = 0.5;
 ///
 /// - `T` must implement [`Visible`].
 fn add_walking_dust<T>(
-    animation_query: Query<(), With<SpritesheetAnimation>>,
+    base_query: Query<(), With<AnimationBase>>,
     query: Query<&Children, With<T>>,
     mut commands: Commands,
     texture_info: Res<ImageMeta<T>>,
@@ -144,7 +143,7 @@ fn add_walking_dust<T>(
     for children in query {
         let child = children
             .iter()
-            .find(|e| animation_query.contains(*e))
+            .find(|e| base_query.contains(*e))
             .expect(ERR_INVALID_CHILDREN);
         let particle = commands
             .spawn((
@@ -171,7 +170,7 @@ fn add_walking_dust<T>(
 /// - `T` must implement [`Character`] and [`Visible`].
 /// - `A` must implement [`Particle`].
 fn update_character_particles<T, A>(
-    animation_query: Query<&Children, With<SpritesheetAnimation>>,
+    base_query: Query<&Children, With<AnimationBase>>,
     character_query: Query<(&mut AnimationState, &Children), With<T>>,
     mut particle_query: Query<
         (
@@ -188,9 +187,9 @@ fn update_character_particles<T, A>(
     for (animation_state, children) in character_query {
         let child = children
             .iter()
-            .find(|e| animation_query.contains(*e))
+            .find(|e| base_query.contains(*e))
             .expect(ERR_INVALID_CHILDREN);
-        let children = animation_query.get(child).expect(ERR_INVALID_CHILDREN);
+        let children = base_query.get(child).expect(ERR_INVALID_CHILDREN);
         let child = children
             .iter()
             .find(|e| particle_query.contains(*e))

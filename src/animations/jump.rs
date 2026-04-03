@@ -8,7 +8,6 @@
  */
 
 use bevy::prelude::*;
-use bevy_spritesheet_animation::prelude::*;
 
 use crate::{animations::prelude::*, characters::prelude::*, log::prelude::*};
 
@@ -18,7 +17,7 @@ const JUMP_HEIGHT: f32 = 12.;
 /// Move sprite from [`EaseFunction::QuadraticOut`].
 pub(super) fn move_sprite(
     player: Single<(&AnimationState, &mut JumpHeight, &JumpTimer, &Children), With<Player>>,
-    mut transform_query: Query<&mut Transform, With<SpritesheetAnimation>>,
+    mut base_query: Query<&mut Transform, With<AnimationBase>>,
 ) {
     let (animation_state, mut jump_height, timer, children) = player.into_inner();
     if animation_state.0.0 != AnimationAction::Jump {
@@ -35,9 +34,9 @@ pub(super) fn move_sprite(
 
     let child = children
         .iter()
-        .find(|e| transform_query.contains(*e))
+        .find(|e| base_query.contains(*e))
         .expect(ERR_INVALID_CHILDREN);
-    let mut transform = transform_query.get_mut(child).expect(ERR_INVALID_CHILDREN);
+    let mut transform = base_query.get_mut(child).expect(ERR_INVALID_CHILDREN);
     transform.translation.y += target - jump_height.0;
     jump_height.0 = target;
 }

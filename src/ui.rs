@@ -81,7 +81,7 @@ pub(crate) enum AppUiSystems {
 #[derive(Resource, Default)]
 pub(crate) struct UiFontHandle(pub(crate) Handle<Font>);
 
-/// Offset that stores the offset for a [`Node`].
+/// Stored offset for a [`Node`].
 ///
 /// Can apply to [`Node::left`] and [`Node::bottom`] according to [`Self::0`].
 #[derive(Component, Default)]

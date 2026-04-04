@@ -198,9 +198,9 @@ fn reset_joystick_rect<const ID: u8>(mut rect: ResMut<JoystickRect<ID>>) {
 }
 
 /// Size of the joystick knob in pixels
-const JOYSTICK_KNOB_SIZE: Vec2 = Vec2::splat(50.);
+const JOYSTICK_KNOB_SIZE: Vec2 = Vec2::splat(75.);
 /// Size of the joystick background in pixels
-const JOYSTICK_BACKGROUND_SIZE: Vec2 = Vec2::splat(100.);
+const JOYSTICK_BACKGROUND_SIZE: Vec2 = Vec2::splat(150.);
 
 /// Spawn joystick with `ID`.
 ///

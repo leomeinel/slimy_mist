@@ -200,7 +200,7 @@ pub(super) fn on_scroll(
         return;
     };
 
-    let max_offset = (computed.content_size() - computed.size()) * computed.inverse_scale_factor();
+    let max_offset = (computed.content_size() - computed.size()) * computed.inverse_scale_factor;
 
     let delta = &mut event.delta;
     if node.overflow.x == OverflowAxis::Scroll && delta.x != 0. {

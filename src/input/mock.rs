@@ -42,7 +42,7 @@ pub(super) fn mock_jump_from_touch(
     rect: Res<JoystickRect<{ JoystickID::Movement as u8 }>>,
 ) {
     for touch in touches.iter_just_released() {
-        if rect.intersects_with(touch.start_position()) {
+        if rect.contains(touch.start_position()) {
             continue;
         }
 
@@ -66,7 +66,7 @@ pub(super) fn mock_melee_from_touch(
     if !pointer_start.is_tap(time.elapsed_secs())
         || touches
             .iter_just_released()
-            .any(|t| rect.intersects_with(t.start_position()))
+            .any(|t| rect.contains(t.start_position()))
     {
         return;
     }
@@ -91,12 +91,12 @@ pub(super) fn mock_aim_from_touch(
 
     // NOTE: We are using `just_pressed` to allow use in `Melee`.
     for touch in touches.iter_just_pressed() {
-        if let Ok(pos) = camera.viewport_to_world_2d(camera_transform, touch.position()) {
-            if rect.intersects_with(pos) {
+        if let Ok(pointer_pos) = camera.viewport_to_world_2d(camera_transform, touch.position()) {
+            if rect.contains(pointer_pos) {
                 continue;
             }
 
-            let direction = pos - player_transform.translation.xy();
+            let direction = pointer_pos - player_transform.translation.xy();
             commands.entity(*aim).mock::<Player, Aim>(
                 TriggerState::Fired,
                 direction.normalize_or_zero(),
@@ -116,17 +116,19 @@ pub(super) fn mock_melee_from_click(
     rect: Res<JoystickRect<{ JoystickID::Movement as u8 }>>,
     time: Res<Time>,
 ) {
-    let Some(start_pos) = drag.start_pos else {
-        return;
-    };
     if !mouse.just_released(MouseButton::Left)
         || !pointer_start.is_tap(time.elapsed_secs())
-        || rect.intersects_with(start_pos)
         || drag.is_vertical_swipe()
     {
         return;
     }
 
+    let Some(pointer_pos) = drag.start_pos else {
+        return;
+    };
+    if rect.contains(pointer_pos) {
+        return;
+    }
     commands
         .entity(*melee)
         .mock_once::<Player, Melee>(TriggerState::Fired, true);
@@ -149,14 +151,14 @@ pub(super) fn mock_aim_from_click(
 
     let (camera, camera_transform) = *camera;
 
-    if let Some(pos) = window.cursor_position()
-        && let Ok(pos) = camera.viewport_to_world_2d(camera_transform, pos)
+    if let Some(pointer_pos) = window.cursor_position()
+        && let Ok(pointer_pos) = camera.viewport_to_world_2d(camera_transform, pointer_pos)
     {
-        if rect.intersects_with(pos) {
+        if rect.contains(pointer_pos) {
             return;
         }
 
-        let direction = pos - player_transform.translation.xy();
+        let direction = pointer_pos - player_transform.translation.xy();
         commands.entity(*aim).mock::<Player, Aim>(
             TriggerState::Fired,
             direction.normalize_or_zero(),

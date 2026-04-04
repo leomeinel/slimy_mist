@@ -148,8 +148,8 @@ pub(crate) enum JoystickID {
 #[derive(Resource, Default)]
 pub(crate) struct JoystickRect<const ID: u8>(Option<Rect>);
 impl<const ID: u8> JoystickRect<ID> {
-    pub(crate) fn intersects_with(&self, point: Vec2) -> bool {
-        self.0.is_some_and(|rect| rect.contains(point))
+    pub(crate) fn contains(&self, pointer_pos: Vec2) -> bool {
+        self.0.is_some_and(|rect| rect.contains(pointer_pos))
     }
 }
 
@@ -169,6 +169,7 @@ fn update_joystick_rect<const ID: u8>(
         With<VirtualJoystickInteractionArea>,
     >,
     mut rect: ResMut<JoystickRect<ID>>,
+    ui_scale: Res<UiScale>,
 ) {
     if node_query.is_empty() || interaction_area_query.is_empty() {
         return;
@@ -181,7 +182,7 @@ fn update_joystick_rect<const ID: u8>(
         .iter()
         .find_map(|child| interaction_area_query.get(child).ok())
     {
-        let factor = node.inverse_scale_factor;
+        let factor = node.inverse_scale_factor * ui_scale.0;
         let new_rect = Rect::from_center_size(transform.translation * factor, node.size() * factor);
         rect.0 = Some(new_rect);
     }

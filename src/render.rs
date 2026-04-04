@@ -45,7 +45,7 @@ impl Plugin for RenderPlugin {
         app.add_systems(
             Update,
             (
-                camera::fit_canvas,
+                camera::scale_projection,
                 // NOTE: Having `update_camera` in `PausableSystems` is not the only thing that causes the camera to be
                 //       offset when pausing while moving. I do however deem that behavior to be acceptable.
                 camera::update_camera

@@ -43,7 +43,10 @@ use bevy::{
         directional_navigation::{AutoNavigationConfig, DirectionalNavigationPlugin},
     },
     prelude::*,
+    window::WindowResized,
 };
+
+use crate::core::prelude::*;
 
 pub(super) struct UiPlugin;
 impl Plugin for UiPlugin {
@@ -59,6 +62,8 @@ impl Plugin for UiPlugin {
             prefer_aligned: true,
             ..default()
         });
+
+        app.add_systems(Update, scale_ui);
     }
 }
 
@@ -81,3 +86,15 @@ pub(crate) struct UiFontHandle(pub(crate) Handle<Font>);
 /// Can apply to [`Node::left`] and [`Node::bottom`] according to [`Self::0`].
 #[derive(Component, Default)]
 pub(crate) struct NodeOffset(pub(crate) IVec2);
+
+/// Scale [`UiScale`] according to [`MIN_SIDE_SCALE_THRESHOLD`].
+fn scale_ui(mut reader: MessageReader<WindowResized>, mut ui_scale: ResMut<UiScale>) {
+    for resized in reader.read() {
+        let min_length = resized.width.min(resized.height);
+        ui_scale.0 = if min_length > MIN_SIDE_SCALE_THRESHOLD {
+            1.
+        } else {
+            min_length / MIN_SIDE_SCALE_THRESHOLD
+        };
+    }
+}

@@ -8,7 +8,7 @@
  */
 
 pub(crate) mod prelude {
-    pub(crate) use super::{AppSystems, PausableSystems, Pause};
+    pub(crate) use super::{AppSystems, MIN_SIDE_SCALE_THRESHOLD, PausableSystems, Pause};
 }
 
 use bevy::prelude::*;
@@ -30,6 +30,11 @@ impl Plugin for CorePlugin {
         );
     }
 }
+
+/// Scale threshold for the minimum length of a window side.
+///
+/// This is used for scaling [`UiScale`] and [`Projection`].
+pub(crate) const MIN_SIDE_SCALE_THRESHOLD: f32 = 500.;
 
 /// High-level groupings of systems for the app in the `Update` schedule.
 /// When adding a new variant, make sure to order it in the `configure_sets`

@@ -10,7 +10,7 @@
 use bevy::{prelude::*, window::WindowResized};
 use bevy_fast_light::prelude::*;
 
-use crate::characters::prelude::*;
+use crate::{characters::prelude::*, core::prelude::*};
 
 /// Main camera that renders the world to the canvas.
 #[derive(Component)]
@@ -36,15 +36,10 @@ pub(super) fn spawn_camera(mut commands: Commands) {
     ));
 }
 
-/// Threshold used to determine whether we should use a larger scale for [`Projection`].
-///
-/// This is compared to the minimum length retrieved from [`WindowResized`].
-const SCALE_THRESHOLD: f32 = 500.;
-
-/// Scales camera projection to fit the window (integer multiples only).
+/// Scale [`CanvasCamera`] [`Projection`] according to [`MIN_SIDE_SCALE_THRESHOLD`].
 ///
 /// Heavily inspired by: <https://bevy.org/examples/2d-rendering/pixel-grid-snap/>
-pub(super) fn fit_canvas(
+pub(super) fn scale_projection(
     mut reader: MessageReader<WindowResized>,
     mut projection: Single<&mut Projection, With<CanvasCamera>>,
 ) {
@@ -53,16 +48,13 @@ pub(super) fn fit_canvas(
     };
 
     for resized in reader.read() {
-        // Adjust scale based on short side of window
         let min_length = resized.width.min(resized.height);
-        let canvas_height = if min_length > SCALE_THRESHOLD {
+        let canvas_height = if min_length > MIN_SIDE_SCALE_THRESHOLD {
             360.
         } else {
             180.
         };
-        let scale = 1. / (resized.height / canvas_height).round();
-
-        projection.scale = scale;
+        projection.scale = 1. / (resized.height / canvas_height).round();
     }
 }
 

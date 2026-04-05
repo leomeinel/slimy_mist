@@ -54,7 +54,7 @@ pub(super) fn scale_projection(
         } else {
             180.
         };
-        projection.scale = 1. / (resized.height / canvas_height).round();
+        projection.scale = canvas_height / resized.height;
     }
 }
 

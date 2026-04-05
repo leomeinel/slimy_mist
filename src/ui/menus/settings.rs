@@ -41,15 +41,18 @@ pub(super) fn spawn_settings_menu(mut commands: Commands, font: Res<UiFontHandle
     ));
 }
 
+/// Total width of [`settings_grid`].
+const SETTINGS_GRID_WIDTH_PX: f32 = 400.;
+
 /// Custom settings grid
 fn settings_grid(font: Handle<Font>) -> impl Bundle {
     (
         Name::new("Settings Grid"),
         Node {
+            width: px(SETTINGS_GRID_WIDTH_PX),
             display: Display::Grid,
-            row_gap: px(10),
-            column_gap: px(30),
-            grid_template_columns: RepeatedGridTrack::px(2, 400.0),
+            row_gap: px(BODY_FONT_SIZE / 2.),
+            grid_template_columns: RepeatedGridTrack::px(2, SETTINGS_GRID_WIDTH_PX / 2.),
             ..default()
         },
         children![
@@ -62,13 +65,13 @@ fn settings_grid(font: Handle<Font>) -> impl Bundle {
 }
 
 /// Label for configuration in settings.
-fn settings_label(font: Handle<Font>, label: &'static str) -> (impl Bundle, Node) {
+fn settings_label(font: Handle<Font>, label: &'static str) -> impl Bundle {
     (
-        label_widget(label, font.clone()),
         Node {
-            justify_self: JustifySelf::End,
+            justify_content: JustifyContent::End,
             ..default()
         },
+        children![label_widget(label, font.clone())],
     )
 }
 
@@ -77,7 +80,7 @@ fn global_volume_widget(font: Handle<Font>) -> impl Bundle {
     (
         Name::new("Global Volume Widget"),
         Node {
-            justify_self: JustifySelf::Start,
+            justify_content: JustifyContent::Center,
             ..default()
         },
         children![
@@ -85,9 +88,7 @@ fn global_volume_widget(font: Handle<Font>) -> impl Bundle {
             (
                 Name::new("Current Volume"),
                 Node {
-                    // FIXME: Horizontal alignment is currently incorrect and should not be hardcoded.
                     padding: UiRect::horizontal(px(10)),
-                    justify_content: JustifyContent::Center,
                     ..default()
                 },
                 children![(GlobalVolumeLabel, label_widget("", font.clone()))],
@@ -128,21 +129,12 @@ fn toggle_joystick_widget(font: Handle<Font>) -> impl Bundle {
     (
         Name::new("Toggle Joystick Widget"),
         Node {
-            justify_self: JustifySelf::Start,
+            justify_content: JustifyContent::Center,
             ..default()
         },
         children![(
-            Name::new("Toggle Joystick Button"),
-            Node {
-                // FIXME: Horizontal alignment is currently incorrect and should not be hardcoded.
-                padding: UiRect::horizontal(px(40)),
-                justify_content: JustifyContent::Center,
-                ..default()
-            },
-            children![(
-                ToggleJoystickButton::<{ JoystickID::Movement as u8 }>,
-                switch_medium("", font.clone(), toggle_joystick_on_click),
-            )]
+            ToggleJoystickButton::<{ JoystickID::Movement as u8 }>,
+            switch_medium("", font.clone(), toggle_joystick_on_click),
         )],
     )
 }

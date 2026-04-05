@@ -11,7 +11,7 @@
 pub(crate) const LEVEL_Z: f32 = 1.;
 /// Z-level for any foreground object
 ///
-/// The value is chosen so that there is a very reasonable distance to [`OrthographicProjection::far`](bevy::camera::OrthographicProjection::far).
+/// The value is chosen so that there is a very reasonable distance to [`OrthographicProjection::far`](bevy::camera::OrthographicProjection::far)
 /// while considering relative y-sorting.
 pub(crate) const FOREGROUND_Z: f32 = 5.;
 /// Z-level for any overlay object

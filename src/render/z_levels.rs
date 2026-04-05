@@ -26,5 +26,5 @@ pub(crate) const LIGHT_Z: f32 = 10.;
 pub(crate) const BACKGROUND_Z_DELTA: f32 = -1.;
 /// Z-level delta for image layers.
 ///
-/// This is set to a minimal delta to only impact local layer rendering.
-pub(crate) const LAYER_Z_DELTA: f32 = f32::EPSILON * 2.;
+/// This is set to a somewhat arbitrary meant to be rendering safe minimal delta to only impact local layer rendering.
+pub(crate) const LAYER_Z_DELTA: f32 = 1e-5;

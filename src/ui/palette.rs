@@ -41,7 +41,7 @@ pub(crate) const SWITCH_OFF_BACKGROUND: Srgba = tailwind::RED_600;
 pub(crate) const SWITCH_OFF_HOVERED_BACKGROUND: Srgba = tailwind::RED_500;
 
 /// Background color for pause screen.
-pub(crate) const PAUSE_BACKGROUND: Color = Color::srgba(0., 0., 0., 0.8);
+pub(crate) const PAUSE_BACKGROUND: Color = Color::srgba(0., 0., 0., 0.9);
 /// Background color for splash screen.
 pub(crate) const CLEAR_BACKGROUND: Srgba = tailwind::SLATE_700;
 

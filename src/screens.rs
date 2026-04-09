@@ -16,9 +16,12 @@ mod loading;
 mod splash;
 
 pub(crate) mod prelude {
-    pub(crate) use super::Screen;
     pub(crate) use super::gameplay::EnterGameplaySystems;
     pub(crate) use super::splash::SplashAssets;
+    pub(crate) use super::{
+        Screen, enter_gameplay_screen_on_click, enter_splash_screen, enter_title_screen,
+        enter_title_screen_on_click,
+    };
 }
 
 use bevy::prelude::*;
@@ -36,8 +39,8 @@ impl Plugin for ScreensPlugin {
 
         app.init_state::<Screen>();
 
-        app.add_systems(OnEnter(Screen::Title), open_main_menu);
-        app.add_systems(OnExit(Screen::Title), close_main_menu);
+        app.add_systems(OnEnter(Screen::Title), enter_main_menu);
+        app.add_systems(OnExit(Screen::Title), exit_menus);
     }
 }
 
@@ -60,12 +63,27 @@ impl Screen {
     }
 }
 
-/// Open main menu
-fn open_main_menu(mut next_state: ResMut<NextState<Menu>>) {
-    (*next_state).set_if_neq(Menu::Main);
+/// Enter [`Screen::Splash`].
+pub(crate) fn enter_splash_screen(mut next_state: ResMut<NextState<Screen>>) {
+    (*next_state).set_if_neq(Screen::Splash);
 }
 
-/// Close main menu
-fn close_main_menu(mut next_state: ResMut<NextState<Menu>>) {
-    (*next_state).set_if_neq(Menu::None);
+/// Enter [`Screen::Title`].
+pub(crate) fn enter_title_screen(mut next_state: ResMut<NextState<Screen>>) {
+    (*next_state).set_if_neq(Screen::Title);
+}
+
+/// Enter [`Screen::Title`] title on [`Pointer`] click.
+pub(crate) fn enter_title_screen_on_click(
+    _: On<Pointer<Click>>,
+    next_state: ResMut<NextState<Screen>>,
+) {
+    enter_title_screen(next_state);
+}
+/// Enter [`Screen::Gameplay`].
+pub(crate) fn enter_gameplay_screen_on_click(
+    _: On<Pointer<Click>>,
+    mut next_state: ResMut<NextState<Screen>>,
+) {
+    (*next_state).set_if_neq(Screen::Gameplay);
 }

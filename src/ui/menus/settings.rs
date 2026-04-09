@@ -13,9 +13,30 @@
 //!
 //! Additional settings and accessibility options should go here.
 
-use bevy::{audio::Volume, prelude::*};
+use bevy::{audio::Volume, input::common_conditions::input_just_pressed, prelude::*};
 
-use crate::{input::prelude::*, log::prelude::*, screens::prelude::*, ui::prelude::*};
+use crate::{input::prelude::*, log::prelude::*, ui::prelude::*};
+
+pub(super) struct SettingsPlugin;
+impl Plugin for SettingsPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(OnEnter(Menu::Settings), spawn_settings_menu);
+
+        app.add_systems(
+            Update,
+            enter_screen_back_menu
+                .run_if(in_state(Menu::Settings).and(input_just_pressed(KeyCode::Escape))),
+        );
+        app.add_systems(
+            Update,
+            (
+                update_joystick_button.before(AppUiSystems::VisualizeInteraction),
+                update_global_volume_label,
+            )
+                .run_if(in_state(Menu::Settings)),
+        );
+    }
+}
 
 /// Global volume label marker
 #[derive(Component, Reflect)]
@@ -28,7 +49,7 @@ pub(super) struct GlobalVolumeLabel;
 pub(super) struct ToggleJoystickButton<const ID: u8>;
 
 /// Spawn settings menu
-pub(super) fn spawn_settings_menu(mut commands: Commands, font: Res<UiFontHandle>) {
+fn spawn_settings_menu(mut commands: Commands, font: Res<UiFontHandle>) {
     commands.spawn((
         root_widget("Settings Menu"),
         GlobalZIndex(2),
@@ -36,7 +57,13 @@ pub(super) fn spawn_settings_menu(mut commands: Commands, font: Res<UiFontHandle
         children![
             header_widget("Settings", font.0.clone()),
             settings_grid(font.0.clone()),
-            button_large("Back", font.0.clone(), go_back_on_click),
+            button_rounded(
+                None,
+                "Back",
+                font.0.clone(),
+                true,
+                enter_screen_back_menu_on_click
+            ),
         ],
     ));
 }
@@ -84,7 +111,7 @@ fn global_volume_widget(font: Handle<Font>) -> impl Bundle {
             ..default()
         },
         children![
-            button_small("-", font.clone(), lower_global_volume_on_click),
+            button_circle(None, "-", font.clone(), true, lower_global_volume_on_click),
             (
                 Name::new("Current Volume"),
                 Node {
@@ -93,7 +120,7 @@ fn global_volume_widget(font: Handle<Font>) -> impl Bundle {
                 },
                 children![(GlobalVolumeLabel, label_widget("", font.clone()))],
             ),
-            button_small("+", font.clone(), raise_global_volume_on_click),
+            button_circle(None, "+", font.clone(), true, raise_global_volume_on_click),
         ],
     )
 }
@@ -116,7 +143,7 @@ fn raise_global_volume_on_click(_: On<Pointer<Click>>, mut global_volume: ResMut
 }
 
 /// Update global volume label that displays volume
-pub(super) fn update_global_volume_label(
+fn update_global_volume_label(
     mut label: Single<&mut Text, With<GlobalVolumeLabel>>,
     global_volume: Res<GlobalVolume>,
 ) {
@@ -134,7 +161,7 @@ fn toggle_joystick_widget(font: Handle<Font>) -> impl Bundle {
         },
         children![(
             ToggleJoystickButton::<{ JoystickID::Movement as u8 }>,
-            switch_medium("", font.clone(), toggle_joystick_on_click),
+            switch_rounded(None, "", font.clone(), true, toggle_joystick_on_click),
         )],
     )
 }
@@ -151,7 +178,7 @@ fn toggle_joystick_on_click(
 }
 
 /// Update global volume label that displays volume
-pub(super) fn update_joystick_button(
+fn update_joystick_button(
     children: Single<&Children, With<ToggleJoystickButton<{ JoystickID::Movement as u8 }>>>,
     mut base_query: Query<(&mut BackgroundColor, &Children), (With<ButtonBase>, Without<Button>)>,
     mut surface_query: Query<
@@ -201,18 +228,4 @@ pub(super) fn update_joystick_button(
         .expect(ERR_INVALID_CHILDREN);
     let mut text = text_query.get_mut(child).expect(ERR_INVALID_CHILDREN);
     text.0 = new_text.to_uppercase();
-}
-
-/// Go back to [`Menu`] matching `state`.
-pub(super) fn go_back(mut next_state: ResMut<NextState<Menu>>, state: Res<State<Screen>>) {
-    (*next_state).set_if_neq(state.back_menu());
-}
-
-/// Call [`go_back`] on pointer click.
-fn go_back_on_click(
-    _: On<Pointer<Click>>,
-    next_state: ResMut<NextState<Menu>>,
-    state: Res<State<Screen>>,
-) {
-    go_back(next_state, state);
 }

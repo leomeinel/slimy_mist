@@ -22,38 +22,29 @@ use crate::{screens::prelude::*, ui::prelude::*};
 pub(super) struct MenusPlugin;
 impl Plugin for MenusPlugin {
     fn build(&self, app: &mut App) {
+        app.add_plugins((pause::PausePlugin, settings::SettingsPlugin));
+
         app.init_state::<Menu>();
 
+        app.add_systems(OnExit(Screen::Gameplay), exit_menus);
         app.add_systems(OnEnter(Menu::Main), spawn_main_menu);
         app.add_systems(
             OnEnter(Menu::Credits),
             (credits::spawn_credits_menu, credits::start_credits_music),
         );
+
         app.add_systems(
             Update,
-            credits::go_back
+            exit_menus.run_if(
+                not(in_state(Menu::None))
+                    .and(input_just_pressed(KeyCode::KeyP))
+                    .and(in_state(Screen::Gameplay)),
+            ),
+        );
+        app.add_systems(
+            Update,
+            enter_main_menu
                 .run_if(in_state(Menu::Credits).and(input_just_pressed(KeyCode::Escape))),
-        );
-
-        app.add_systems(OnEnter(Menu::Pause), pause::spawn_pause_menu);
-        app.add_systems(
-            Update,
-            pause::go_back.run_if(in_state(Menu::Pause).and(input_just_pressed(KeyCode::Escape))),
-        );
-
-        app.add_systems(OnEnter(Menu::Settings), settings::spawn_settings_menu);
-        app.add_systems(
-            Update,
-            settings::go_back
-                .run_if(in_state(Menu::Settings).and(input_just_pressed(KeyCode::Escape))),
-        );
-        app.add_systems(
-            Update,
-            (
-                settings::update_joystick_button.before(AppUiSystems::VisualizeInteraction),
-                settings::update_global_volume_label,
-            )
-                .run_if(in_state(Menu::Settings)),
         );
     }
 }
@@ -69,46 +60,131 @@ pub(crate) enum Menu {
     Pause,
 }
 
+/// Spawn Main menu with [`State`] changing buttons.
 fn spawn_main_menu(mut commands: Commands, font: Res<UiFontHandle>) {
-    // Spawn Main menu with state changing buttons
     commands.spawn((
         root_widget("Main Menu"),
         GlobalZIndex(2),
         DespawnOnExit(Menu::Main),
         #[cfg(not(any(target_family = "wasm", target_os = "android", target_os = "ios")))]
         children![
-            button_large("Play", font.0.clone(), enter_gameplay_screen),
-            button_large("Settings", font.0.clone(), open_settings_menu),
-            button_large("Credits", font.0.clone(), open_credits_menu),
-            button_large("Exit", font.0.clone(), exit_app),
+            button_rounded(
+                None,
+                "Play",
+                font.0.clone(),
+                true,
+                enter_gameplay_screen_on_click
+            ),
+            button_rounded(
+                None,
+                "Settings",
+                font.0.clone(),
+                true,
+                enter_settings_menu_on_click
+            ),
+            button_rounded(
+                None,
+                "Credits",
+                font.0.clone(),
+                true,
+                enter_credits_menu_on_click
+            ),
+            button_rounded(None, "Exit", font.0.clone(), true, exit_app_on_click),
         ],
         // Do not add exit button for wasm, android and ios
         #[cfg(any(target_family = "wasm", target_os = "android", target_os = "ios"))]
         children![
-            button_large("Play", font.0.clone(), enter_gameplay_screen),
-            button_large("Settings", font.0.clone(), open_settings_menu),
-            button_large("Credits", font.0.clone(), open_credits_menu),
+            button_rounded(
+                None,
+                "Play",
+                font.0.clone(),
+                true,
+                enter_gameplay_screen_on_click
+            ),
+            button_rounded(
+                None,
+                "Settings",
+                font.0.clone(),
+                true,
+                enter_settings_menu_on_click
+            ),
+            button_rounded(
+                None,
+                "Credits",
+                font.0.clone(),
+                true,
+                enter_credits_menu_on_click
+            ),
         ],
     ));
 }
 
-/// Enter the gameplay screen
-fn enter_gameplay_screen(_: On<Pointer<Click>>, mut next_state: ResMut<NextState<Screen>>) {
-    (*next_state).set_if_neq(Screen::Gameplay);
+/// Exit [`Menu`]s.
+pub(crate) fn exit_menus(mut next_state: ResMut<NextState<Menu>>) {
+    (*next_state).set_if_neq(Menu::None);
 }
 
-/// Open settings
-fn open_settings_menu(_: On<Pointer<Click>>, mut next_state: ResMut<NextState<Menu>>) {
-    (*next_state).set_if_neq(Menu::Settings);
+/// Exit [`Menu`]s on [`Pointer`] click.
+pub(crate) fn exit_menus_on_click(_: On<Pointer<Click>>, next_state: ResMut<NextState<Menu>>) {
+    exit_menus(next_state);
 }
 
-/// Open credits
-fn open_credits_menu(_: On<Pointer<Click>>, mut next_state: ResMut<NextState<Menu>>) {
+/// Enter [`Menu::Main`].
+pub(crate) fn enter_main_menu(mut next_state: ResMut<NextState<Menu>>) {
+    (*next_state).set_if_neq(Menu::Main);
+}
+
+/// Enter [`Menu::Main`].
+pub(crate) fn enter_main_menu_on_click(_: On<Pointer<Click>>, next_state: ResMut<NextState<Menu>>) {
+    enter_main_menu(next_state);
+}
+
+/// Enter [`Menu::Credits`] on [`Pointer`] click.
+fn enter_credits_menu_on_click(_: On<Pointer<Click>>, mut next_state: ResMut<NextState<Menu>>) {
     (*next_state).set_if_neq(Menu::Credits);
 }
 
-/// Exit the app
+/// Enter [`Menu::Settings`] on [`Pointer`] click.
+pub(crate) fn enter_settings_menu_on_click(
+    _: On<Pointer<Click>>,
+    mut next_state: ResMut<NextState<Menu>>,
+) {
+    (*next_state).set_if_neq(Menu::Settings);
+}
+
+/// Enter [`Menu::Pause`].
+pub(crate) fn enter_pause_menu(mut next_state: ResMut<NextState<Menu>>) {
+    (*next_state).set_if_neq(Menu::Pause);
+}
+
+/// Enter [`Menu::Pause`] on [`Pointer`] click.
+#[cfg(any(target_os = "android", target_os = "ios"))]
+pub(crate) fn enter_pause_menu_on_click(
+    _: On<Pointer<Click>>,
+    next_state: ResMut<NextState<Menu>>,
+) {
+    enter_pause_menu(next_state);
+}
+
+/// Enter [`Screen::back_menu()`].
+pub(crate) fn enter_screen_back_menu(
+    mut next_state: ResMut<NextState<Menu>>,
+    state: Res<State<Screen>>,
+) {
+    (*next_state).set_if_neq(state.back_menu());
+}
+
+/// Enter [`Screen::back_menu()`] on [`Pointer`] click.
+pub(crate) fn enter_screen_back_menu_on_click(
+    _: On<Pointer<Click>>,
+    next_state: ResMut<NextState<Menu>>,
+    state: Res<State<Screen>>,
+) {
+    enter_screen_back_menu(next_state, state);
+}
+
+/// Exit [`App`] on [`Pointer`] click.
 #[cfg(not(any(target_family = "wasm", target_os = "android", target_os = "ios")))]
-fn exit_app(_: On<Pointer<Click>>, mut app_exit_msg: MessageWriter<AppExit>) {
+fn exit_app_on_click(_: On<Pointer<Click>>, mut app_exit_msg: MessageWriter<AppExit>) {
     app_exit_msg.write(AppExit::Success);
 }

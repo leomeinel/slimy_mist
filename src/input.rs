@@ -14,19 +14,18 @@ mod pointer;
 mod ui;
 
 pub(crate) mod prelude {
+    pub(crate) use super::InputSystems;
     pub(crate) use super::actions::{Aim, Jump, Melee, Walk, player_input};
-    pub(crate) use super::joystick::{
-        JoystickAssets, JoystickID, JoystickMap, JoystickRect, JoystickState,
-    };
+    pub(crate) use super::joystick::{JoystickAssets, JoystickID, JoystickMap, JoystickState};
     pub(crate) use super::pointer::{MouseDrag, PointerStartTimeSecs, Swipe};
     pub(crate) use super::ui::scroll::{AutoScroll, InputScroll};
-    pub(crate) use super::ui::{UiNav, UiNavAction, UiNavActionSet};
+    pub(crate) use super::ui::{PointerBlockedByUi, UiNav, UiNavAction, UiNavActionSet};
 }
 
 use bevy::prelude::*;
 use bevy_enhanced_input::prelude::*;
 
-use crate::{characters::prelude::*, screens::prelude::*};
+use crate::{characters::prelude::*, input::prelude::*, screens::prelude::*};
 
 pub(super) struct InputPlugin;
 impl Plugin for InputPlugin {
@@ -53,9 +52,13 @@ impl Plugin for InputPlugin {
             PreUpdate,
             (
                 mock::mock_walk_from_virtual_joystick,
-                mock::mock_jump_from_touch,
-                (mock::mock_melee_from_click, mock::mock_melee_from_touch).chain(),
-                (mock::mock_aim_from_click, mock::mock_aim_from_touch).chain(),
+                (
+                    mock::mock_jump_from_touch,
+                    (mock::mock_melee_from_click, mock::mock_melee_from_touch).chain(),
+                    (mock::mock_aim_from_click, mock::mock_aim_from_touch).chain(),
+                )
+                    .run_if(in_state(Screen::Gameplay).and(in_state(PointerBlockedByUi(false))))
+                    .chain(),
             )
                 .in_set(InputSystems::Mock)
                 .chain(),
@@ -74,7 +77,7 @@ impl Plugin for InputPlugin {
 
 /// A [`SystemSet`] for systems that initialize [`Screen::Gameplay`]
 #[derive(SystemSet, Copy, Clone, Eq, PartialEq, Hash, Debug)]
-enum InputSystems {
+pub(crate) enum InputSystems {
     Cache,
     Mock,
 }

@@ -66,7 +66,7 @@ pub(super) fn spawn_credits_menu(
             grid(credits_data.assets.clone(), font.0.clone()),
             header_widget("Code", font.0.clone()),
             grid(credits_data.code.clone(), font.0.clone()),
-            button_large("Back", font.0.clone(), go_back_on_click),
+            button_rounded(None, "Back", font.0.clone(), true, enter_main_menu_on_click),
         ],
     ));
 }
@@ -107,14 +107,4 @@ fn grid(content: Vec<[String; 2]>, font: Handle<Font>) -> impl Bundle {
             },
         ))),
     )
-}
-
-/// Go back to [`Menu::Main`].
-pub(super) fn go_back(mut next_state: ResMut<NextState<Menu>>) {
-    (*next_state).set_if_neq(Menu::Main);
-}
-
-/// Go back to main menu on click
-fn go_back_on_click(_: On<Pointer<Click>>, next_state: ResMut<NextState<Menu>>) {
-    go_back(next_state);
 }

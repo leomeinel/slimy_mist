@@ -10,12 +10,16 @@
 pub(super) mod nav;
 pub(super) mod scroll;
 
-use bevy::{platform::collections::HashSet, prelude::*};
+use bevy::{platform::collections::HashSet, prelude::*, window::PrimaryWindow};
+
+use crate::{input::prelude::*, screens::prelude::*, ui::prelude::*};
 
 pub(super) struct UiInputPlugin;
 impl Plugin for UiInputPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((nav::UiInputNavPlugin, scroll::UiInputScrollPlugin));
+
+        app.init_state::<PointerBlockedByUi>();
 
         app.init_resource::<UiNavActionSet>();
 
@@ -23,8 +27,21 @@ impl Plugin for UiInputPlugin {
             PreUpdate,
             process_inputs.run_if(any_with_component::<UiNav>),
         );
+        app.add_systems(
+            PreUpdate,
+            update_pointer_blocked
+                .after(EnterGameplaySystems::Resources)
+                .before(InputSystems::Mock)
+                .run_if(in_state(Screen::Gameplay)),
+        );
     }
 }
+
+/// Tracks whether input is blocked by ui.
+///
+/// If this is true, any pointer interactions will be limited to ui in gameplay.
+#[derive(States, Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
+pub(crate) struct PointerBlockedByUi(pub(crate) bool);
 
 /// Marker [`Component`] for directional navigation.
 #[derive(Component)]
@@ -96,11 +113,44 @@ impl UiNavActionSet {
     }
 }
 
+// FIXME: This sometimes sets an incorrect state.
+//        Especially while double clicking this sometimes sets false even though the click was contained in the rect.
+/// Update [`PointerBlockedByUi`] from [`NodeRect`]s.
+fn update_pointer_blocked(
+    removed_rects: RemovedComponents<NodeRect>,
+    rect_query: Query<&NodeRect>,
+    rect_changed_query: Query<(), Changed<NodeRect>>,
+    window: Single<&Window, With<PrimaryWindow>>,
+    drag: Res<MouseDrag>,
+    mouse: Res<ButtonInput<MouseButton>>,
+    touches: Res<Touches>,
+    mut next_state: ResMut<NextState<PointerBlockedByUi>>,
+    state: Res<State<PointerBlockedByUi>>,
+) {
+    if removed_rects.is_empty() && rect_changed_query.is_empty() {
+        return;
+    }
+    let block = rect_query.iter().any(|r| {
+        r.touched(&touches)
+            || r.clicked(
+                &mouse,
+                &MouseButton::Left,
+                window.cursor_position(),
+                drag.start_pos,
+            )
+    });
+    // FIXME: This hack is to suppress log spam from same-state transitions. We have to find a better way.
+    if block == (**state).0 {
+        return;
+    }
+    (*next_state).set_if_neq(PointerBlockedByUi(block));
+}
+
 // FIXME: I'm pretty sure that right stick joystick input is broken. For now I can't further describe how
 //        since I only have gamepads that are very broken, but I will test this further.
 //        Also for future testing use https://gamepadtest.com
 /// Process inputs and insert [`UiNavAction`] into [`UiNavActionSet`].
-pub(super) fn process_inputs(
+fn process_inputs(
     gamepad_query: Query<&Gamepad>,
     mut action_set: ResMut<UiNavActionSet>,
     keyboard: Res<ButtonInput<KeyCode>>,

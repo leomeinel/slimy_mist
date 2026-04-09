@@ -11,41 +11,119 @@
 
 //! The pause menu.
 
-use bevy::prelude::*;
+use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 
-use crate::{screens::prelude::*, ui::prelude::*};
+use crate::{core::prelude::*, screens::prelude::*, ui::prelude::*, utils::prelude::*};
 
-/// Spawn pause menu
-pub(super) fn spawn_pause_menu(mut commands: Commands, font: Res<UiFontHandle>) {
+pub(super) struct PausePlugin;
+impl Plugin for PausePlugin {
+    fn build(&self, app: &mut App) {
+        #[cfg(any(target_os = "android", target_os = "ios"))]
+        app.add_systems(OnEnter(Screen::Gameplay), spawn_pause_button);
+        app.add_systems(
+            OnEnter(Menu::None),
+            unpause.run_if(in_state(Screen::Gameplay)),
+        );
+        app.add_systems(OnEnter(Menu::Pause), (pause, spawn_pause_menu));
+        app.add_systems(OnEnter(Pause(true)), spawn_pause_overlay);
+
+        app.add_systems(
+            Update,
+            exit_menus.run_if(in_state(Menu::Pause).and(input_just_pressed(KeyCode::Escape))),
+        );
+        app.add_systems(
+            Update,
+            enter_pause_menu.run_if(
+                in_state(Menu::None)
+                    .and(
+                        input_just_pressed(KeyCode::KeyP)
+                            .or(input_just_pressed(KeyCode::Escape))
+                            .or(window_unfocused),
+                    )
+                    .and(in_state(Screen::Gameplay)),
+            ),
+        );
+
+        app.add_systems(OnExit(Screen::Gameplay), unpause);
+    }
+}
+
+/// Spawn pause overlay.
+fn spawn_pause_overlay(mut commands: Commands) {
+    commands.spawn((
+        Name::new("Pause Overlay"),
+        Node {
+            width: percent(100),
+            height: percent(100),
+            ..default()
+        },
+        GlobalZIndex(1),
+        BackgroundColor(PAUSE_BACKGROUND),
+        DespawnOnExit(Pause(true)),
+    ));
+}
+
+/// Spawn pause menu.
+fn spawn_pause_menu(mut commands: Commands, font: Res<UiFontHandle>) {
     commands.spawn((
         root_widget("Pause Menu"),
         GlobalZIndex(2),
         DespawnOnExit(Menu::Pause),
         children![
             header_widget("Game paused", font.0.clone()),
-            button_large("Continue", font.0.clone(), go_back_on_click),
-            button_large("Settings", font.0.clone(), open_settings_on_click),
-            button_large("Quit to title", font.0.clone(), quit_to_title_on_click),
+            button_rounded(None, "Continue", font.0.clone(), true, exit_menus_on_click),
+            button_rounded(
+                None,
+                "Settings",
+                font.0.clone(),
+                true,
+                enter_settings_menu_on_click
+            ),
+            button_rounded(
+                None,
+                "Quit to title",
+                font.0.clone(),
+                true,
+                enter_title_screen_on_click
+            ),
         ],
     ));
 }
 
-/// Go back to [`Menu::None`].
-pub(super) fn go_back(mut next_state: ResMut<NextState<Menu>>) {
-    (*next_state).set_if_neq(Menu::None);
+/// Pause button width and height in pixels.
+#[cfg(any(target_os = "android", target_os = "ios"))]
+const PAUSE_BUTTON_SIZE_PX: u32 = 60;
+
+/// Spawn pause button.
+#[cfg(any(target_os = "android", target_os = "ios"))]
+fn spawn_pause_button(mut commands: Commands, font: Res<UiFontHandle>) {
+    commands.spawn((
+        Node {
+            position_type: PositionType::Absolute,
+            width: px(PAUSE_BUTTON_SIZE_PX),
+            height: px(PAUSE_BUTTON_SIZE_PX),
+            right: vmin(10.),
+            top: vmin(10.),
+            ..default()
+        },
+        NodeRect::default(),
+        DespawnOnExit(Screen::Gameplay),
+        children![button_circle(
+            Some(px(PAUSE_BUTTON_SIZE_PX)),
+            "⋮",
+            font.0.clone(),
+            false,
+            enter_pause_menu_on_click
+        )],
+    ));
 }
 
-/// Call [`go_back`] on pointer click.
-fn go_back_on_click(_: On<Pointer<Click>>, next_state: ResMut<NextState<Menu>>) {
-    go_back(next_state);
+/// Unpause the game
+fn unpause(mut next_state: ResMut<NextState<Pause>>) {
+    (*next_state).set_if_neq(Pause(false));
 }
 
-/// Open settings
-fn open_settings_on_click(_: On<Pointer<Click>>, mut next_state: ResMut<NextState<Menu>>) {
-    (*next_state).set_if_neq(Menu::Settings);
-}
-
-/// Quit to title
-fn quit_to_title_on_click(_: On<Pointer<Click>>, mut next_state: ResMut<NextState<Screen>>) {
-    (*next_state).set_if_neq(Screen::Title);
+/// Pause the game
+fn pause(mut next_state: ResMut<NextState<Pause>>) {
+    (*next_state).set_if_neq(Pause(true));
 }

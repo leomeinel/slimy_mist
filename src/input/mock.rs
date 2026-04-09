@@ -39,13 +39,8 @@ pub(super) fn mock_jump_from_touch(
     jump: Single<Entity, With<Player>>,
     mut commands: Commands,
     touches: Res<Touches>,
-    rect: Res<JoystickRect<{ JoystickID::Movement as u8 }>>,
 ) {
     for touch in touches.iter_just_released() {
-        if rect.contains(touch.start_position()) {
-            continue;
-        }
-
         if touch.is_swipe_up() {
             commands
                 .entity(*jump)
@@ -60,14 +55,9 @@ pub(super) fn mock_melee_from_touch(
     mut commands: Commands,
     pointer_start: Res<PointerStartTimeSecs>,
     touches: Res<Touches>,
-    rect: Res<JoystickRect<{ JoystickID::Movement as u8 }>>,
     time: Res<Time>,
 ) {
-    if !pointer_start.is_tap(time.elapsed_secs())
-        || touches
-            .iter_just_released()
-            .any(|t| rect.contains(t.start_position()))
-    {
+    if !pointer_start.is_tap(time.elapsed_secs()) {
         return;
     }
 
@@ -85,18 +75,15 @@ pub(super) fn mock_aim_from_touch(
     player_transform: Single<&Transform, With<Player>>,
     mut commands: Commands,
     touches: Res<Touches>,
-    rect: Res<JoystickRect<{ JoystickID::Movement as u8 }>>,
 ) {
     let (camera, camera_transform) = *camera;
 
     // NOTE: We are using `just_pressed` to allow use in `Melee`.
     for touch in touches.iter_just_pressed() {
-        if let Ok(pointer_pos) = camera.viewport_to_world_2d(camera_transform, touch.position()) {
-            if rect.contains(pointer_pos) {
-                continue;
-            }
-
-            let direction = pointer_pos - player_transform.translation.xy();
+        if let Ok(world_pointer_pos) =
+            camera.viewport_to_world_2d(camera_transform, touch.position())
+        {
+            let direction = world_pointer_pos - player_transform.translation.xy();
             commands.entity(*aim).mock::<Player, Aim>(
                 TriggerState::Fired,
                 direction.normalize_or_zero(),
@@ -113,7 +100,6 @@ pub(super) fn mock_melee_from_click(
     drag: Res<MouseDrag>,
     mouse: Res<ButtonInput<MouseButton>>,
     pointer_start: Res<PointerStartTimeSecs>,
-    rect: Res<JoystickRect<{ JoystickID::Movement as u8 }>>,
     time: Res<Time>,
 ) {
     if !mouse.just_released(MouseButton::Left)
@@ -123,12 +109,6 @@ pub(super) fn mock_melee_from_click(
         return;
     }
 
-    let Some(pointer_pos) = drag.start_pos else {
-        return;
-    };
-    if rect.contains(pointer_pos) {
-        return;
-    }
     commands
         .entity(*melee)
         .mock_once::<Player, Melee>(TriggerState::Fired, true);
@@ -142,7 +122,6 @@ pub(super) fn mock_aim_from_click(
     window: Single<&Window, With<PrimaryWindow>>,
     mut commands: Commands,
     mouse: Res<ButtonInput<MouseButton>>,
-    rect: Res<JoystickRect<{ JoystickID::Movement as u8 }>>,
 ) {
     // NOTE: We are using `just_pressed` to allow use in `Melee`.
     if !mouse.just_pressed(MouseButton::Left) {
@@ -152,13 +131,9 @@ pub(super) fn mock_aim_from_click(
     let (camera, camera_transform) = *camera;
 
     if let Some(pointer_pos) = window.cursor_position()
-        && let Ok(pointer_pos) = camera.viewport_to_world_2d(camera_transform, pointer_pos)
+        && let Ok(world_pointer_pos) = camera.viewport_to_world_2d(camera_transform, pointer_pos)
     {
-        if rect.contains(pointer_pos) {
-            return;
-        }
-
-        let direction = pointer_pos - player_transform.translation.xy();
+        let direction = world_pointer_pos - player_transform.translation.xy();
         commands.entity(*aim).mock::<Player, Aim>(
             TriggerState::Fired,
             direction.normalize_or_zero(),

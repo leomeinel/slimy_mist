@@ -11,12 +11,11 @@
 
 //! The screen state for the main gameplay.
 
-use bevy::{input::common_conditions::input_just_pressed, prelude::*};
+use bevy::prelude::*;
 
 use crate::{
-    characters::prelude::*, core::prelude::*, images::prelude::*, input::prelude::*,
-    levels::prelude::*, procgen::prelude::*, render::prelude::*, screens::prelude::*,
-    ui::prelude::*, utils::prelude::*,
+    characters::prelude::*, images::prelude::*, input::prelude::*, levels::prelude::*,
+    procgen::prelude::*, render::prelude::*, screens::prelude::*,
 };
 
 pub(super) struct GameplayPlugin;
@@ -36,34 +35,11 @@ impl Plugin for GameplayPlugin {
                 .chain(),
         );
 
-        app.add_message::<Attack>();
-        app.add_message::<InitAttack>();
-
         app.add_systems(
             OnEnter(Screen::Gameplay),
             insert_resources.in_set(EnterGameplaySystems::Resources),
         );
         app.add_systems(OnExit(Screen::Gameplay), remove_resources);
-        app.add_systems(OnExit(Screen::Gameplay), (close_menu, unpause));
-        app.add_systems(
-            OnEnter(Menu::None),
-            unpause.run_if(in_state(Screen::Gameplay)),
-        );
-
-        app.add_systems(
-            Update,
-            (
-                (pause, spawn_pause_overlay, open_pause_menu).run_if(
-                    in_state(Menu::None).and(
-                        input_just_pressed(KeyCode::KeyP)
-                            .or(input_just_pressed(KeyCode::Escape))
-                            .or(window_unfocused),
-                    ),
-                ),
-                close_menu.run_if(not(in_state(Menu::None)).and(input_just_pressed(KeyCode::KeyP))),
-            )
-                .run_if(in_state(Screen::Gameplay)),
-        );
     }
 }
 
@@ -79,47 +55,11 @@ pub(crate) enum EnterGameplaySystems {
     NavMesh,
 }
 
-/// Spawn pause overlay
-fn spawn_pause_overlay(mut commands: Commands) {
-    commands.spawn((
-        Name::new("Pause Overlay"),
-        Node {
-            width: percent(100),
-            height: percent(100),
-            ..default()
-        },
-        GlobalZIndex(1),
-        BackgroundColor(PAUSE_BACKGROUND),
-        DespawnOnExit(Pause(true)),
-    ));
-}
-
-/// Open pause menu
-fn open_pause_menu(mut next_state: ResMut<NextState<Menu>>) {
-    (*next_state).set_if_neq(Menu::Pause);
-}
-
-/// Close pause menu
-fn close_menu(mut next_state: ResMut<NextState<Menu>>) {
-    (*next_state).set_if_neq(Menu::None);
-}
-
-/// Unpause the game
-fn unpause(mut next_state: ResMut<NextState<Pause>>) {
-    (*next_state).set_if_neq(Pause(false));
-}
-
-/// Pause the game
-fn pause(mut next_state: ResMut<NextState<Pause>>) {
-    (*next_state).set_if_neq(Pause(true));
-}
-
 /// Insert [`Resource`]s
 fn insert_resources(mut commands: Commands) {
     commands.init_resource::<DayTimer>();
     commands.init_resource::<DayUpdateTimer>();
     commands.init_resource::<JoystickMap>();
-    commands.init_resource::<JoystickRect<{ JoystickID::Movement as u8 }>>();
     commands.init_resource::<MouseDrag>();
     commands.init_resource::<PointerStartTimeSecs>();
     commands.init_resource::<ProcGenCache<OverworldProcGen>>();
@@ -134,7 +74,6 @@ fn remove_resources(mut commands: Commands) {
     commands.remove_resource::<DisplayLayers<Player>>();
     commands.remove_resource::<DisplayLayers<Slime>>();
     commands.remove_resource::<JoystickMap>();
-    commands.remove_resource::<JoystickRect<{ JoystickID::Movement as u8 }>>();
     commands.remove_resource::<MouseDrag>();
     commands.remove_resource::<PointerStartTimeSecs>();
     commands.remove_resource::<ProcGenCache<OverworldProcGen>>();

@@ -97,15 +97,10 @@ fn spawn_splash_screen(mut commands: Commands, splash_assets: Res<SplashAssets>)
     ));
 }
 
-/// Enter title screen
-fn enter_title_screen(mut next_state: ResMut<NextState<Screen>>) {
-    (*next_state).set_if_neq(Screen::Title);
-}
-
 /// Check status of [`SplashTimer`]
-fn check_splash_timer(mut next_state: ResMut<NextState<Screen>>, timer: Res<SplashTimer>) {
+fn check_splash_timer(next_state: ResMut<NextState<Screen>>, timer: Res<SplashTimer>) {
     if timer.0.just_finished() {
-        (*next_state).set_if_neq(Screen::Title);
+        enter_title_screen(next_state);
     }
 }
 

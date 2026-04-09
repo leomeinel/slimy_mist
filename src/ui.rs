@@ -19,21 +19,27 @@ mod widgets;
 
 pub(crate) mod prelude {
     pub(crate) use super::buttons::{
-        ButtonBase, ButtonText, button_large, button_small, switch_medium,
+        ButtonBase, ButtonText, button_circle, button_rounded, switch_rounded,
     };
     pub(crate) use super::interaction::{
         InteractionAssets, InteractionOverride, InteractionPalette, OverrideInteraction,
     };
-    pub(crate) use super::menus::Menu;
     pub(crate) use super::menus::credits::{
         CreditsAssets, CreditsData, CreditsDataCache, CreditsHandle,
+    };
+    #[cfg(any(target_os = "android", target_os = "ios"))]
+    pub(crate) use super::menus::enter_pause_menu_on_click;
+    pub(crate) use super::menus::{
+        Menu, enter_main_menu, enter_main_menu_on_click, enter_pause_menu, enter_screen_back_menu,
+        enter_screen_back_menu_on_click, enter_settings_menu_on_click, exit_menus,
+        exit_menus_on_click,
     };
     pub(crate) use super::palette::*;
     pub(crate) use super::widgets::{
         header_widget, label_widget, root_auto_scroll_widget, root_widget,
     };
     pub(crate) use super::{
-        AppUiSystems, BODY_FONT_SIZE, HEADER_FONT_SIZE, NodeOffset, UiFontHandle,
+        AppUiSystems, BODY_FONT_SIZE, HEADER_FONT_SIZE, NodeOffset, NodeRect, UiFontHandle,
     };
 }
 
@@ -64,6 +70,10 @@ impl Plugin for UiPlugin {
         });
 
         app.add_systems(Update, scale_ui);
+        app.add_systems(
+            PostUpdate,
+            update_node_rects.after(TransformSystems::Propagate),
+        );
     }
 }
 
@@ -86,6 +96,48 @@ pub(crate) struct UiFontHandle(pub(crate) Handle<Font>);
 /// Can apply to [`Node::left`] and [`Node::bottom`] according to [`Self::0`].
 #[derive(Component, Default)]
 pub(crate) struct NodeOffset(pub(crate) IVec2);
+
+/// [`Rect`] of a [`Node`] in screen space.
+///
+/// This is useful since it allows directly checking if it contains pointer positions.
+#[derive(Component, Default)]
+pub(crate) struct NodeRect(pub(crate) Rect);
+impl NodeRect {
+    pub(crate) fn touched(&self, touches: &Res<Touches>) -> bool {
+        // NOTE: We need both `iter()` and `iter_just_released()` since we care about pressed and released.
+        touches
+            .iter()
+            .chain(touches.iter_just_released())
+            .any(|t| self.0.contains(t.start_position()) || self.0.contains(t.position()))
+    }
+    pub(crate) fn clicked(
+        &self,
+        mouse: &Res<ButtonInput<MouseButton>>,
+        mouse_button: &MouseButton,
+        cursor_pos: Option<Vec2>,
+        start_pos: Option<Vec2>,
+    ) -> bool {
+        (mouse.pressed(*mouse_button) || mouse.just_released(*mouse_button))
+            && (cursor_pos.is_some_and(|p| self.0.contains(p))
+                || start_pos.is_some_and(|p| self.0.contains(p)))
+    }
+}
+
+/// Update [`NodeRect`]s from [`ComputedNode`]s and [`UiGlobalTransform`].
+fn update_node_rects(
+    node_query: Query<(&mut NodeRect, &ComputedNode, &UiGlobalTransform)>,
+    node_changed_query: Query<(), Or<(Changed<ComputedNode>, Changed<UiGlobalTransform>)>>,
+    ui_scale: Res<UiScale>,
+) {
+    if node_changed_query.is_empty() && !ui_scale.is_changed() {
+        return;
+    }
+    for (mut rect, node, transform) in node_query {
+        // NOTE: Factor is used for converting to screen space.
+        let factor = node.inverse_scale_factor * ui_scale.0;
+        rect.0 = Rect::from_center_size(transform.translation * factor, node.size() * factor);
+    }
+}
 
 /// Scale [`UiScale`] according to [`MIN_SIDE_SCALE_THRESHOLD`].
 fn scale_ui(mut reader: MessageReader<WindowResized>, mut ui_scale: ResMut<UiScale>) {

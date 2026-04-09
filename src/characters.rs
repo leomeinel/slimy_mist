@@ -56,6 +56,9 @@ impl Plugin for CharactersPlugin {
         app.init_resource::<CharacterAnimations<Slime>>();
         app.init_resource::<CharacterAnimations<Player>>();
 
+        app.add_message::<Attack>();
+        app.add_message::<InitAttack>();
+
         app.add_systems(
             Update,
             (

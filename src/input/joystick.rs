@@ -9,7 +9,7 @@
  * -  https://github.com/SergioRibera/virtual_joystick
  */
 
-use bevy::{platform::collections::HashMap, prelude::*, window::WindowResized};
+use bevy::{platform::collections::HashMap, prelude::*};
 use bevy_asset_loader::asset_collection::AssetCollection;
 use virtual_joystick::{
     JoystickFixed, NoAction, VirtualJoystickBundle, VirtualJoystickInteractionArea,
@@ -54,36 +54,6 @@ impl Plugin for JoystickPlugin {
             despawn_joystick::<{ JoystickID::Movement as u8 }>
                 .after(EnterGameplaySystems::Resources)
                 .run_if(in_state(Screen::Gameplay)),
-        );
-        // Reset `JoystickRect`
-        app.add_systems(
-            OnEnter(JoystickState::<{ JoystickID::Movement as u8 }>::None),
-            reset_joystick_rect::<{ JoystickID::Movement as u8 }>
-                .after(EnterGameplaySystems::Resources)
-                .run_if(in_state(Screen::Gameplay)),
-        );
-        app.add_systems(
-            OnExit(Screen::Gameplay),
-            reset_joystick_rect::<{ JoystickID::Movement as u8 }>
-                .after(EnterGameplaySystems::Resources),
-        );
-        // Update `JoystickRect`
-        app.add_systems(
-            PostUpdate,
-            update_joystick_rect::<{ JoystickID::Movement as u8 }>
-                .after(EnterGameplaySystems::Resources)
-                .after(TransformSystems::Propagate)
-                .run_if(
-                    in_state(Screen::Gameplay)
-                        .and(in_state(
-                            JoystickState::<{ JoystickID::Movement as u8 }>::Spawned,
-                        ))
-                        .and(
-                            state_changed::<Screen>
-                                .or(state_changed::<JoystickState<{ JoystickID::Movement as u8 }>>)
-                                .or(on_message::<WindowResized>),
-                        ),
-                ),
         );
     }
 }
@@ -140,62 +110,9 @@ pub(crate) enum JoystickID {
     Movement,
 }
 
-/// Map of [`JoystickID`]s as [`u8`] mapped to their [`Rect`].
-///
-/// ## Traits
-///
-/// - `const ID` represents [`VirtualJoystickNode::id`].
-#[derive(Resource, Default)]
-pub(crate) struct JoystickRect<const ID: u8>(Option<Rect>);
-impl<const ID: u8> JoystickRect<ID> {
-    pub(crate) fn contains(&self, pointer_pos: Vec2) -> bool {
-        self.0.is_some_and(|rect| rect.contains(pointer_pos))
-    }
-}
-
 /// Map of [`JoystickID`]s as [`u8`] mapped to their [`Entity`].
 #[derive(Resource, Default)]
 pub(crate) struct JoystickMap(pub(crate) HashMap<u8, Entity>);
-
-/// Update [`JoystickRect<ID>`] representing [`VirtualJoystickInteractionArea`].
-///
-/// ## Traits
-///
-/// - `const ID` represents [`VirtualJoystickNode::id`].
-fn update_joystick_rect<const ID: u8>(
-    node_query: Query<(&VirtualJoystickNode<u8>, &Children)>,
-    interaction_area_query: Query<
-        (&ComputedNode, &UiGlobalTransform),
-        With<VirtualJoystickInteractionArea>,
-    >,
-    mut rect: ResMut<JoystickRect<ID>>,
-    ui_scale: Res<UiScale>,
-) {
-    if node_query.is_empty() || interaction_area_query.is_empty() {
-        return;
-    }
-    let Some(children) = node_query.iter().find(|(n, _)| n.id == ID).map(|(_, c)| c) else {
-        return;
-    };
-
-    if let Some((node, transform)) = children
-        .iter()
-        .find_map(|child| interaction_area_query.get(child).ok())
-    {
-        let factor = node.inverse_scale_factor * ui_scale.0;
-        let new_rect = Rect::from_center_size(transform.translation * factor, node.size() * factor);
-        rect.0 = Some(new_rect);
-    }
-}
-
-/// Reset [`JoystickRect<ID>`].
-///
-/// ## Traits
-///
-/// - `const ID` represents [`VirtualJoystickNode::id`].
-fn reset_joystick_rect<const ID: u8>(mut rect: ResMut<JoystickRect<ID>>) {
-    rect.0 = None;
-}
 
 /// Size of the joystick knob in pixels
 const JOYSTICK_KNOB_SIZE: Vec2 = Vec2::splat(75.);
@@ -239,6 +156,7 @@ fn spawn_joystick<const ID: u8>(
                         height: percent(100.),
                         ..default()
                     },
+                    NodeRect::default(),
                 ),
                 (
                     VirtualJoystickUIBackground,

@@ -27,10 +27,10 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@master
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ env.toolchain }}
           components: rustfmt
@@ -45,10 +45,10 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@master
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ env.toolchain }}
 
@@ -73,10 +73,10 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@master
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ env.toolchain }}
           components: clippy
@@ -102,10 +102,10 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install Rust toolchain (plus bevy_lint)
-        uses: TheBevyFlock/bevy_cli/bevy_lint@lint-v0.4.0
+        uses: TheBevyFlock/bevy_cli/bevy_lint@lint-v0.6.0
         with:
           cache: true
           save-cache-if: ${{ github.ref == 'refs/heads/main' }}
@@ -131,13 +131,13 @@ jobs:
     timeout-minutes: 40
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up environment
         run: echo "RUSTFLAGS=${RUSTFLAGS:+$RUSTFLAGS }-Zcodegen-backend=cranelift" >> "${GITHUB_ENV}"
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@master
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ env.toolchain }}
           components: rustc-codegen-cranelift-preview
@@ -162,13 +162,13 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up environment
         run: echo "RUSTFLAGS=${RUSTFLAGS:+$RUSTFLAGS }" >> "${GITHUB_ENV}"
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@master
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ env.toolchain }}
           targets: wasm32-unknown-unknown

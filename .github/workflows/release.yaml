@@ -211,7 +211,7 @@ jobs:
 
       - name: Checkout repository
         if: ${{ env.is_platform_enabled == 'true' }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           lfs: ${{ env.git_lfs }}
 
@@ -381,7 +381,7 @@ jobs:
 
       - name: Upload package to workflow artifacts
         if: ${{ env.is_platform_enabled == 'true' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           path: tmp/app/${{ env.package }}
           name: package-${{ matrix.platform }}
@@ -415,7 +415,7 @@ jobs:
     if: ${{ needs.forward-env.outputs.deploy_to_itch && needs.forward-env.outputs.itch_page != '' }}
     steps:
       - name: Download packages
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: package-*
           path: tmp
@@ -458,4 +458,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deploy
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

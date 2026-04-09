@@ -11,16 +11,16 @@
 
 //! Helper functions for creating common widgets.
 
-use bevy::prelude::*;
+use bevy::{prelude::*, ui::FocusPolicy};
 
 use crate::{input::prelude::*, ui::prelude::*};
 
-/// A non-scrolling root UI [`Bundle`] that fills the window and centers its content.
+/// A non-scrolling root UI [`Bundle`] with centered content that fills its parent [`Node`].
 pub(crate) fn root_widget(name: &'static str) -> impl Bundle {
     ui_root_bundle(name, Overflow::DEFAULT)
 }
 
-/// An auto-scrolling root UI [`Bundle`] that fills the window and centers its content.
+/// An auto-scrolling root UI [`Bundle`] with centered content that fills its parent [`Node`].
 pub(crate) fn root_auto_scroll_widget(name: &'static str) -> impl Bundle {
     (
         ui_root_bundle(name, Overflow::scroll_y()),
@@ -30,7 +30,9 @@ pub(crate) fn root_auto_scroll_widget(name: &'static str) -> impl Bundle {
     )
 }
 
-/// A root UI [`Bundle`] that fills the window and centers its content.
+/// A root UI [`Bundle`] with centered content that fills its parent [`Node`].
+///
+/// This blocks any picking events and interactions with lower [`Node`]s.
 fn ui_root_bundle(name: &'static str, overflow: Overflow) -> impl Bundle {
     (
         Name::new(name),
@@ -45,8 +47,7 @@ fn ui_root_bundle(name: &'static str, overflow: Overflow) -> impl Bundle {
             overflow,
             ..default()
         },
-        // Don't block picking events for other UI roots.
-        Pickable::IGNORE,
+        FocusPolicy::Block,
     )
 }
 

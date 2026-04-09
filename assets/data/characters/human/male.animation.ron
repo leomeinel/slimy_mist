@@ -50,13 +50,13 @@ AnimationData (
         ),
         AnimationClip (
             state: AnimationState((Jump, North)),
-            sprite_coords: [(0, 0)],
+            sprite_coords: [(0, 1)],
             audio_indexes: [],
             frame_duration_ms: 75,
         ),
         AnimationClip (
             state: AnimationState((Jump, East)),
-            sprite_coords: [(0, 0)],
+            sprite_coords: [(0, 2)],
             audio_indexes: [],
             frame_duration_ms: 75,
         )

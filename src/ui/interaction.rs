@@ -39,7 +39,7 @@ impl Plugin for UiInteractionPlugin {
     }
 }
 
-/// Tracks whether [`Interaction::None`] is allowed to be overriden by [`InteractionOverride`].
+/// Tracks whether [`Interaction::None`] is allowed to be overridden by [`InteractionOverride`].
 #[derive(States, Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
 pub(crate) struct OverrideInteraction(pub(crate) bool);
 
@@ -84,9 +84,7 @@ pub(crate) struct InteractionAssets {
 /// This sets the appropriate [`BackgroundColor`] for all [`Interaction::None`].
 ///
 /// This allows [`Interaction`] to override [`OverrideInteraction`] in certain scenarios.
-pub(super) fn reset_palette(
-    query: Query<(&Interaction, &InteractionPalette, &mut BackgroundColor)>,
-) {
+fn reset_palette(query: Query<(&Interaction, &InteractionPalette, &mut BackgroundColor)>) {
     for (interaction, palette, mut background) in query {
         if *interaction == Interaction::None {
             *background = palette.none.into();
@@ -95,11 +93,11 @@ pub(super) fn reset_palette(
 }
 
 /// Apply [`BackgroundColor`] from palette mapped to [`Interaction`] or [`InteractionOverride`].
-pub(super) fn apply_palette(
+fn apply_palette(
     query: Query<
         (
             &Interaction,
-            &InteractionOverride,
+            Option<&InteractionOverride>,
             &InteractionPalette,
             &mut BackgroundColor,
         ),
@@ -108,7 +106,7 @@ pub(super) fn apply_palette(
 ) {
     for (interaction, interaction_override, palette, mut background) in query {
         *background = match interaction {
-            Interaction::None => match interaction_override.0 {
+            Interaction::None => match interaction_override.map_or(Interaction::None, |o| o.0) {
                 Interaction::None => palette.none,
                 Interaction::Hovered => palette.hovered,
                 Interaction::Pressed => palette.pressed,
@@ -121,7 +119,7 @@ pub(super) fn apply_palette(
 }
 
 /// Set [`CursorIcon`] according to [`Interaction`].
-pub(super) fn visualize_button_hover(
+fn visualize_button_hover(
     window: Single<(Entity, Option<&CursorIcon>), With<PrimaryWindow>>,
     query: Query<&Interaction, (Changed<Interaction>, With<Button>)>,
     mut commands: Commands,
@@ -143,7 +141,7 @@ pub(super) fn visualize_button_hover(
 }
 
 /// Move [`Node`] based on [`NodeOffset`] according to [`Interaction`].
-pub(super) fn visualize_button_pressed(
+fn visualize_button_pressed(
     query: Query<(&Interaction, &NodeOffset, &mut Node), (Changed<Interaction>, With<Button>)>,
 ) {
     for (interaction, offset, mut node) in query {
@@ -156,7 +154,7 @@ pub(super) fn visualize_button_pressed(
 }
 
 /// Reset [`CursorIcon`].
-pub(super) fn reset_cursor_on_remove_button(
+fn reset_cursor_on_remove_button(
     _: On<Remove, Button>,
     window: Single<(Entity, Option<&CursorIcon>), With<PrimaryWindow>>,
     mut commands: Commands,
@@ -169,7 +167,7 @@ pub(super) fn reset_cursor_on_remove_button(
 }
 
 /// Play sound effect on hover
-pub(super) fn play_on_hover_sound_effect(
+fn play_on_hover_sound_effect(
     event: On<Pointer<Over>>,
     query: Query<(), Or<(With<Interaction>, With<InteractionOverride>)>>,
     mut commands: Commands,
@@ -181,7 +179,7 @@ pub(super) fn play_on_hover_sound_effect(
 }
 
 /// Play sound effect on click
-pub(super) fn play_on_click_sound_effect(
+fn play_on_click_sound_effect(
     event: On<Pointer<Click>>,
     query: Query<(), Or<(With<Interaction>, With<InteractionOverride>)>>,
     mut commands: Commands,

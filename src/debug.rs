@@ -31,11 +31,11 @@ impl Plugin for DebugPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
             EguiPlugin::default(),
-            WorldInspectorPlugin::default().run_if(in_state(Debugging(true))),
+            WorldInspectorPlugin::default().run_if(in_state(Debug(true))),
             RapierDebugRenderPlugin::default().disabled(),
         ));
 
-        app.init_state::<Debugging>();
+        app.init_state::<Debug>();
 
         app.add_systems(
             Update,
@@ -47,22 +47,23 @@ impl Plugin for DebugPlugin {
                 toggle_debug_ui,
                 (toggle_debug_colliders, toggle_debug_navmeshes).run_if(in_state(Screen::Gameplay)),
             )
-                .run_if(state_changed::<Debugging>),
+                .run_if(state_changed::<Debug>),
         );
         app.add_systems(
             Update,
             (display_prim_obstacles, display_navigator_path)
-                .run_if(in_state(Debugging(true)).and(in_state(Screen::Gameplay))),
+                .run_if(in_state(Debug(true)).and(in_state(Screen::Gameplay))),
         );
         app.add_systems(
             Update,
             (
-                log_transitions::<Debugging>,
+                log_transitions::<Debug>,
+                log_transitions::<DespawnProcGen>,
+                log_transitions::<PointerBlockedByUi>,
                 log_transitions::<JoystickState<{ JoystickID::Movement as u8 }>>,
                 log_transitions::<Menu>,
                 log_transitions::<OverrideInteraction>,
                 log_transitions::<Pause>,
-                log_transitions::<DespawnProcGen>,
                 log_transitions::<ProcGenInit>,
                 log_transitions::<ProcGenState>,
                 log_transitions::<Screen>,
@@ -74,24 +75,24 @@ impl Plugin for DebugPlugin {
 /// Toggle key
 const TOGGLE_KEY: KeyCode = KeyCode::Backquote;
 
-/// Tracks whether debugging is active
+/// Tracks whether debugging is active.
 #[derive(States, Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
-struct Debugging(bool);
+struct Debug(bool);
 
 /// Toggle debugging
-fn toggle_debugging(mut next_state: ResMut<NextState<Debugging>>, state: Res<State<Debugging>>) {
-    next_state.set(Debugging(!state.0));
+fn toggle_debugging(mut next_state: ResMut<NextState<Debug>>, state: Res<State<Debug>>) {
+    next_state.set(Debug(!state.0));
 }
 
 /// Toggle debug overlay for UI
-fn toggle_debug_ui(mut options: ResMut<UiDebugOptions>, state: Res<State<Debugging>>) {
+fn toggle_debug_ui(mut options: ResMut<UiDebugOptions>, state: Res<State<Debug>>) {
     options.enabled = state.0;
 }
 
 /// Toggle debug overlay for rapier colliders
 fn toggle_debug_colliders(
     mut render_context: ResMut<DebugRenderContext>,
-    state: Res<State<Debugging>>,
+    state: Res<State<Debug>>,
 ) {
     render_context.enabled = state.0;
 }

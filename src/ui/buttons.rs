@@ -7,6 +7,8 @@
  * URL: https://www.apache.org/licenses/LICENSE-2.0
  */
 
+// FIXME: Simplify this with for example a ButtonConfig struct that is used as parameter.
+
 use bevy::{
     ecs::{spawn::SpawnWith, system::IntoObserverSystem},
     prelude::*,
@@ -34,28 +36,9 @@ struct ButtonBuilder {
     text: &'static str,
     font: Handle<Font>,
     font_size: f32,
+    navigable: bool,
 }
 impl ButtonBuilder {
-    fn new(
-        name: &'static str,
-        base_background: Color,
-        surface_background: Color,
-        hovered_background: Color,
-        text: &'static str,
-        font: Handle<Font>,
-        font_size: f32,
-    ) -> Self {
-        Self {
-            name,
-            base_background,
-            surface_background,
-            hovered_background,
-            text,
-            font,
-            font_size,
-        }
-    }
-
     /// Builds a [`Button`] [`Bundle`] and attaches an [`Observer`].
     ///
     /// ## Traits
@@ -64,15 +47,15 @@ impl ButtonBuilder {
     /// - `B` must implement [`Bundle`].
     fn build_with<E, B, M>(
         self,
-        action: impl IntoObserverSystem<E, B, M>,
         base_bundle: impl Bundle,
         surface_bundle: impl Bundle,
+        action: impl IntoObserverSystem<E, B, M>,
     ) -> impl Bundle
     where
         E: EntityEvent,
         B: Bundle,
     {
-        let system = IntoObserverSystem::into_system(action);
+        let observer = IntoObserverSystem::into_system(action);
         (
             Name::new(self.name),
             Node::default(),
@@ -86,7 +69,7 @@ impl ButtonBuilder {
                         ZIndex(0),
                     ))
                     .with_children(|base| {
-                        base.spawn((
+                        let mut children = base.spawn((
                             Name::new(format!("{} Surface", self.name)),
                             Button,
                             BackgroundColor(self.surface_background),
@@ -95,9 +78,6 @@ impl ButtonBuilder {
                                 hovered: self.hovered_background,
                                 pressed: BUTTON_PRESSED_BACKGROUND,
                             },
-                            InteractionOverride::default(),
-                            AutoDirectionalNavigation::default(),
-                            UiNav,
                             surface_bundle,
                             ZIndex(1),
                             children![(
@@ -110,23 +90,32 @@ impl ButtonBuilder {
                                 Pickable::IGNORE,
                                 ZIndex(2),
                             )],
-                        ))
-                        .observe(system);
+                        ));
+                        if self.navigable {
+                            children.insert((
+                                InteractionOverride::default(),
+                                AutoDirectionalNavigation::default(),
+                                UiNav,
+                            ));
+                        }
+                        children.observe(observer);
                     });
             })),
         )
     }
 }
 
-/// A large rounded [`Button`] with text and an action defined as an [`Observer`].
+/// A rounded [`Button`] with text and an action defined as an [`Observer`].
 ///
 /// ## Traits
 ///
 /// - `E` must implement [`EntityEvent`].
 /// - `B` must implement [`Bundle`].
-pub(crate) fn button_large<E, B, M>(
+pub(crate) fn button_rounded<E, B, M>(
+    width: Option<Val>,
     text: &'static str,
     font: Handle<Font>,
+    navigable: bool,
     action: impl IntoObserverSystem<E, B, M>,
 ) -> impl Bundle
 where
@@ -136,23 +125,26 @@ where
     button(
         text,
         font,
-        action,
-        px(400),
+        width.unwrap_or(px(400)),
         Some(4.5),
         BorderRadius::all(px(30)),
         8,
+        navigable,
+        action,
     )
 }
 
-/// A medium rounded switch [`Button`] with text and an action defined as an [`Observer`].
+/// A rounded switch [`Button`] with text and an action defined as an [`Observer`].
 ///
 /// ## Traits
 ///
 /// - `E` must implement [`EntityEvent`].
 /// - `B` must implement [`Bundle`].
-pub(crate) fn switch_medium<E, B, M>(
+pub(crate) fn switch_rounded<E, B, M>(
+    width: Option<Val>,
     text: &'static str,
     font: Handle<Font>,
+    navigable: bool,
     action: impl IntoObserverSystem<E, B, M>,
 ) -> impl Bundle
 where
@@ -162,30 +154,42 @@ where
     switch(
         text,
         font,
-        action,
-        px(60),
+        width.unwrap_or(px(60)),
         Some(2.),
         BorderRadius::all(px(30)),
         4,
+        navigable,
+        action,
     )
 }
 
-/// A small circle [`Button`] with text and an action defined as an [`Observer`].
+/// A circle [`Button`] with text and an action defined as an [`Observer`].
 ///
 /// ## Traits
 ///
 /// - `E` must implement [`EntityEvent`].
 /// - `B` must implement [`Bundle`].
-pub(crate) fn button_small<E, B, M>(
+pub(crate) fn button_circle<E, B, M>(
+    width: Option<Val>,
     text: &'static str,
     font: Handle<Font>,
+    navigable: bool,
     action: impl IntoObserverSystem<E, B, M>,
 ) -> impl Bundle
 where
     E: EntityEvent,
     B: Bundle,
 {
-    button(text, font, action, px(30), Some(1.), BorderRadius::MAX, 4)
+    button(
+        text,
+        font,
+        width.unwrap_or(px(30)),
+        Some(1.),
+        BorderRadius::MAX,
+        4,
+        navigable,
+        action,
+    )
 }
 
 /// A [`Button`] with text and an action defined as an [`Observer`].
@@ -197,27 +201,29 @@ where
 fn button<E, B, M>(
     text: &'static str,
     font: Handle<Font>,
-    action: impl IntoObserverSystem<E, B, M>,
     width: Val,
     aspect_ratio: Option<f32>,
     border_radius: BorderRadius,
     offset: i32,
+    navigable: bool,
+    action: impl IntoObserverSystem<E, B, M>,
 ) -> impl Bundle
 where
     E: EntityEvent,
     B: Bundle,
 {
-    let builder = ButtonBuilder::new(
-        "Button",
-        BUTTON_BASE_BACKGROUND.into(),
-        BUTTON_BACKGROUND.into(),
-        BUTTON_HOVERED_BACKGROUND.into(),
+    let (base_bundle, surface_bundle) = button_bundles(width, aspect_ratio, border_radius, offset);
+    let builder = ButtonBuilder {
+        name: "Button",
+        base_background: BUTTON_BASE_BACKGROUND.into(),
+        surface_background: BUTTON_BACKGROUND.into(),
+        hovered_background: BUTTON_HOVERED_BACKGROUND.into(),
         text,
         font,
-        HEADER_FONT_SIZE,
-    );
-    let (base_bundle, surface_bundle) = button_bundles(width, aspect_ratio, border_radius, offset);
-    builder.build_with(action, base_bundle, surface_bundle)
+        font_size: HEADER_FONT_SIZE,
+        navigable,
+    };
+    builder.build_with(base_bundle, surface_bundle, action)
 }
 
 /// A switch [`Button`] with text and an action defined as an [`Observer`].
@@ -229,27 +235,29 @@ where
 fn switch<E, B, M>(
     text: &'static str,
     font: Handle<Font>,
-    action: impl IntoObserverSystem<E, B, M>,
     width: Val,
     aspect_ratio: Option<f32>,
     border_radius: BorderRadius,
     offset: i32,
+    navigable: bool,
+    action: impl IntoObserverSystem<E, B, M>,
 ) -> impl Bundle
 where
     E: EntityEvent,
     B: Bundle,
 {
-    let builder = ButtonBuilder::new(
-        "Switch",
-        SWITCH_BASE_OFF_BACKGROUND.into(),
-        SWITCH_OFF_BACKGROUND.into(),
-        SWITCH_OFF_HOVERED_BACKGROUND.into(),
+    let (base_bundle, surface_bundle) = button_bundles(width, aspect_ratio, border_radius, offset);
+    let builder = ButtonBuilder {
+        name: "Switch",
+        base_background: SWITCH_BASE_OFF_BACKGROUND.into(),
+        surface_background: SWITCH_OFF_BACKGROUND.into(),
+        hovered_background: SWITCH_OFF_HOVERED_BACKGROUND.into(),
         text,
         font,
-        BODY_FONT_SIZE,
-    );
-    let (base_bundle, surface_bundle) = button_bundles(width, aspect_ratio, border_radius, offset);
-    builder.build_with(action, base_bundle, surface_bundle)
+        font_size: BODY_FONT_SIZE,
+        navigable,
+    };
+    builder.build_with(base_bundle, surface_bundle, action)
 }
 
 /// Tuples meant to be used as [`Bundle`]s for [`Button`].

@@ -14,12 +14,6 @@ use bevy::prelude::*;
 use crate::{levels::prelude::*, procgen::prelude::*, render::prelude::*};
 
 /// Spawn objects in every chunk contained in [`ProcGenCache<A>`]
-///
-/// ## Traits
-///
-/// - `T` must implement [`ProcGenerated`] and is used as the procedurally generated object associated with a [`ProcGenCache<T>`].
-/// - `A` must implement [`ProcGenerated`] and is used as a level's procedurally generated item.
-/// - `B` must implement [`Level`].
 pub(super) fn spawn_objects<T, A, B>(
     level: Single<Entity, With<B>>,
     mut commands: Commands,
@@ -48,13 +42,9 @@ pub(super) fn spawn_objects<T, A, B>(
     }
 }
 
-/// Collect procedurally generated [`Entity`]s to despawn outside of [`PROCGEN_DISTANCE`]
+/// Collect procedurally generated [`Entity`]s to despawn outside of [`PROCGEN_DISTANCE`].
 ///
-/// ## Traits
-///
-/// - `T` must implement [`ProcGenerated`] and is used as the procedurally generated item associated with a [`ProcGenCache<T>`].
-/// - `A` must implement [`ProcGenerated`] and is used as a level's procedurally generated item.
-/// - `const PROCEED` determines whether we should proceed to the next state.
+/// `const PROCEED` determines whether we should proceed to the next state.
 pub(super) fn collect_to_despawn<T, A, const PROCEED: bool>(
     camera: Single<&Transform, (Changed<Transform>, With<CanvasCamera>, Without<T>)>,
     query: Query<(Entity, &Transform), (With<T>, Without<CanvasCamera>)>,
@@ -86,11 +76,7 @@ pub(super) fn collect_to_despawn<T, A, const PROCEED: bool>(
     }
 }
 
-/// Despawn procedurally generated [`Entity`]s from [`ProcGenCache<T>::to_despawn`] and remove entries in [`ProcGenCache<T>::chunk_positions`]
-///
-/// ## Traits
-///
-/// - `T` must implement [`ProcGenerated`] and is used as the procedurally generated item associated with a [`ProcGenCache<T>`].
+/// Despawn procedurally generated [`Entity`]s from [`ProcGenCache<T>::to_despawn`] and remove entries in [`ProcGenCache<T>::chunk_positions`].
 pub(super) fn despawn<T>(
     mut commands: Commands,
     mut cache: ResMut<ProcGenCache<T>>,
@@ -109,10 +95,6 @@ pub(super) fn despawn<T>(
 }
 
 /// Enable [`DespawnProcGen`] if [`ProcGenCache<T>::to_despawn`] is not empty.
-///
-/// ## Traits
-///
-/// - `T` must implement [`ProcGenerated`] and is used as the procedurally generated item associated with a [`ProcGenCache<T>`].
 pub(super) fn set_despawning<T>(
     mut next_state: ResMut<NextState<DespawnProcGen>>,
     cache: Res<ProcGenCache<T>>,

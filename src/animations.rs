@@ -97,10 +97,6 @@ impl Plugin for AnimationsPlugin {
 pub(crate) const ANIMATION_DELAY_RANGE_SECS: Range<f32> = 0.0..10.0;
 
 /// Animation data deserialized from a ron file.
-///
-/// ## Traits
-///
-/// - `T` must implement [`Character`].
 #[derive(Deserialize, Asset, TypePath, Default)]
 pub(crate) struct AnimationData<T>
 where
@@ -121,10 +117,6 @@ where
 }
 
 /// Handle for [`AnimationData`].
-///
-/// ## Traits
-///
-/// - `T` must implement [`Character`].
 #[derive(Resource)]
 pub(crate) struct AnimationHandle<T>(pub(crate) Handle<AnimationData<T>>)
 where
@@ -133,10 +125,6 @@ where
 /// Cache for [`AnimationData`]
 ///
 /// This is to allow easier access.
-///
-/// ## Traits
-///
-/// - `T` must implement [`Character`].
 #[derive(Resource, Default)]
 pub(crate) struct AnimationDataCache<T>
 where
@@ -155,10 +143,6 @@ where
 /// Animations for [`Character`]s of type `T`.
 ///
 /// This stores the [`Sprite`] for the animation and a map of [`AnimationState`] to [`Handle<Animation>`].
-///
-/// ## Traits
-///
-/// - `T` must implement [`Character`].
 #[derive(Resource, Default)]
 pub(crate) struct CharacterAnimations<T>
 where

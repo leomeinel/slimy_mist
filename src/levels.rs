@@ -74,10 +74,6 @@ impl ForkedRng for LevelRng {}
 /// Dimensions for a [`Level`] of type `T`.
 ///
 /// This is related to [`TileData`](crate::images::prelude::TileData).
-///
-/// ## Traits
-///
-/// - `T` must implement [`ProcGenerated`].
 #[derive(Resource, Default)]
 pub(crate) struct LevelDimensions<T>
 where

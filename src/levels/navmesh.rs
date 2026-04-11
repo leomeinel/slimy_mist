@@ -40,11 +40,6 @@ const NUM_CHUNKS: u32 = PROCGEN_DISTANCE as u32 * 2 + 1;
 const NAVMESH_SIZE: UVec2 = UVec2::new(CHUNK_SIZE.x * NUM_CHUNKS, CHUNK_SIZE.y * NUM_CHUNKS);
 
 /// Spawn [`ManagedNavMesh`] from [`NavMeshSettings`]
-///
-/// ## Traits
-///
-/// - `T` must implement [`ProcGenerated`]' and is used as the procedurally generated level.
-/// - `A` must implement [`Level`].
 pub(crate) fn spawn_navmesh<T, A>(
     level: Single<Entity, With<A>>,
     mut commands: Commands,
@@ -84,10 +79,6 @@ pub(crate) fn spawn_navmesh<T, A>(
 }
 
 /// Move [`ManagedNavMesh`] with generated chunks
-///
-/// ## Traits
-///
-/// - `T` must implement [`ProcGenerated`]' and is used as the procedurally generated level.
 pub(crate) fn move_navmesh<T>(
     navmesh: Single<(&mut Transform, &mut NavMeshUpdateMode), With<ManagedNavMesh>>,
     cache: Res<ProcGenCache<T>>,

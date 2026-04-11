@@ -156,14 +156,10 @@ where
     _phantom: PhantomData<T>,
 }
 
-/// Cache that maps entities to their positions
+/// Cache that maps entities to their positions.
 ///
 /// We are also storing entities to avoid duplicate spawning for a chunk. This allows us to check
 /// if a chunk has already been spawned to, even for entities that have left the chunk.
-///
-/// ## Traits
-///
-/// - `T` must implement [`ProcGenerated`] and is used as any procedurally generated item.
 #[derive(Default, Debug, Resource)]
 pub(crate) struct ProcGenCache<T>
 where

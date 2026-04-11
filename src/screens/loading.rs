@@ -149,11 +149,7 @@ fn insert_handle_resources(mut commands: Commands, assets: Res<AssetServer>) {
     commands.insert_resource(UiFontHandle(assets.load("fonts/Pixeloid/PixeloidSans.ttf")));
 }
 
-/// Cache data from [`AnimationData`] in [`AnimationDataCache`]
-///
-/// ## Traits
-///
-/// - `T` must implement [`Character`].
+/// Cache data from [`AnimationData`] in [`AnimationDataCache`].
 fn cache_animation_data_and_related<T>(
     mut commands: Commands,
     mut data: ResMut<Assets<AnimationData<T>>>,
@@ -200,11 +196,7 @@ fn cache_animation_data_and_related<T>(
 /// Color for cast shadows
 const SHADOW_COLOR: Srgba = tailwind::GRAY_700;
 
-/// Cache data from [`CollisionData`] in [`CollisionDataCache`]
-///
-/// ## Traits
-///
-/// - `T` must implement [`Character`].
+/// Cache data from [`CollisionData`] in [`CollisionDataCache`].
 fn cache_collision_data_and_related<T>(
     mut commands: Commands,
     mut data: ResMut<Assets<CollisionData<T>>>,
@@ -252,11 +244,7 @@ fn cache_collision_data_and_related<T>(
     commands.remove_resource::<CollisionHandle<T>>();
 }
 
-/// Cache data from [`CreditsData`] in [`CreditsDataCache`]
-///
-/// ## Traits
-///
-/// - `T` must implement [`Character`].
+/// Cache data from [`CreditsData`] in [`CreditsDataCache`].
 fn cache_credits_data(
     mut commands: Commands,
     mut data: ResMut<Assets<CreditsData>>,
@@ -273,11 +261,7 @@ fn cache_credits_data(
     commands.remove_resource::<CreditsHandle>();
 }
 
-/// Cache data from [`LayerData`] in [`LayerDataCache`]
-///
-/// ## Traits
-///
-/// - `T` must implement [`Visible`].
+/// Cache data from [`LayerData`] in [`LayerDataCache`].
 fn cache_layer_data<T>(
     mut commands: Commands,
     mut data: ResMut<Assets<LayerData<T>>>,
@@ -301,11 +285,7 @@ fn cache_layer_data<T>(
     commands.remove_resource::<LayerHandle<T>>();
 }
 
-/// Cache data from [`TileData`] in [`TileDataCache`] and [`LevelDimensions`]
-///
-/// ## Traits
-///
-/// - `T` must implement [`ProcGenerated`].
+/// Cache data from [`TileData`] in [`TileDataCache`] and [`LevelDimensions`].
 fn cache_tile_data_and_related<T>(
     mut commands: Commands,
     mut data: ResMut<Assets<TileData<T>>>,

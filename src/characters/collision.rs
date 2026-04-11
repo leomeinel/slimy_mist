@@ -15,10 +15,6 @@ use serde::Deserialize;
 use crate::characters::prelude::*;
 
 /// Collision data deserialized from a ron file.
-///
-/// ## Traits
-///
-/// - `T` must implement [`Character`].
 #[derive(Deserialize, Asset, TypePath, Default)]
 pub(crate) struct CollisionData<T>
 where
@@ -37,10 +33,6 @@ where
 }
 
 /// Handle for [`CollisionData`].
-///
-/// ## Traits
-///
-/// - `T` must implement [`Character`].
 #[derive(Resource)]
 pub(crate) struct CollisionHandle<T>(pub(crate) Handle<CollisionData<T>>)
 where
@@ -49,10 +41,6 @@ where
 /// Cache for [`CollisionData`]
 ///
 /// This is to allow easier access.
-///
-/// ## Traits
-///
-/// - `T` must implement [`Character`].
 #[derive(Resource, Default)]
 pub(crate) struct CollisionDataCache<T>
 where

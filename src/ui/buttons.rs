@@ -40,11 +40,6 @@ struct ButtonBuilder {
 }
 impl ButtonBuilder {
     /// Builds a [`Button`] [`Bundle`] and attaches an [`Observer`].
-    ///
-    /// ## Traits
-    ///
-    /// - `E` must implement [`EntityEvent`].
-    /// - `B` must implement [`Bundle`].
     fn build_with<E, B, M>(
         self,
         base_bundle: impl Bundle,
@@ -106,11 +101,6 @@ impl ButtonBuilder {
 }
 
 /// A rounded [`Button`] with text and an action defined as an [`Observer`].
-///
-/// ## Traits
-///
-/// - `E` must implement [`EntityEvent`].
-/// - `B` must implement [`Bundle`].
 pub(crate) fn button_rounded<E, B, M>(
     width: Option<Val>,
     text: &'static str,
@@ -135,11 +125,6 @@ where
 }
 
 /// A rounded switch [`Button`] with text and an action defined as an [`Observer`].
-///
-/// ## Traits
-///
-/// - `E` must implement [`EntityEvent`].
-/// - `B` must implement [`Bundle`].
 pub(crate) fn switch_rounded<E, B, M>(
     width: Option<Val>,
     text: &'static str,
@@ -164,11 +149,6 @@ where
 }
 
 /// A circle [`Button`] with text and an action defined as an [`Observer`].
-///
-/// ## Traits
-///
-/// - `E` must implement [`EntityEvent`].
-/// - `B` must implement [`Bundle`].
 pub(crate) fn button_circle<E, B, M>(
     width: Option<Val>,
     text: &'static str,
@@ -193,11 +173,6 @@ where
 }
 
 /// A [`Button`] with text and an action defined as an [`Observer`].
-///
-/// ## Traits
-///
-/// - `E` must implement [`EntityEvent`].
-/// - `B` must implement [`Bundle`].
 fn button<E, B, M>(
     text: &'static str,
     font: Handle<Font>,
@@ -227,11 +202,6 @@ where
 }
 
 /// A switch [`Button`] with text and an action defined as an [`Observer`].
-///
-/// ## Traits
-///
-/// - `E` must implement [`EntityEvent`].
-/// - `B` must implement [`Bundle`].
 fn switch<E, B, M>(
     text: &'static str,
     font: Handle<Font>,

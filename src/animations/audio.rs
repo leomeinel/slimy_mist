@@ -23,10 +23,6 @@ pub(crate) struct AnimationAudioIndex(pub(crate) Option<usize>);
 /// Animation audio map for a [`Character`].
 ///
 /// This stores a map of [`AnimationState`] to audio indexes.
-///
-/// ## Traits
-///
-/// - `T` must implement [`Character`].
 #[derive(Resource, Default)]
 pub(crate) struct AnimationAudioMap<T>
 where
@@ -37,11 +33,6 @@ where
 }
 
 /// Update animation sounds
-///
-/// ## Traits
-///
-/// - `T` must implement [`Character`].
-/// - `A` must implement [`CharacterAssets`]
 pub(super) fn update_animation_sounds<T, A>(
     mut rng: Single<&mut WyRand, With<AnimationRng>>,
     character_query: Query<(&mut AnimationAudioIndex, &AnimationState, &Children), With<T>>,

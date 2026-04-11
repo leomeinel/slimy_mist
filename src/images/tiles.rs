@@ -15,10 +15,6 @@ use serde::Deserialize;
 use crate::procgen::prelude::*;
 
 /// Tile data deserialized from a ron file.
-///
-/// ## Traits
-///
-/// - `T` must implement [`ProcGenerated`] and is used as a level's procedurally generated item.
 #[derive(Deserialize, Asset, TypePath, Default)]
 pub(crate) struct TileData<T>
 where
@@ -42,10 +38,6 @@ where
 }
 
 /// Handle for [`TileData`].
-///
-/// ## Traits
-///
-/// - `T` must implement [`ProcGenerated`] and is used as a level's procedurally generated item.
 #[derive(Resource)]
 pub(crate) struct TileHandle<T>(pub(crate) Handle<TileData<T>>)
 where
@@ -54,10 +46,6 @@ where
 /// Cache for [`TileData`]
 ///
 /// This is to allow easier access.
-///
-/// ## Traits
-///
-/// - `T` must implement [`ProcGenerated`].
 #[derive(Resource, Default)]
 pub(crate) struct TileDataCache<T>
 where

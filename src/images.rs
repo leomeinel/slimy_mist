@@ -62,10 +62,6 @@ impl Plugin for ImagesPlugin {
 }
 
 /// Image size.
-///
-/// ## Traits
-///
-/// - `T` must implement [`Visible`].
 #[derive(Resource, Default)]
 pub(crate) struct ImageSize<T>
 where
@@ -87,10 +83,6 @@ where
 }
 
 /// Image metadata.
-///
-/// ## Traits
-///
-/// - `T` must implement [`Visible`].
 #[derive(Resource)]
 pub(crate) struct ImageMeta<T>
 where
@@ -149,10 +141,6 @@ where
 }
 
 /// [`Handle<Image>`] from [`Image::data`] and [`ImageMeta`].
-///
-/// ## Traits
-///
-/// - `T` must implement [`Visible`].
 pub(crate) fn image_from_data<T>(
     data: Vec<u8>,
     meta: &ImageMeta<T>,
@@ -172,10 +160,6 @@ where
 }
 
 /// Insert [`DisplayLayers`] and [`ImageSize`].
-///
-/// ## Traits
-///
-/// - `T` must implement [`Visible`].
 fn insert_images_and_related<T>(
     mut commands: Commands,
     mut images: ResMut<Assets<Image>>,

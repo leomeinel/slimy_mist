@@ -16,12 +16,7 @@ use rand::RngExt as _;
 
 use crate::{images::prelude::*, levels::prelude::*, procgen::prelude::*, render::prelude::*};
 
-/// Spawn chunks around the camera
-///
-/// ## Traits
-///
-/// - `T` must implement [`ProcGenerated`]' and is used as the procedurally generated level associated with a [`ProcGenCache<T>`].
-/// - `A` must implement [`Level`].
+/// Spawn chunks around the camera.
 pub(super) fn spawn_chunks<T, A>(
     level: Single<Entity, With<A>>,
     mut commands: Commands,
@@ -58,13 +53,7 @@ pub(super) fn spawn_chunks<T, A>(
     (*next_state).set_if_neq(ProcGenState::MoveNavMesh);
 }
 
-/// Spawn a single chunk
-///
-/// ## Traits
-///
-/// - `T` must implement [`ProcGenerated`]' and is used as the procedurally generated level associated with a [`ProcGenCache<T>`].
-/// - `A` must implement [`LevelAssets`] and is used as a level's assets.
-/// - `B` must implement [`Level`].
+/// Spawn a single chunk.
 pub(super) fn spawn_on_procgen_chunks<T, A, B>(
     event: On<ProcGen<T>>,
     level: Single<Entity, With<B>>,

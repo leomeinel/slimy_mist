@@ -58,11 +58,7 @@ impl Plugin for JoystickPlugin {
     }
 }
 
-/// Tracks the current state of the joystick.
-///
-/// ## Traits
-///
-/// - `const ID` represents [`VirtualJoystickNode::id`].
+/// Tracks the current state of the joystick with `const ID`.
 #[derive(States, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub(crate) enum JoystickState<const ID: u8> {
     None,
@@ -119,11 +115,7 @@ const JOYSTICK_KNOB_SIZE: Vec2 = Vec2::splat(75.);
 /// Size of the joystick background in pixels
 const JOYSTICK_BACKGROUND_SIZE: Vec2 = Vec2::splat(150.);
 
-/// Spawn joystick with `ID`.
-///
-/// ## Traits
-///
-/// - `const ID` represents [`VirtualJoystickNode::id`].
+/// Spawn joystick with with `const ID`.
 fn spawn_joystick<const ID: u8>(
     mut commands: Commands,
     mut joystick_map: ResMut<JoystickMap>,
@@ -195,11 +187,7 @@ fn spawn_joystick<const ID: u8>(
     (*next_state).set_if_neq(JoystickState::<ID>::Spawned);
 }
 
-/// Despawn joystick with `ID`.
-///
-/// ## Traits
-///
-/// - `const ID` represents [`VirtualJoystickNode::id`].
+/// Despawn joystick with `const ID`.
 fn despawn_joystick<const ID: u8>(
     mut commands: Commands,
     mut joystick_map: ResMut<JoystickMap>,

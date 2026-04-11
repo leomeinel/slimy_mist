@@ -16,10 +16,6 @@ use crate::{
 };
 
 /// Setup [`CharacterAnimations`] and add animations.
-///
-/// ## Traits
-///
-/// - `T` must implement [`Character`] and [`Visible`].
 pub(super) fn setup_animations<T>(
     mut commands: Commands,
     mut atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
@@ -93,10 +89,6 @@ pub(super) fn setup_animations<T>(
 }
 
 /// Update animations
-///
-/// ## Traits
-///
-/// - `T` must implement [`Character`].
 pub(super) fn update_animations<T>(
     character_query: Query<
         (
@@ -142,10 +134,6 @@ pub(super) fn update_animations<T>(
 }
 
 /// Update [`AnimationOrientation`]s and flip [`Sprite`]s.
-///
-/// ## Traits
-///
-/// - `T` must implement [`Character`].
 pub(super) fn update_animation_orientations<T>(
     character_query: Query<(&mut AnimationState, &FacingDirection, &Children), With<T>>,
     mut base_query: Query<(&mut Sprite, Option<&Children>), With<AnimationBase>>,

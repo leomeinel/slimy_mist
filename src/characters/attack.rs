@@ -95,10 +95,6 @@ pub(crate) fn punch() -> AttackData {
 }
 
 /// On [`Attack::Melee`], trigger [`Damage`] on [Entity]s within range.
-///
-/// ## Traits
-///
-/// - `T` must implement [`Character`].
 pub(super) fn on_melee_attack<T>(
     mut reader: MessageReader<Attack>,
     target_query: Query<&Health>,

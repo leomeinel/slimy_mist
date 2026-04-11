@@ -42,10 +42,6 @@ pub(crate) struct Path {
 pub(super) struct StopNav(Entity);
 
 /// Find [`Path`] to [`NavTarget`]
-///
-/// ## Traits
-///
-/// - `T` must implement [`ProcGenerated`]' and is used as the procedurally generated level.
 pub(super) fn find_path<T>(
     navmesh: Single<(&ManagedNavMesh, Ref<NavMeshStatus>)>,
     target_query: Query<(Entity, &Transform, &NavTarget), Without<Navigator>>,

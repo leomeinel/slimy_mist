@@ -24,14 +24,7 @@ pub(crate) struct YSort(pub(crate) f32);
 pub(crate) struct YSortOffset(pub(crate) f32);
 
 // FIXME: We currently can't use Changed<Transform> because we always need to update z-level based on relative position.
-/// Applies the y-sorting to the entities Z position.
-///
-/// Heavily inspired by: <https://github.com/fishfolk/punchy>
-///
-/// ## Traits
-///
-/// - `T` must implement [`Visible`].
-/// - `A` must implement [`ProcGenerated`]' and is used as the procedurally generated level.
+/// Y-sort `T` [`Entity`]s.
 pub(super) fn relative_sort<T, A>(
     query: Query<(&mut Transform, &YSort, Option<&YSortOffset>), With<T>>,
     cache: Res<ProcGenCache<A>>,

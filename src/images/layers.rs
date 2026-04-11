@@ -21,10 +21,6 @@ use crate::{
 };
 
 /// Layer data deserialized from a ron file.
-///
-/// ## Traits
-///
-/// - `T` must implement [`Visible`].
 #[derive(Deserialize, Asset, TypePath, Default)]
 pub(crate) struct LayerData<T>
 where
@@ -39,10 +35,6 @@ where
 }
 
 /// Handle for [`LayerData`].
-///
-/// ## Traits
-///
-/// - `T` must implement [`Visible`].
 #[derive(Resource)]
 pub(crate) struct LayerHandle<T>(pub(crate) Handle<LayerData<T>>)
 where
@@ -51,10 +43,6 @@ where
 /// Cache for [`LayerData`]
 ///
 /// This is to allow easier access.
-///
-/// ## Traits
-///
-/// - `T` must implement [`Visible`].
 #[derive(Resource, Default)]
 pub(crate) struct LayerDataCache<T>
 where
@@ -66,10 +54,6 @@ where
 }
 
 /// [`Image`] for displaying `T`
-///
-/// ## Traits
-///
-/// - `T` must implement [`Visible`].
 #[derive(Resource, Default)]
 pub(crate) struct DisplayLayers<T>
 where

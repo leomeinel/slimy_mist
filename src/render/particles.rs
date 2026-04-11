@@ -84,10 +84,6 @@ pub(crate) struct SpawnParticleOnce {
 }
 
 /// Handle for [`Particle2dEffect`].
-///
-/// ## Traits
-///
-/// - `T` must implement [`Particle`] and is used as the associated particle type.
 #[derive(Resource, Default)]
 pub(crate) struct ParticleHandle<T>
 where
@@ -97,16 +93,12 @@ where
     pub(crate) _phantom: PhantomData<T>,
 }
 
-/// Timer that tracks particles
+/// Timer that tracks particles.
 #[derive(Component, Debug, Clone, PartialEq, Reflect, Deref, DerefMut)]
 #[reflect(Component)]
 struct ParticleTimer(Timer);
 
 /// Spawn and despawn a [`Particle`] once.
-///
-/// ## Traits
-///
-/// - `T` must implement [`Particle`] and is used as the associated particle type.
 fn on_spawn_particle_once<T>(event: On<SpawnParticleOnce>, mut commands: Commands)
 where
     T: Particle,
@@ -125,10 +117,6 @@ where
 const WALKING_DUST_SECS: f32 = 0.5;
 
 /// Add [`ParticleWalkingDust`].
-///
-/// ## Traits
-///
-/// - `T` must implement [`Visible`].
 fn add_walking_dust<T>(
     base_query: Query<(), With<AnimationBase>>,
     query: Query<&Children, With<T>>,
@@ -163,12 +151,7 @@ fn add_walking_dust<T>(
     }
 }
 
-/// Update particle for [`Character`]s
-///
-/// ## Traits
-///
-/// - `T` must implement [`Character`] and [`Visible`].
-/// - `A` must implement [`Particle`].
+/// Update particle for [`Character`]s.
 fn update_character_particles<T, A>(
     base_query: Query<&Children, With<AnimationBase>>,
     character_query: Query<(&mut AnimationState, &Children), With<T>>,

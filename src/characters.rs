@@ -164,10 +164,6 @@ where
 /// Dimensions for all [`Character`]s of type `T`.
 ///
 /// This is related to [`CollisionData`].
-///
-/// ## Traits
-///
-/// - `T` must implement [`Character`].
 #[derive(Resource, Default)]
 pub(crate) struct CharacterDimensions<T>
 where
@@ -181,10 +177,6 @@ where
 /// Shadow for all [`Character`]s of type `T`.
 ///
 /// This is related to [`CollisionData`]
-///
-/// ## Traits
-///
-/// - `T` must implement [`Character`].
 #[derive(Resource, Default)]
 pub(crate) struct CharacterShadow<T>
 where
@@ -202,11 +194,6 @@ pub(crate) struct StaticShadow {
 }
 
 /// [`EntityEvent`] for spawning a [`Character`].
-///
-/// ## Traits
-///
-/// - `T` must implement [`Character`].
-/// - `A` must implement [`Level`].
 #[derive(EntityEvent)]
 pub(crate) struct SpawnCharacter<T, A>
 where
@@ -219,11 +206,6 @@ where
 }
 
 /// Spawn a single [`Character`].
-///
-/// ## Traits
-///
-/// - `T` must implement [`Character`].
-/// - `A` must implement [`Level`].
 fn on_spawn_character<T, A>(
     event: On<SpawnCharacter<T, A>>,
     mut animation_rng: Single<&mut WyRand, With<AnimationRng>>,

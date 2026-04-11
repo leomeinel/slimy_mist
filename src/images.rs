@@ -19,19 +19,19 @@ mod tiles;
 mod transitions;
 
 pub(crate) mod prelude {
-    pub(crate) use super::ImageMeta;
     pub(crate) use super::layers::{DisplayLayers, LayerData, LayerDataCache, LayerHandle};
     pub(crate) use super::tiles::{TileData, TileDataCache, TileHandle};
     pub(crate) use super::transitions::{FadeInOut, apply_fade_in_out, tick_fade_in_out};
+    pub(crate) use super::{ImageMeta, ImageSize};
 }
 
 use std::marker::PhantomData;
 
-use bevy::prelude::*;
+use bevy::{prelude::*, render::render_resource::*};
 use bevy_ecs_tilemap::prelude::*;
 
 use crate::{
-    animations::prelude::*, characters::prelude::*, log::prelude::*, render::prelude::*,
+    characters::prelude::*, images::prelude::*, log::prelude::*, render::prelude::*,
     screens::prelude::*,
 };
 
@@ -42,16 +42,37 @@ impl Plugin for ImagesPlugin {
 
         app.add_systems(
             OnEnter(Screen::Gameplay),
-            (
                 (
-                    layers::insert_display_layers::<Player>,
-                    layers::insert_display_layers::<Slime>,
+                insert_images_and_related::<Player>,
+                insert_images_and_related::<Slime>,
                 )
                     .in_set(EnterGameplaySystems::Sprites),
-                (insert_image_meta::<Player>, insert_image_meta::<Slime>)
-                    .in_set(EnterGameplaySystems::ImageMeta),
-            ),
         );
+    }
+}
+
+/// Image size.
+///
+/// ## Traits
+///
+/// - `T` must implement [`Visible`].
+#[derive(Resource, Default)]
+pub(crate) struct ImageSize<T>
+where
+    T: Visible,
+{
+    pub(crate) size: UVec2,
+    pub(crate) _phantom: PhantomData<T>,
+}
+impl<T> From<ImageMeta<T>> for ImageSize<T>
+where
+    T: Visible,
+{
+    fn from(meta: ImageMeta<T>) -> Self {
+        Self {
+            size: UVec2::new(meta.size.width, meta.size.height),
+            ..default()
+        }
     }
 }
 
@@ -60,36 +81,77 @@ impl Plugin for ImagesPlugin {
 /// ## Traits
 ///
 /// - `T` must implement [`Visible`].
-#[derive(Resource, Default)]
 pub(crate) struct ImageMeta<T>
 where
     T: Visible,
 {
-    pub(crate) size: UVec2,
+    pub(crate) size: Extent3d,
+    pub(crate) dimension: TextureDimension,
+    pub(crate) format: TextureFormat,
     pub(crate) _phantom: PhantomData<T>,
 }
+impl<T> ImageMeta<T>
+where
+    T: Visible,
+{
+    fn from_layer_data_cache(data: &LayerDataCache<T>, images: &mut ResMut<Assets<Image>>) -> Self {
+        let (size, dimension, format) = data
+        .base
+            .first()
+            .map(|image| {
+                let descriptor = &images
+                    .get(image)
+                    .expect(ERR_INVALID_IMAGE)
+                    .texture_descriptor;
+                (descriptor.size, descriptor.dimension, descriptor.format)
+            })
+            .expect(ERR_INVALID_IMAGE);
 
-/// Insert [`ImageMeta`] from [`CharacterAnimations`].
+        // Assert that all layers have the same metadata.
+        assert!(data.base.iter().all(|image| {
+            let descriptor = &images
+                .get(image)
+                .expect(ERR_INVALID_IMAGE)
+                .texture_descriptor;
+            (descriptor.size, descriptor.dimension, descriptor.format) == (size, dimension, format)
+        }));
+        assert!(data.floating.as_ref().is_none_or(|layers| {
+            layers.iter().all(|image| {
+                let descriptor = &images
+                    .get(image)
+                    .expect(ERR_INVALID_IMAGE)
+                    .texture_descriptor;
+                (descriptor.size, descriptor.dimension, descriptor.format)
+                    == (size, dimension, format)
+            })
+        }));
+
+        Self {
+            size,
+            dimension,
+            format,
+            _phantom: PhantomData,
+        }
+    }
+}
+
+/// Insert [`DisplayLayers`] and [`ImageSize`].
 ///
 /// ## Traits
 ///
-/// - `T` must implement [`Character`] and [`Visible`].
-fn insert_image_meta<T>(
+/// - `T` must implement [`Visible`].
+fn insert_images_and_related<T>(
     mut commands: Commands,
-    character_animations: Res<CharacterAnimations<T>>,
-    atlas_layouts: Res<Assets<TextureAtlasLayout>>,
+    mut images: ResMut<Assets<Image>>,
+    data: Res<LayerDataCache<T>>,
 ) where
-    T: Character + Visible,
+    T: Visible,
 {
-    let size = character_animations
-        .base
-        .sprite
-        .texture_atlas
-        .as_ref()
-        .and_then(|atlas| atlas_layouts.get(atlas.layout.id()))
-        .and_then(|layout| layout.textures.first())
-        .map(|texture| texture.size())
-        .expect(ERR_INVALID_TEXTURE_ATLAS);
-
-    commands.insert_resource(ImageMeta::<T> { size, ..default() });
+    let meta = ImageMeta::from_layer_data_cache(&data, &mut images);
+    commands.insert_resource(DisplayLayers::from_layer_data_cache(
+        &data,
+        &meta,
+        &mut images,
+    ));
+    commands.insert_resource(ImageSize::from(meta));
 }

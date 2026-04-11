@@ -35,7 +35,7 @@ pub(crate) struct YSortOffset(pub(crate) f32);
 pub(super) fn relative_sort<T, A>(
     query: Query<(&mut Transform, &YSort, Option<&YSortOffset>), With<T>>,
     cache: Res<ProcGenCache<A>>,
-    texture_info: Res<ImageMeta<T>>,
+    texture_info: Res<ImageSize<T>>,
     level_dimensions: Res<LevelDimensions<A>>,
 ) where
     T: Visible,

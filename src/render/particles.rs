@@ -133,7 +133,7 @@ fn add_walking_dust<T>(
     base_query: Query<(), With<AnimationBase>>,
     query: Query<&Children, With<T>>,
     mut commands: Commands,
-    texture_info: Res<ImageMeta<T>>,
+    texture_info: Res<ImageSize<T>>,
     handle: Res<ParticleHandle<ParticleWalkingDust>>,
 ) where
     T: Visible,

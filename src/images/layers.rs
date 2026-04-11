@@ -14,7 +14,7 @@ use std::marker::PhantomData;
 use bevy::{asset::RenderAssetUsages, prelude::*};
 use serde::Deserialize;
 
-use crate::{log::prelude::*, render::prelude::*};
+use crate::{images::prelude::*, log::prelude::*, render::prelude::*};
 
 /// Layer data deserialized from a ron file.
 ///
@@ -60,27 +60,6 @@ where
     pub(crate) floating: Option<Vec<Handle<Image>>>,
     pub(crate) _phantom: PhantomData<T>,
 }
-impl<T> LayerDataCache<T>
-where
-    T: Visible,
-{
-    pub(crate) fn to_display_layers(&self, images: &mut ResMut<Assets<Image>>) -> DisplayLayers<T>
-    where
-        T: Visible,
-    {
-        let base = layered_image(self.base.clone(), images);
-        let floating = self
-            .floating
-            .as_ref()
-            .map(|f| layered_image(f.clone(), images));
-
-        DisplayLayers {
-            base,
-            floating,
-            ..default()
-        }
-    }
-}
 
 /// [`Image`] for displaying `T`
 ///
@@ -96,41 +75,41 @@ where
     pub(crate) floating: Option<Handle<Image>>,
     pub(crate) _phantom: PhantomData<T>,
 }
-
-/// Insert [`DisplayLayers`].
-///
-/// ## Traits
-///
-/// - `T` must implement [`Visible`].
-pub(super) fn insert_display_layers<T>(
-    mut commands: Commands,
-    mut images: ResMut<Assets<Image>>,
-    data: Res<LayerDataCache<T>>,
-) where
+impl<T> DisplayLayers<T>
+where
     T: Visible,
 {
-    commands.insert_resource(data.to_display_layers(&mut images));
+    pub(crate) fn from_layer_data_cache(
+        data: &LayerDataCache<T>,
+        meta: &ImageMeta<T>,
+        images: &mut ResMut<Assets<Image>>,
+    ) -> DisplayLayers<T>
+    where
+        T: Visible,
+    {
+        let base = layered_image(data.base.clone(), meta, images);
+        let floating = data
+            .floating
+            .as_ref()
+            .map(|f| layered_image(f.clone(), meta, images));
+
+        Self {
+            base,
+            floating,
+            ..default()
+        }
+    }
 }
 
-fn layered_image(layers: Vec<Handle<Image>>, images: &mut ResMut<Assets<Image>>) -> Handle<Image> {
-    let (size, dimension, format) = layers
-        .first()
-        .map(|image| {
-            let descriptor = &images
-                .get(image)
-                .expect(ERR_INVALID_IMAGE)
-                .texture_descriptor;
-            (descriptor.size, descriptor.dimension, descriptor.format)
-        })
-        .expect(ERR_INVALID_IMAGE);
-    assert!(layers.iter().all(|image| {
-        let descriptor = &images
-            .get(image)
-            .expect(ERR_INVALID_IMAGE)
-            .texture_descriptor;
-        (descriptor.size, descriptor.dimension, descriptor.format) == (size, dimension, format)
-    }));
-
+/// A single [`Handle<Image>`] from layers.
+fn layered_image<T>(
+    layers: Vec<Handle<Image>>,
+    meta: &ImageMeta<T>,
+    images: &mut ResMut<Assets<Image>>,
+) -> Handle<Image>
+where
+    T: Visible,
+{
     // Combine `Images` into a single `Image` by overriding non-transparent pixels in each previous iteration of `data`.
     let data: Vec<_> = layers
         .iter()
@@ -152,6 +131,12 @@ fn layered_image(layers: Vec<Handle<Image>>, images: &mut ResMut<Assets<Image>>)
         })
         .expect(ERR_INVALID_IMAGE);
 
-    let image = Image::new(size, dimension, data, format, RenderAssetUsages::all());
+    let image = Image::new(
+        meta.size,
+        meta.dimension,
+        data,
+        meta.format,
+        RenderAssetUsages::all(),
+    );
     images.add(image)
 }

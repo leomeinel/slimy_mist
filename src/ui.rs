@@ -103,12 +103,18 @@ pub(crate) struct NodeOffset(pub(crate) IVec2);
 #[derive(Component, Default)]
 pub(crate) struct NodeRect(pub(crate) Rect);
 impl NodeRect {
-    pub(crate) fn touched(&self, touches: &Touches) -> bool {
+    pub(crate) fn touched_id(&self, touches: &Touches) -> Option<u64> {
         // NOTE: We need both `iter()` and `iter_just_released()` since we care about pressed and released.
         touches
             .iter()
             .chain(touches.iter_just_released())
-            .any(|t| self.0.contains(t.start_position()) || self.0.contains(t.position()))
+            .find_map(|t| {
+                if self.0.contains(t.start_position()) || self.0.contains(t.position()) {
+                    Some(t.id())
+                } else {
+                    None
+                }
+            })
     }
     pub(crate) fn clicked(
         &self,

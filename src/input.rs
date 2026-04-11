@@ -25,7 +25,7 @@ pub(crate) mod prelude {
 use bevy::prelude::*;
 use bevy_enhanced_input::prelude::*;
 
-use crate::{characters::prelude::*, input::prelude::*, screens::prelude::*};
+use crate::{characters::prelude::*, screens::prelude::*};
 
 pub(super) struct InputPlugin;
 impl Plugin for InputPlugin {
@@ -57,7 +57,7 @@ impl Plugin for InputPlugin {
                     (mock::mock_melee_from_click, mock::mock_melee_from_touch).chain(),
                     (mock::mock_aim_from_click, mock::mock_aim_from_touch).chain(),
                 )
-                    .run_if(in_state(Screen::Gameplay).and(in_state(PointerBlockedByUi(false))))
+                    .run_if(in_state(Screen::Gameplay))
                     .chain(),
             )
                 .in_set(InputSystems::Mock)

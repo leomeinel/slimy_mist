@@ -59,7 +59,6 @@ impl Plugin for DebugPlugin {
             (
                 log_transitions::<Debug>,
                 log_transitions::<DespawnProcGen>,
-                log_transitions::<PointerBlockedByUi>,
                 log_transitions::<JoystickState<{ JoystickID::Movement as u8 }>>,
                 log_transitions::<Menu>,
                 log_transitions::<OverrideInteraction>,

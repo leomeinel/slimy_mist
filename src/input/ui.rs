@@ -19,8 +19,6 @@ impl Plugin for UiInputPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((nav::UiInputNavPlugin, scroll::UiInputScrollPlugin));
 
-        app.init_state::<PointerBlockedByUi>();
-
         app.init_resource::<UiNavActionSet>();
 
         app.add_systems(
@@ -37,11 +35,12 @@ impl Plugin for UiInputPlugin {
     }
 }
 
-/// Tracks whether input is blocked by ui.
+/// A set of optional touch ids indicating that input is currently blocked by ui.
 ///
-/// If this is true, any pointer interactions will be limited to ui in gameplay.
-#[derive(States, Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
-pub(crate) struct PointerBlockedByUi(pub(crate) bool);
+/// - [`Some`] means that the id for an input has been stored. This is true for touch interactions.
+/// - [`None`] means that no id was stored, but an input has happened. This is true for mouse interactions.
+#[derive(Resource, Default)]
+pub(crate) struct PointerBlockedByUi(pub(crate) HashSet<Option<u64>>);
 
 /// Marker [`Component`] for directional navigation.
 #[derive(Component)]
@@ -113,37 +112,35 @@ impl UiNavActionSet {
     }
 }
 
-// FIXME: This sometimes sets an incorrect state.
-//        Especially while double clicking this sometimes sets false even though the click was contained in the rect.
 /// Update [`PointerBlockedByUi`] from [`NodeRect`]s.
 fn update_pointer_blocked(
     removed_rects: RemovedComponents<NodeRect>,
+    window: Single<&Window, With<PrimaryWindow>>,
     rect_query: Query<&NodeRect>,
     rect_changed_query: Query<(), Changed<NodeRect>>,
-    window: Single<&Window, With<PrimaryWindow>>,
+    mut pointer_blocked: ResMut<PointerBlockedByUi>,
     drag: Res<MouseDrag>,
     mouse: Res<ButtonInput<MouseButton>>,
     touches: Res<Touches>,
-    mut next_state: ResMut<NextState<PointerBlockedByUi>>,
-    state: Res<State<PointerBlockedByUi>>,
 ) {
     if removed_rects.is_empty() && rect_changed_query.is_empty() {
         return;
     }
-    let block = rect_query.iter().any(|r| {
-        r.touched(&touches)
-            || r.clicked(
+
+    pointer_blocked.0.clear();
+    for rect in rect_query {
+        let touch_id = rect.touched_id(&touches);
+        if touch_id.is_some()
+            || rect.clicked(
                 &mouse,
                 &MouseButton::Left,
                 window.cursor_position(),
                 drag.start_pos,
             )
-    });
-    // FIXME: This hack is to suppress log spam from same-state transitions. We have to find a better way.
-    if block == (**state).0 {
-        return;
+        {
+            pointer_blocked.0.insert(touch_id);
+        }
     }
-    (*next_state).set_if_neq(PointerBlockedByUi(block));
 }
 
 // FIXME: I'm pretty sure that right stick joystick input is broken. For now I can't further describe how

@@ -38,9 +38,13 @@ pub(super) fn mock_walk_from_virtual_joystick(
 pub(super) fn mock_jump_from_touch(
     jump: Single<Entity, With<Player>>,
     mut commands: Commands,
+    pointer_blocked: Res<PointerBlockedByUi>,
     touches: Res<Touches>,
 ) {
     for touch in touches.iter_just_released() {
+        if pointer_blocked.0.contains(&Some(touch.id())) {
+            continue;
+        }
         if touch.is_swipe_up() {
             commands
                 .entity(*jump)
@@ -53,6 +57,7 @@ pub(super) fn mock_jump_from_touch(
 pub(super) fn mock_melee_from_touch(
     melee: Single<Entity, With<Player>>,
     mut commands: Commands,
+    pointer_blocked: Res<PointerBlockedByUi>,
     pointer_start: Res<PointerStartTimeSecs>,
     touches: Res<Touches>,
     time: Res<Time>,
@@ -61,7 +66,10 @@ pub(super) fn mock_melee_from_touch(
         return;
     }
 
-    if touches.iter_just_released().any(|t| !t.is_vertical_swipe()) {
+    if touches
+        .iter_just_released()
+        .any(|t| !pointer_blocked.0.contains(&Some(t.id())) && !t.is_vertical_swipe())
+    {
         commands
             .entity(*melee)
             .mock_once::<Player, Melee>(TriggerState::Fired, true);
@@ -74,12 +82,16 @@ pub(super) fn mock_aim_from_touch(
     camera: Single<(&Camera, &GlobalTransform), With<CanvasCamera>>,
     player_transform: Single<&Transform, With<Player>>,
     mut commands: Commands,
+    pointer_blocked: Res<PointerBlockedByUi>,
     touches: Res<Touches>,
 ) {
     let (camera, camera_transform) = *camera;
 
     // NOTE: We are using `just_pressed` to allow use in `Melee`.
     for touch in touches.iter_just_pressed() {
+        if pointer_blocked.0.contains(&Some(touch.id())) {
+            continue;
+        }
         if let Ok(world_pointer_pos) =
             camera.viewport_to_world_2d(camera_transform, touch.position())
         {
@@ -99,10 +111,12 @@ pub(super) fn mock_melee_from_click(
     mut commands: Commands,
     drag: Res<MouseDrag>,
     mouse: Res<ButtonInput<MouseButton>>,
+    pointer_blocked: Res<PointerBlockedByUi>,
     pointer_start: Res<PointerStartTimeSecs>,
     time: Res<Time>,
 ) {
-    if !mouse.just_released(MouseButton::Left)
+    if pointer_blocked.0.contains(&None)
+        || !mouse.just_released(MouseButton::Left)
         || !pointer_start.is_tap(time.elapsed_secs())
         || drag.is_vertical_swipe()
     {
@@ -122,9 +136,10 @@ pub(super) fn mock_aim_from_click(
     window: Single<&Window, With<PrimaryWindow>>,
     mut commands: Commands,
     mouse: Res<ButtonInput<MouseButton>>,
+    pointer_blocked: Res<PointerBlockedByUi>,
 ) {
     // NOTE: We are using `just_pressed` to allow use in `Melee`.
-    if !mouse.just_pressed(MouseButton::Left) {
+    if pointer_blocked.0.contains(&None) || !mouse.just_pressed(MouseButton::Left) {
         return;
     }
 

@@ -35,7 +35,7 @@ pub(crate) struct YSortOffset(pub(crate) f32);
 pub(super) fn relative_sort<T, A>(
     query: Query<(&mut Transform, &YSort, Option<&YSortOffset>), With<T>>,
     cache: Res<ProcGenCache<A>>,
-    texture_info: Res<ImageSize<T>>,
+    image_size: Res<ImageSize<T>>,
     level_dimensions: Res<LevelDimensions<A>>,
 ) where
     T: Visible,
@@ -47,7 +47,7 @@ pub(super) fn relative_sort<T, A>(
     //       This also helps with keeping `BACKGROUND_Z_DELTA` low while making sure that it is displayed behind
     //       all visible objects on the canvas.
     let scale_divisor = level_dimensions.world_height * 2.;
-    let texture_offset = texture_info.size.y as f32 / 2.;
+    let texture_offset = image_size.size.y as f32 / 2.;
 
     for (mut transform, sort, sort_offset) in query {
         let sort_offset = sort_offset.map_or(0., |offset| offset.0);

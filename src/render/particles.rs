@@ -133,12 +133,12 @@ fn add_walking_dust<T>(
     base_query: Query<(), With<AnimationBase>>,
     query: Query<&Children, With<T>>,
     mut commands: Commands,
-    texture_info: Res<ImageSize<T>>,
+    image_size: Res<ImageSize<T>>,
     handle: Res<ParticleHandle<ParticleWalkingDust>>,
 ) where
     T: Visible,
 {
-    let texture_offset = texture_info.size.y as f32 / 2.;
+    let texture_offset = image_size.size.y as f32 / 2.;
 
     for children in query {
         let child = children

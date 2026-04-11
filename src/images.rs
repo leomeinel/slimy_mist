@@ -8,7 +8,6 @@
  */
 
 // FIXME: I'd like to have an easy way to use shaders for my sprites. This does currently not seem possible.
-//        We also need this for showing an outline.
 //        Also see:
 //        - https://github.com/merwaaan/bevy_spritesheet_animation/issues/66
 //        - https://github.com/bevyengine/bevy/pull/22484 (merged)

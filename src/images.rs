@@ -25,7 +25,7 @@ pub(crate) mod prelude {
     pub(crate) use super::palette::*;
     pub(crate) use super::tiles::{TileData, TileDataCache, TileHandle};
     pub(crate) use super::transitions::{FadeInOut, apply_fade_in_out, tick_fade_in_out};
-    pub(crate) use super::{ImageMeta, ImageSize, image_from_data};
+    pub(crate) use super::{CelSize, ImageMeta, image_from_data};
 }
 
 use std::marker::PhantomData;
@@ -34,8 +34,8 @@ use bevy::{asset::RenderAssetUsages, prelude::*, render::render_resource::*};
 use bevy_ecs_tilemap::prelude::*;
 
 use crate::{
-    characters::prelude::*, images::prelude::*, log::prelude::*, render::prelude::*,
-    screens::prelude::*,
+    animations::prelude::*, characters::prelude::*, images::prelude::*, log::prelude::*,
+    render::prelude::*, screens::prelude::*,
 };
 
 pub(super) struct ImagesPlugin;
@@ -54,6 +54,7 @@ impl Plugin for ImagesPlugin {
                     outline::add_outline::<Player>,
                     outline::add_outline::<Slime>,
                 ),
+                (insert_cel_size::<Player>, insert_cel_size::<Slime>),
             )
                 .in_set(EnterGameplaySystems::Images)
                 .chain(),
@@ -61,24 +62,28 @@ impl Plugin for ImagesPlugin {
     }
 }
 
-/// Image size.
+/// Cel size.
 #[derive(Resource, Default)]
-pub(crate) struct ImageSize<T>
+pub(crate) struct CelSize<T>
 where
     T: Visible,
 {
     pub(crate) size: UVec2,
     pub(crate) _phantom: PhantomData<T>,
 }
-impl<T> From<&ImageMeta<T>> for ImageSize<T>
+impl<T> CelSize<T>
 where
     T: Visible,
 {
-    fn from(meta: &ImageMeta<T>) -> Self {
-        Self {
-            size: UVec2::new(meta.size.width, meta.size.height),
-            ..default()
-        }
+    fn from_animation_data(animation_data: &AnimationDataCache<T>, meta: &ImageMeta<T>) -> Self {
+        assert_eq!(meta.size.width % animation_data.atlas_columns as u32, 0);
+        assert_eq!(meta.size.height % animation_data.atlas_rows as u32, 0);
+        let size = UVec2::new(
+            meta.size.width / animation_data.atlas_columns as u32,
+            meta.size.height / animation_data.atlas_rows as u32,
+        );
+
+        Self { size, ..default() }
     }
 }
 
@@ -159,7 +164,7 @@ where
     images.add(image)
 }
 
-/// Insert [`DisplayLayers`] and [`ImageSize`].
+/// Insert [`DisplayLayers`] and [`ImageMeta`].
 fn insert_images_and_related<T>(
     mut commands: Commands,
     mut images: ResMut<Assets<Image>>,
@@ -174,6 +179,16 @@ fn insert_images_and_related<T>(
         &meta,
         &mut images,
     ));
-    commands.insert_resource(ImageSize::from(&meta));
     commands.insert_resource(meta);
+}
+
+/// Insert [`CelSize`].
+fn insert_cel_size<T>(
+    mut commands: Commands,
+    animation_data: Res<AnimationDataCache<T>>,
+    meta: Res<ImageMeta<T>>,
+) where
+    T: Visible,
+{
+    commands.insert_resource(CelSize::from_animation_data(&animation_data, &meta));
 }

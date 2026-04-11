@@ -10,7 +10,6 @@
 //! Characters
 
 mod attack;
-mod collision;
 mod health;
 mod movement;
 mod nav;
@@ -22,7 +21,6 @@ pub(crate) mod prelude {
     pub(crate) use super::attack::{
         AimDirection, Attack, AttackData, AttackStats, AttackTimer, DelayAttack, InitAttack, punch,
     };
-    pub(crate) use super::collision::{CollisionData, CollisionDataCache, CollisionHandle};
     pub(crate) use super::health::{Damage, Health};
     pub(crate) use super::movement::{
         FacingDirection, JUMP_DURATION_SECS, JumpHeight, JumpTimer, WalkSpeed,
@@ -30,10 +28,7 @@ pub(crate) mod prelude {
     pub(crate) use super::nav::{NavTarget, Navigator, Path};
     pub(crate) use super::npc::{Npc, Slime, SlimeAssets};
     pub(crate) use super::player::{Player, PlayerAssets};
-    pub(crate) use super::{
-        Character, CharacterAssets, CharacterDimensions, CharacterShadow, SpawnCharacter,
-        StaticShadow, impl_character_assets,
-    };
+    pub(crate) use super::{Character, CharacterAssets, SpawnCharacter, impl_character_assets};
 }
 
 use std::marker::PhantomData;
@@ -46,8 +41,9 @@ use bevy_spritesheet_animation::prelude::*;
 use rand::RngExt as _;
 
 use crate::{
-    animations::prelude::*, characters::prelude::*, core::prelude::*, levels::prelude::*,
-    procgen::prelude::*, render::prelude::*, screens::prelude::*, utils::prelude::*,
+    animations::prelude::*, characters::prelude::*, core::prelude::*, images::prelude::*,
+    levels::prelude::*, physics::prelude::*, procgen::prelude::*, render::prelude::*,
+    screens::prelude::*, utils::prelude::*,
 };
 
 pub(super) struct CharactersPlugin;
@@ -150,7 +146,10 @@ where
         }
     }
 
-    fn shadow_bundle(shadow: &StaticShadow, height: f32) -> impl Bundle {
+    fn shadow_bundle<T>(shadow: &ArtificialShadow<T>, height: f32) -> impl Bundle
+    where
+        T: Visible,
+    {
         (
             Mesh2d(shadow.mesh.clone()),
             // FIXME: Using `LightOccluder2d` might be a good idea instead, but we will
@@ -159,38 +158,6 @@ where
             Transform::from_xyz(0., -height / 4., BACKGROUND_Z_DELTA),
         )
     }
-}
-
-/// Dimensions for all [`Character`]s of type `T`.
-///
-/// This is related to [`CollisionData`].
-#[derive(Resource, Default)]
-pub(crate) struct CharacterDimensions<T>
-where
-    T: Character,
-{
-    pub(crate) width: f32,
-    pub(crate) height: f32,
-    pub(crate) _phantom: PhantomData<T>,
-}
-
-/// Shadow for all [`Character`]s of type `T`.
-///
-/// This is related to [`CollisionData`]
-#[derive(Resource, Default)]
-pub(crate) struct CharacterShadow<T>
-where
-    T: Character,
-{
-    pub(crate) shadow: StaticShadow,
-    pub(crate) _phantom: PhantomData<T>,
-}
-
-/// Artificial shadow.
-#[derive(Default)]
-pub(crate) struct StaticShadow {
-    pub(crate) mesh: Handle<Mesh>,
-    pub(crate) material: Handle<ColorMaterial>,
 }
 
 /// [`EntityEvent`] for spawning a [`Character`].
@@ -211,10 +178,10 @@ fn on_spawn_character<T, A>(
     mut animation_rng: Single<&mut WyRand, With<AnimationRng>>,
     level: Single<Entity, With<A>>,
     mut commands: Commands,
-    character_animations: Res<SpriteAnimations<T>>,
-    character_dimensions: Res<CharacterDimensions<T>>,
+    sprite_animations: Res<SpriteAnimations<T>>,
+    cel_size: Res<CelSize<T>>,
     collision_data: Res<CollisionDataCache<T>>,
-    shadow: Res<CharacterShadow<T>>,
+    shadow: Res<ArtificialShadow<T>>,
 ) where
     T: Character + Visible,
     A: Level,
@@ -232,18 +199,15 @@ fn on_spawn_character<T, A>(
         .insert((
             T::container_bundle(event.pos, animation_delay, collider_offset),
             T::collider(collider_shape, collider_width, collider_height),
-            children![T::shadow_bundle(
-                &shadow.shadow,
-                character_dimensions.height
-            )],
+            children![T::shadow_bundle(&shadow, cel_size.size.y as f32)],
         ))
         .with_children(|commands| {
             let mut animation = commands.spawn((
-                T::animation_bundle(&character_animations.base),
+                T::animation_bundle(&sprite_animations.base),
                 Transform::from_xyz(0., -collider_offset, 0.),
                 AnimationBase,
             ));
-            if let Some(floating) = &character_animations.floating {
+            if let Some(floating) = &sprite_animations.floating {
                 animation.with_children(|commands| {
                     commands.spawn((
                         T::animation_bundle(floating),

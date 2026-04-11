@@ -13,7 +13,7 @@
 pub(crate) const WARN_INCOMPLETE_ANIMATION_DATA: &str = "Incomplete animation data.";
 /// Warning on incomplete asset data.
 pub(crate) const WARN_INCOMPLETE_ASSET_DATA: &str = "Incomplete asset data.";
-/// Warning on incomplete [`CollisionData`](crate::characters::prelude::CollisionData).
+/// Warning on incomplete [`CollisionData`](crate::physics::prelude::CollisionData).
 pub(crate) const WARN_INCOMPLETE_COLLISION_DATA: &str = "Incomplete collision data.";
 
 /// Warning on invalid [`AttackData`](crate::characters::prelude::AttackData`).

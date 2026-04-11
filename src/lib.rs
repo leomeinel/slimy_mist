@@ -28,6 +28,7 @@ mod levels;
 mod log;
 #[cfg(any(target_os = "android", target_os = "ios"))]
 mod mobile;
+mod physics;
 mod procgen;
 mod render;
 mod screens;

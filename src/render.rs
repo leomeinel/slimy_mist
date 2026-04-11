@@ -9,6 +9,7 @@
 
 mod camera;
 mod light;
+mod materials;
 mod particles;
 mod ysort;
 mod z_levels;
@@ -18,6 +19,7 @@ pub(crate) mod prelude {
     pub(crate) use super::Visible;
     pub(crate) use super::camera::CanvasCamera;
     pub(crate) use super::light::{DayTimer, DayUpdateTimer, LightWrapper, StreetLight};
+    pub(crate) use super::materials::ArtificialShadow;
     pub(crate) use super::particles::{
         Particle, ParticleHandle, ParticleMeleeAttack, ParticleWalkingDust, SpawnParticleOnce,
     };

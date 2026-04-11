@@ -11,7 +11,7 @@ use bevy::{platform::collections::HashSet, prelude::*};
 use bevy_rapier2d::{parry::shape, prelude::*};
 use ordered_float::OrderedFloat;
 
-use crate::{characters::prelude::*, log::prelude::*, render::prelude::*};
+use crate::{characters::prelude::*, images::prelude::*, log::prelude::*, render::prelude::*};
 
 /// Direction the [`Character`] is aiming.
 #[derive(Component, Deref, DerefMut)]
@@ -100,11 +100,11 @@ pub(super) fn on_melee_attack<T>(
     target_query: Query<&Health>,
     origin_query: Query<(&Transform, &AimDirection, &AttackStats), With<T>>,
     mut commands: Commands,
-    character_dimensions: Res<CharacterDimensions<T>>,
+    cel_size: Res<CelSize<T>>,
     rapier_context: ReadRapierContext,
     particle_handle: Res<ParticleHandle<ParticleMeleeAttack>>,
 ) where
-    T: Character,
+    T: Visible,
 {
     for attack in reader.read() {
         let Attack::Melee(entity) = attack else {
@@ -112,7 +112,6 @@ pub(super) fn on_melee_attack<T>(
         };
 
         let rapier_context = rapier_context.single().expect(ERR_INVALID_RAPIER_CONTEXT);
-        let (width, height) = (character_dimensions.width, character_dimensions.height);
         let (transform, direction, stats) = origin_query.get(*entity).expect(ERR_INVALID_ATTACKER);
         let Some(melee) = &stats.melee else {
             warn_once!("{}", WARN_INVALID_ATTACK_DATA);
@@ -121,7 +120,7 @@ pub(super) fn on_melee_attack<T>(
 
         // Cast ray to determine boundary of `Collider`
         // NOTE: We have to add an offset to max_toi to ensure that the ray reaches the boundary.
-        let max_toi = (width / 2.).max(height / 2.) + 1.;
+        let max_toi = (cel_size.size.x as f32 / 2.).max(cel_size.size.y as f32 / 2.) + 1.;
         // Filter for the source itself
         let filter = &|e| e == *entity;
         let filter = QueryFilter::exclude_dynamic()

@@ -21,8 +21,8 @@ use iyes_progress::ProgressPlugin;
 
 use crate::{
     animations::prelude::*, characters::prelude::*, images::prelude::*, input::prelude::*,
-    levels::prelude::*, log::prelude::*, procgen::prelude::*, render::prelude::*,
-    screens::prelude::*, ui::prelude::*,
+    levels::prelude::*, log::prelude::*, physics::prelude::*, procgen::prelude::*,
+    render::prelude::*, screens::prelude::*, ui::prelude::*,
 };
 
 pub(super) struct LoadingPlugin;
@@ -204,7 +204,7 @@ fn cache_collision_data_and_related<T>(
     mut meshes: ResMut<Assets<Mesh>>,
     handle: Res<CollisionHandle<T>>,
 ) where
-    T: Character + Visible,
+    T: Visible,
 {
     let data = data
         .remove(handle.0.id())
@@ -225,18 +225,10 @@ fn cache_collision_data_and_related<T>(
         offset,
         ..default()
     });
-    commands.insert_resource(CharacterDimensions::<T> {
-        width,
-        // NOTE: We are multiplying collider height by 2 because of 2:1 pixel ratio.
-        height: height * 2.,
-        ..default()
-    });
-    commands.insert_resource(CharacterShadow::<T> {
-        shadow: StaticShadow {
-            // NOTE: We are dividing collider height by 2, not 4 because of 2:1 pixel ratio.
-            mesh: meshes.add(Ellipse::new(width / 2., height / 2.)),
-            material: materials.add(Color::from(SHADOW_COLOR.with_alpha(0.25))),
-        },
+    commands.insert_resource(ArtificialShadow::<T> {
+        // NOTE: We are dividing collider height by 2, not 4 because of 2:1 pixel ratio.
+        mesh: meshes.add(Ellipse::new(width / 2., height / 2.)),
+        material: materials.add(Color::from(SHADOW_COLOR.with_alpha(0.25))),
         ..default()
     });
 

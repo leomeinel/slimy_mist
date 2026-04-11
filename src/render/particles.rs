@@ -28,7 +28,7 @@ impl Plugin for ParticlesPlugin {
         );
         app.add_systems(
             Update,
-            update_character_particles::<Player, ParticleWalkingDust>
+            update_particles::<Player, ParticleWalkingDust>
                 .after(EnterGameplaySystems::Levels)
                 .run_if(in_state(Screen::Gameplay)),
         );
@@ -121,12 +121,12 @@ fn add_walking_dust<T>(
     base_query: Query<(), With<AnimationBase>>,
     query: Query<&Children, With<T>>,
     mut commands: Commands,
-    image_size: Res<ImageSize<T>>,
+    cel_size: Res<CelSize<T>>,
     handle: Res<ParticleHandle<ParticleWalkingDust>>,
 ) where
     T: Visible,
 {
-    let texture_offset = image_size.size.y as f32 / 2.;
+    let texture_offset = cel_size.size.y as f32 / 2.;
 
     for children in query {
         let child = children
@@ -151,8 +151,8 @@ fn add_walking_dust<T>(
     }
 }
 
-/// Update particle for [`Character`]s.
-fn update_character_particles<T, A>(
+/// Update particle for type `T`.
+fn update_particles<T, A>(
     base_query: Query<&Children, With<AnimationBase>>,
     character_query: Query<(&mut AnimationState, &Children), With<T>>,
     mut particle_query: Query<
@@ -164,7 +164,7 @@ fn update_character_particles<T, A>(
         With<A>,
     >,
 ) where
-    T: Character + Visible,
+    T: Visible,
     A: Particle,
 {
     for (animation_state, children) in character_query {

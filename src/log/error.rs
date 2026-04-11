@@ -29,7 +29,7 @@ pub(crate) const ERR_INVALID_RAPIER_CONTEXT: &str = "Invalid rapier context. Thi
 /// Error on loading [`AnimationData`](crate::animations::prelude::AnimationData).
 pub(crate) const ERR_LOADING_ANIMATION_DATA: &str =
     "Could not load animation data. The config might be missing.";
-/// Error on loading [`CollisionData`](crate::characters::prelude::CollisionData).
+/// Error on loading [`CollisionData`](crate::physics::prelude::CollisionData).
 pub(crate) const ERR_LOADING_COLLISION_DATA: &str =
     "Could not load collision data. The config might be missing.";
 /// Error on loading [`CreditsData`](crate::ui::prelude::CreditsData).

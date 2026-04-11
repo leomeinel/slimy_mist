@@ -204,7 +204,7 @@ fn cache_collision_data_and_related<T>(
     mut meshes: ResMut<Assets<Mesh>>,
     handle: Res<CollisionHandle<T>>,
 ) where
-    T: Character,
+    T: Character + Visible,
 {
     let data = data
         .remove(handle.0.id())

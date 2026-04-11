@@ -12,13 +12,13 @@ use std::marker::PhantomData;
 use bevy::prelude::*;
 use serde::Deserialize;
 
-use crate::characters::prelude::*;
+use crate::render::prelude::*;
 
 /// Collision data deserialized from a ron file.
 #[derive(Deserialize, Asset, TypePath, Default)]
 pub(crate) struct CollisionData<T>
 where
-    T: Character,
+    T: Visible,
 {
     #[serde(default)]
     pub(crate) shape: Option<String>,
@@ -36,7 +36,7 @@ where
 #[derive(Resource)]
 pub(crate) struct CollisionHandle<T>(pub(crate) Handle<CollisionData<T>>)
 where
-    T: Character;
+    T: Visible;
 
 /// Cache for [`CollisionData`]
 ///
@@ -44,7 +44,7 @@ where
 #[derive(Resource, Default)]
 pub(crate) struct CollisionDataCache<T>
 where
-    T: Character,
+    T: Visible,
 {
     pub(crate) shape: String,
     pub(crate) width: f32,

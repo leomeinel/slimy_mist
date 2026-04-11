@@ -15,19 +15,22 @@
 //            - Part of: https://github.com/bevyengine/bevy/milestone/40 (0.19)
 
 mod layers;
+mod outline;
+mod palette;
 mod tiles;
 mod transitions;
 
 pub(crate) mod prelude {
     pub(crate) use super::layers::{DisplayLayers, LayerData, LayerDataCache, LayerHandle};
+    pub(crate) use super::palette::*;
     pub(crate) use super::tiles::{TileData, TileDataCache, TileHandle};
     pub(crate) use super::transitions::{FadeInOut, apply_fade_in_out, tick_fade_in_out};
-    pub(crate) use super::{ImageMeta, ImageSize};
+    pub(crate) use super::{ImageMeta, ImageSize, image_from_data};
 }
 
 use std::marker::PhantomData;
 
-use bevy::{prelude::*, render::render_resource::*};
+use bevy::{asset::RenderAssetUsages, prelude::*, render::render_resource::*};
 use bevy_ecs_tilemap::prelude::*;
 
 use crate::{
@@ -42,11 +45,18 @@ impl Plugin for ImagesPlugin {
 
         app.add_systems(
             OnEnter(Screen::Gameplay),
+            (
                 (
-                insert_images_and_related::<Player>,
-                insert_images_and_related::<Slime>,
-                )
-                    .in_set(EnterGameplaySystems::Sprites),
+                    insert_images_and_related::<Player>,
+                    insert_images_and_related::<Slime>,
+                ),
+                (
+                    outline::add_outline::<Player>,
+                    outline::add_outline::<Slime>,
+                ),
+            )
+                .in_set(EnterGameplaySystems::Images)
+                .chain(),
         );
     }
 }
@@ -64,11 +74,11 @@ where
     pub(crate) size: UVec2,
     pub(crate) _phantom: PhantomData<T>,
 }
-impl<T> From<ImageMeta<T>> for ImageSize<T>
+impl<T> From<&ImageMeta<T>> for ImageSize<T>
 where
     T: Visible,
 {
-    fn from(meta: ImageMeta<T>) -> Self {
+    fn from(meta: &ImageMeta<T>) -> Self {
         Self {
             size: UVec2::new(meta.size.width, meta.size.height),
             ..default()
@@ -81,6 +91,7 @@ where
 /// ## Traits
 ///
 /// - `T` must implement [`Visible`].
+#[derive(Resource)]
 pub(crate) struct ImageMeta<T>
 where
     T: Visible,
@@ -96,7 +107,7 @@ where
 {
     fn from_layer_data_cache(data: &LayerDataCache<T>, images: &mut ResMut<Assets<Image>>) -> Self {
         let (size, dimension, format) = data
-        .base
+            .base
             .first()
             .map(|image| {
                 let descriptor = &images
@@ -107,7 +118,9 @@ where
             })
             .expect(ERR_INVALID_IMAGE);
 
-        // Assert that all layers have the same metadata.
+        // NOTE: This is to ensure that we do have an alpha channel. We could extend this in the future.
+        assert_eq!(format, TextureFormat::bevy_default());
+
         assert!(data.base.iter().all(|image| {
             let descriptor = &images
                 .get(image)
@@ -135,6 +148,29 @@ where
     }
 }
 
+/// [`Handle<Image>`] from [`Image::data`] and [`ImageMeta`].
+///
+/// ## Traits
+///
+/// - `T` must implement [`Visible`].
+pub(crate) fn image_from_data<T>(
+    data: Vec<u8>,
+    meta: &ImageMeta<T>,
+    images: &mut ResMut<Assets<Image>>,
+) -> Handle<Image>
+where
+    T: Visible,
+{
+    let image = Image::new(
+        meta.size,
+        meta.dimension,
+        data,
+        meta.format,
+        RenderAssetUsages::all(),
+    );
+    images.add(image)
+}
+
 /// Insert [`DisplayLayers`] and [`ImageSize`].
 ///
 /// ## Traits
@@ -148,10 +184,12 @@ fn insert_images_and_related<T>(
     T: Visible,
 {
     let meta = ImageMeta::from_layer_data_cache(&data, &mut images);
+
     commands.insert_resource(DisplayLayers::from_layer_data_cache(
         &data,
         &meta,
         &mut images,
     ));
-    commands.insert_resource(ImageSize::from(meta));
+    commands.insert_resource(ImageSize::from(&meta));
+    commands.insert_resource(meta);
 }

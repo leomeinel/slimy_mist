@@ -25,8 +25,6 @@ pub(crate) const ERR_INVALID_NAVMESH: &str = "Invalid nav mesh. This might be a 
 pub(crate) const ERR_INVALID_NAV_TARGET: &str = "Invalid nav target. This might be a bug.";
 /// Error on invalid [`ReadRapierContext`](bevy_rapier2d::prelude::ReadRapierContext).
 pub(crate) const ERR_INVALID_RAPIER_CONTEXT: &str = "Invalid rapier context. This might be a bug.";
-/// Error on invalid [`TextureAtlas`](bevy::prelude::TextureAtlas).
-pub(crate) const ERR_INVALID_TEXTURE_ATLAS: &str = "Invalid texture atlas. This might be a bug.";
 
 /// Error on loading [`AnimationData`](crate::animations::prelude::AnimationData).
 pub(crate) const ERR_LOADING_ANIMATION_DATA: &str =

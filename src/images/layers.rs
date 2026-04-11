@@ -11,10 +11,14 @@
 
 use std::marker::PhantomData;
 
-use bevy::{asset::RenderAssetUsages, prelude::*};
+use bevy::prelude::*;
 use serde::Deserialize;
 
-use crate::{images::prelude::*, log::prelude::*, render::prelude::*};
+use crate::{
+    images::{image_from_data, prelude::*},
+    log::prelude::*,
+    render::prelude::*,
+};
 
 /// Layer data deserialized from a ron file.
 ///
@@ -131,12 +135,5 @@ where
         })
         .expect(ERR_INVALID_IMAGE);
 
-    let image = Image::new(
-        meta.size,
-        meta.dimension,
-        data,
-        meta.format,
-        RenderAssetUsages::all(),
-    );
-    images.add(image)
+    image_from_data(data, meta, images)
 }

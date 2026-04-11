@@ -25,9 +25,8 @@ impl Plugin for GameplayPlugin {
             OnEnter(Screen::Gameplay),
             (
                 EnterGameplaySystems::Resources,
-                EnterGameplaySystems::Sprites,
+                EnterGameplaySystems::Images,
                 EnterGameplaySystems::Animations,
-                EnterGameplaySystems::ImageMeta,
                 EnterGameplaySystems::Levels,
                 EnterGameplaySystems::Camera,
                 EnterGameplaySystems::NavMesh,
@@ -47,9 +46,8 @@ impl Plugin for GameplayPlugin {
 #[derive(SystemSet, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub(crate) enum EnterGameplaySystems {
     Resources,
-    Sprites,
+    Images,
     Animations,
-    ImageMeta,
     Levels,
     Camera,
     NavMesh,

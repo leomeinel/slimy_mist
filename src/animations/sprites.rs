@@ -15,7 +15,7 @@ use crate::{
     render::prelude::*,
 };
 
-/// Setup [`CharacterAnimations`] and add animations.
+/// Setup [`SpriteAnimations`] and add animations.
 pub(super) fn setup_animations<T>(
     mut commands: Commands,
     mut atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
@@ -24,7 +24,7 @@ pub(super) fn setup_animations<T>(
     layers: Res<DisplayLayers<T>>,
     images: Res<Assets<Image>>,
 ) where
-    T: Character + Visible,
+    T: Visible,
 {
     let base_sheet = Spritesheet::new(
         &layers.base,
@@ -36,15 +36,15 @@ pub(super) fn setup_animations<T>(
         .as_ref()
         .map(|i| Spritesheet::new(i, animation_data.atlas_columns, animation_data.atlas_rows));
     let floating_sheet = floating_sheet.as_ref();
-    let mut character_animations = CharacterAnimations::<T> {
-        base: CharacterAnimation {
+    let mut character_animations = SpriteAnimations::<T> {
+        base: SpriteAnimation {
             sprite: base_sheet
                 .with_loaded_image(&images)
                 .expect(ERR_NONEXISTENT_IMAGE)
                 .sprite(&mut atlas_layouts),
             ..default()
         },
-        floating: floating_sheet.map(|s| CharacterAnimation {
+        floating: floating_sheet.map(|s| SpriteAnimation {
             sprite: s
                 .with_loaded_image(&images)
                 .expect(ERR_NONEXISTENT_IMAGE)
@@ -88,7 +88,7 @@ pub(super) fn setup_animations<T>(
     commands.insert_resource(character_animations);
 }
 
-/// Update animations
+/// Update animations.
 pub(super) fn update_animations<T>(
     character_query: Query<
         (
@@ -101,9 +101,9 @@ pub(super) fn update_animations<T>(
     >,
     mut base_query: Query<(&mut SpritesheetAnimation, Option<&Children>), With<AnimationBase>>,
     mut floating_query: Query<&mut SpritesheetAnimation, Without<AnimationBase>>,
-    animations: Res<CharacterAnimations<T>>,
+    animations: Res<SpriteAnimations<T>>,
 ) where
-    T: Character,
+    T: Visible,
 {
     for (mut audio_index, animation_state, timer, children) in character_query {
         let children: Vec<_> = children.iter().collect();
@@ -139,7 +139,7 @@ pub(super) fn update_animation_orientations<T>(
     mut base_query: Query<(&mut Sprite, Option<&Children>), With<AnimationBase>>,
     mut floating_query: Query<&mut Sprite, Without<AnimationBase>>,
 ) where
-    T: Character,
+    T: Visible,
 {
     for (mut animation_state, direction, children) in character_query {
         let Some(orientation) = AnimationOrientation::try_from_vec2(direction.0) else {

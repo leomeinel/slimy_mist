@@ -14,19 +14,22 @@ use bevy_prng::WyRand;
 use bevy_spritesheet_animation::prelude::*;
 use rand::seq::IndexedRandom as _;
 
-use crate::{animations::prelude::*, audio::prelude::*, characters::prelude::*, log::prelude::*};
+use crate::{
+    animations::prelude::*, audio::prelude::*, characters::prelude::*, log::prelude::*,
+    render::prelude::*,
+};
 
 /// Animation audio index that indicates the current/last played audio frame.
 #[derive(Component, Default)]
 pub(crate) struct AnimationAudioIndex(pub(crate) Option<usize>);
 
-/// Animation audio map for a [`Character`].
+/// Animation audio map.
 ///
 /// This stores a map of [`AnimationState`] to audio indexes.
 #[derive(Resource, Default)]
 pub(crate) struct AnimationAudioMap<T>
 where
-    T: Character,
+    T: Visible,
 {
     pub(crate) map: HashMap<AnimationState, Vec<usize>>,
     pub(crate) _phantom: PhantomData<T>,
@@ -41,7 +44,7 @@ pub(super) fn update_animation_sounds<T, A>(
     audio_map: Res<AnimationAudioMap<T>>,
     assets: Res<A>,
 ) where
-    T: Character,
+    T: Visible,
     A: CharacterAssets,
 {
     for (mut audio_index, animation_state, children) in character_query {

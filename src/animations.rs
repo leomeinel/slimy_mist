@@ -27,7 +27,7 @@ pub(crate) mod prelude {
     pub(crate) use super::{
         ANIMATION_DELAY_RANGE_SECS, AnimationAction, AnimationBase, AnimationClip, AnimationData,
         AnimationDataCache, AnimationHandle, AnimationOrientation, AnimationRng, AnimationState,
-        AnimationTimer, CharacterAnimation, CharacterAnimations,
+        AnimationTimer, SpriteAnimation, SpriteAnimations,
     };
 }
 
@@ -40,7 +40,7 @@ use serde::Deserialize;
 
 use crate::{
     animations::prelude::*, characters::prelude::*, core::prelude::*, log::prelude::*,
-    screens::prelude::*, utils::prelude::*,
+    render::prelude::*, screens::prelude::*, utils::prelude::*,
 };
 
 pub(super) struct AnimationsPlugin;
@@ -100,7 +100,7 @@ pub(crate) const ANIMATION_DELAY_RANGE_SECS: Range<f32> = 0.0..10.0;
 #[derive(Deserialize, Asset, TypePath, Default)]
 pub(crate) struct AnimationData<T>
 where
-    T: Character,
+    T: Visible,
 {
     pub(crate) atlas_columns: usize,
     pub(crate) atlas_rows: usize,
@@ -120,7 +120,7 @@ where
 #[derive(Resource)]
 pub(crate) struct AnimationHandle<T>(pub(crate) Handle<AnimationData<T>>)
 where
-    T: Character;
+    T: Visible;
 
 /// Cache for [`AnimationData`]
 ///
@@ -128,7 +128,7 @@ where
 #[derive(Resource, Default)]
 pub(crate) struct AnimationDataCache<T>
 where
-    T: Character,
+    T: Visible,
 {
     pub(crate) atlas_columns: usize,
     pub(crate) atlas_rows: usize,
@@ -140,21 +140,21 @@ where
     pub(crate) _phantom: PhantomData<T>,
 }
 
-/// Animations for [`Character`]s of type `T`.
+/// [`Sprite`] animations.
 ///
 /// This stores the [`Sprite`] for the animation and a map of [`AnimationState`] to [`Handle<Animation>`].
 #[derive(Resource, Default)]
-pub(crate) struct CharacterAnimations<T>
+pub(crate) struct SpriteAnimations<T>
 where
-    T: Character,
+    T: Visible,
 {
-    pub(crate) base: CharacterAnimation,
-    pub(crate) floating: Option<CharacterAnimation>,
+    pub(crate) base: SpriteAnimation,
+    pub(crate) floating: Option<SpriteAnimation>,
     _phantom: PhantomData<T>,
 }
-impl<T> CharacterAnimations<T>
+impl<T> SpriteAnimations<T>
 where
-    T: Character,
+    T: Visible,
 {
     pub(crate) fn insert_animations(
         &mut self,
@@ -185,9 +185,9 @@ where
 #[derive(Component)]
 pub(crate) struct AnimationBase;
 
-/// Animation for a single [`Character`].
+/// Animation for a single [`Sprite`].
 #[derive(Default)]
-pub(crate) struct CharacterAnimation {
+pub(crate) struct SpriteAnimation {
     pub(crate) sprite: Sprite,
     pub(crate) map: HashMap<AnimationState, Handle<Animation>>,
 }
@@ -239,7 +239,7 @@ impl AnimationState {
         }
     }
 
-    pub(crate) fn animation(&self, animation: &CharacterAnimation) -> Handle<Animation> {
+    pub(crate) fn animation(&self, animation: &SpriteAnimation) -> Handle<Animation> {
         animation
             .map
             .get(&self.0)
@@ -249,7 +249,7 @@ impl AnimationState {
 
     pub(crate) fn switch(
         &self,
-        animation: &CharacterAnimation,
+        animation: &SpriteAnimation,
         sprite_animation: &mut SpritesheetAnimation,
         audio_index: &mut AnimationAudioIndex,
     ) {

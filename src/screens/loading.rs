@@ -155,7 +155,7 @@ fn cache_animation_data_and_related<T>(
     mut data: ResMut<Assets<AnimationData<T>>>,
     handle: Res<AnimationHandle<T>>,
 ) where
-    T: Character,
+    T: Visible,
 {
     let data = data
         .remove(handle.0.id())

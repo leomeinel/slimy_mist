@@ -53,8 +53,8 @@ use crate::{
 pub(super) struct CharactersPlugin;
 impl Plugin for CharactersPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<CharacterAnimations<Slime>>();
-        app.init_resource::<CharacterAnimations<Player>>();
+        app.init_resource::<SpriteAnimations<Slime>>();
+        app.init_resource::<SpriteAnimations<Player>>();
 
         app.add_message::<Attack>();
         app.add_message::<InitAttack>();
@@ -129,7 +129,7 @@ where
 {
     fn container_bundle(pos: Vec2, animation_delay: f32, offset: f32) -> impl Bundle;
 
-    fn animation_bundle(animation: &CharacterAnimation) -> impl Bundle {
+    fn animation_bundle(animation: &SpriteAnimation) -> impl Bundle {
         (
             animation.sprite.clone(),
             SpritesheetAnimation::new(AnimationState::default().animation(animation)),
@@ -211,12 +211,12 @@ fn on_spawn_character<T, A>(
     mut animation_rng: Single<&mut WyRand, With<AnimationRng>>,
     level: Single<Entity, With<A>>,
     mut commands: Commands,
-    character_animations: Res<CharacterAnimations<T>>,
+    character_animations: Res<SpriteAnimations<T>>,
     character_dimensions: Res<CharacterDimensions<T>>,
     collision_data: Res<CollisionDataCache<T>>,
     shadow: Res<CharacterShadow<T>>,
 ) where
-    T: Character,
+    T: Character + Visible,
     A: Level,
 {
     let animation_delay = animation_rng.random_range(ANIMATION_DELAY_RANGE_SECS);

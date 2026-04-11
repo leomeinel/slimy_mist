@@ -103,7 +103,7 @@ pub(crate) struct NodeOffset(pub(crate) IVec2);
 #[derive(Component, Default)]
 pub(crate) struct NodeRect(pub(crate) Rect);
 impl NodeRect {
-    pub(crate) fn touched(&self, touches: &Res<Touches>) -> bool {
+    pub(crate) fn touched(&self, touches: &Touches) -> bool {
         // NOTE: We need both `iter()` and `iter_just_released()` since we care about pressed and released.
         touches
             .iter()
@@ -112,7 +112,7 @@ impl NodeRect {
     }
     pub(crate) fn clicked(
         &self,
-        mouse: &Res<ButtonInput<MouseButton>>,
+        mouse: &ButtonInput<MouseButton>,
         mouse_button: &MouseButton,
         cursor_pos: Option<Vec2>,
         start_pos: Option<Vec2>,

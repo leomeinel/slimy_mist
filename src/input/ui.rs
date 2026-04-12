@@ -114,19 +114,13 @@ impl UiNavActionSet {
 
 /// Update [`PointerBlockedByUi`] from [`NodeRect`]s.
 fn update_pointer_blocked(
-    removed_rects: RemovedComponents<NodeRect>,
     window: Single<&Window, With<PrimaryWindow>>,
     rect_query: Query<&NodeRect>,
-    rect_changed_query: Query<(), Changed<NodeRect>>,
     mut pointer_blocked: ResMut<PointerBlockedByUi>,
     drag: Res<MouseDrag>,
     mouse: Res<ButtonInput<MouseButton>>,
     touches: Res<Touches>,
 ) {
-    if removed_rects.is_empty() && rect_changed_query.is_empty() {
-        return;
-    }
-
     pointer_blocked.0.clear();
     for rect in rect_query {
         let touch_id = rect.touched_id(&touches);

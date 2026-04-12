@@ -23,5 +23,6 @@ where
 {
     pub(crate) mesh: Handle<Mesh>,
     pub(crate) material: Handle<ColorMaterial>,
+    pub(crate) y_offset: f32,
     pub(crate) _phantom: PhantomData<T>,
 }

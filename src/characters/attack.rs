@@ -11,7 +11,7 @@ use bevy::{platform::collections::HashSet, prelude::*};
 use bevy_rapier2d::{parry::shape, prelude::*};
 use ordered_float::OrderedFloat;
 
-use crate::{characters::prelude::*, images::prelude::*, log::prelude::*, render::prelude::*};
+use crate::{characters::prelude::*, log::prelude::*, physics::prelude::*, render::prelude::*};
 
 /// Direction the [`Character`] is aiming.
 #[derive(Component, Deref, DerefMut)]
@@ -100,7 +100,7 @@ pub(super) fn on_melee_attack<T>(
     target_query: Query<&Health>,
     origin_query: Query<(&Transform, &AimDirection, &AttackStats), With<T>>,
     mut commands: Commands,
-    cel_size: Res<CelSize<T>>,
+    collision_data: Res<CollisionDataCache<T>>,
     rapier_context: ReadRapierContext,
     particle_handle: Res<ParticleHandle<ParticleMeleeAttack>>,
 ) where
@@ -120,7 +120,7 @@ pub(super) fn on_melee_attack<T>(
 
         // Cast ray to determine boundary of `Collider`
         // NOTE: We have to add an offset to max_toi to ensure that the ray reaches the boundary.
-        let max_toi = (cel_size.size.x as f32 / 2.).max(cel_size.size.y as f32 / 2.) + 1.;
+        let max_toi = (collision_data.width / 2.).max(collision_data.height / 2.) + 1.;
         // Filter for the source itself
         let filter = &|e| e == *entity;
         let filter = QueryFilter::exclude_dynamic()

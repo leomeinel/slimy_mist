@@ -41,9 +41,9 @@ use bevy_spritesheet_animation::prelude::*;
 use rand::RngExt as _;
 
 use crate::{
-    animations::prelude::*, characters::prelude::*, core::prelude::*, images::prelude::*,
-    levels::prelude::*, physics::prelude::*, procgen::prelude::*, render::prelude::*,
-    screens::prelude::*, utils::prelude::*,
+    animations::prelude::*, characters::prelude::*, core::prelude::*, levels::prelude::*,
+    physics::prelude::*, procgen::prelude::*, render::prelude::*, screens::prelude::*,
+    utils::prelude::*,
 };
 
 pub(super) struct CharactersPlugin;
@@ -123,7 +123,7 @@ pub(crate) trait Character
 where
     Self: Component + Default + Reflectable,
 {
-    fn container_bundle(pos: Vec2, animation_delay: f32, offset: f32) -> impl Bundle;
+    fn container_bundle(pos: Vec2, animation_delay: f32, y_offset: f32) -> impl Bundle;
 
     fn animation_bundle(animation: &SpriteAnimation) -> impl Bundle {
         (
@@ -146,7 +146,7 @@ where
         }
     }
 
-    fn shadow_bundle<T>(shadow: &ArtificialShadow<T>, height: f32) -> impl Bundle
+    fn shadow_bundle<T>(shadow: &ArtificialShadow<T>) -> impl Bundle
     where
         T: Visible,
     {
@@ -155,7 +155,7 @@ where
             // FIXME: Using `LightOccluder2d` might be a good idea instead, but we will
             //        have to wait for occluder support in `bevy_fast_light`.
             MeshMaterial2d(shadow.material.clone()),
-            Transform::from_xyz(0., -height / 4., BACKGROUND_Z_DELTA),
+            Transform::from_xyz(0., shadow.y_offset, BACKGROUND_Z_DELTA),
         )
     }
 }
@@ -179,7 +179,6 @@ fn on_spawn_character<T, A>(
     level: Single<Entity, With<A>>,
     mut commands: Commands,
     sprite_animations: Res<SpriteAnimations<T>>,
-    cel_size: Res<CelSize<T>>,
     collision_data: Res<CollisionDataCache<T>>,
     shadow: Res<ArtificialShadow<T>>,
 ) where
@@ -187,24 +186,24 @@ fn on_spawn_character<T, A>(
     A: Level,
 {
     let animation_delay = animation_rng.random_range(ANIMATION_DELAY_RANGE_SECS);
-    let (collider_shape, collider_width, collider_height, collider_offset) = (
+    let (collider_shape, collider_width, collider_height, collider_y_offset) = (
         collision_data.shape.clone(),
         collision_data.width,
         collision_data.height,
-        collision_data.offset,
+        collision_data.y_offset,
     );
 
     let entity = commands
         .entity(event.entity)
         .insert((
-            T::container_bundle(event.pos, animation_delay, collider_offset),
+            T::container_bundle(event.pos, animation_delay, collider_y_offset),
             T::collider(collider_shape, collider_width, collider_height),
-            children![T::shadow_bundle(&shadow, cel_size.size.y as f32)],
+            children![T::shadow_bundle(&shadow)],
         ))
         .with_children(|commands| {
             let mut animation = commands.spawn((
                 T::animation_bundle(&sprite_animations.base),
-                Transform::from_xyz(0., -collider_offset, 0.),
+                Transform::from_xyz(0., -collider_y_offset, 0.),
                 AnimationBase,
             ));
             if let Some(floating) = &sprite_animations.floating {

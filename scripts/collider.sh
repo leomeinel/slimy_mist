@@ -36,7 +36,7 @@ for file in "${SCRIPT_DIR}"/colliders/*.webp; do
         printf '%s\n' "    shape: Some(\"${SHAPE}\"),"
         printf '%s\n' "    width: Some(${WIDTH}),"
         printf '%s\n' "    height: Some(${HEIGHT}),"
-        printf '%s\n' "    offset: Some(${OFFSET}),"
+        printf '%s\n' "    y_offset: Some(${OFFSET}),"
         printf '%s\n' ")"
     } >"${OUTPUT}"
 done

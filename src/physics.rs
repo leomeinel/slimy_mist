@@ -31,7 +31,7 @@ where
     #[serde(default)]
     pub(crate) height: Option<f32>,
     #[serde(default)]
-    pub(crate) offset: Option<f32>,
+    pub(crate) y_offset: Option<f32>,
     #[serde(skip)]
     _phantom: PhantomData<T>,
 }
@@ -53,6 +53,6 @@ where
     pub(crate) shape: String,
     pub(crate) width: f32,
     pub(crate) height: f32,
-    pub(crate) offset: f32,
+    pub(crate) y_offset: f32,
     pub(crate) _phantom: PhantomData<T>,
 }

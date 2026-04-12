@@ -1,0 +1,24 @@
+/*
+ * File: color.rs
+ * Author: Leopold Johannes Meinel (leo@meinel.dev)
+ * -----
+ * Copyright (c) 2026 Leopold Johannes Meinel & contributors
+ * SPDX ID: Apache-2.0
+ * URL: https://www.apache.org/licenses/LICENSE-2.0
+ */
+
+use bevy::prelude::*;
+
+/// [`Color`] from RGB values as [`u8`] array.
+///
+/// Valid color channel values are from 0-255.
+pub(crate) const fn color_from_rgb(rgb: &[u8; 3]) -> Color {
+    Color::srgb_u8(rgb[0], rgb[1], rgb[2])
+}
+
+/// [`Color`] from RGB values as [`u8`] array with a custom alpha.
+///
+/// Valid color channel values are from 0-255.
+pub(crate) const fn color_from_rgba(rgb: &[u8; 3], a: u8) -> Color {
+    Color::srgba_u8(rgb[0], rgb[1], rgb[2], a)
+}

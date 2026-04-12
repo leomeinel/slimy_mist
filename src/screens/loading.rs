@@ -14,7 +14,7 @@
 //! A loading screen during which game assets are loaded if necessary.
 //! This reduces stuttering, especially for audio on Wasm.
 
-use bevy::{color::palettes::tailwind, platform::collections::HashMap, prelude::*};
+use bevy::{platform::collections::HashMap, prelude::*};
 use bevy_asset_loader::prelude::*;
 use bevy_common_assets::ron::RonAssetPlugin;
 use iyes_progress::ProgressPlugin;
@@ -193,9 +193,6 @@ fn cache_animation_data_and_related<T>(
     commands.remove_resource::<AnimationHandle<T>>();
 }
 
-/// Color for cast shadows
-const SHADOW_COLOR: Srgba = tailwind::GRAY_700;
-
 /// Cache data from [`CollisionData`] in [`CollisionDataCache`].
 fn cache_collision_data_and_related<T>(
     mut commands: Commands,
@@ -226,10 +223,11 @@ fn cache_collision_data_and_related<T>(
         ..default()
     });
     commands.insert_resource(ArtificialShadow::<T> {
-        // NOTE: We are dividing collider height by 2, not 4 because of 2:1 pixel ratio.
+        // NOTE: We are dividing collider height by 2 because of 2:1 pixel ratio.
         mesh: meshes.add(Ellipse::new(width / 2., height / 2.)),
-        material: materials.add(Color::from(SHADOW_COLOR.with_alpha(0.25))),
-        y_offset: -height / 2.,
+        material: materials.add(SHADOW_COLOR),
+        // NOTE: Move to the bottom but exclude the outline.
+        y_offset: -height / 2. + 1.,
         ..default()
     });
 

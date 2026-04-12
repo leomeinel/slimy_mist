@@ -15,13 +15,11 @@
 
 mod layers;
 mod outline;
-mod palette;
 mod tiles;
 mod transitions;
 
 pub(crate) mod prelude {
     pub(crate) use super::layers::{DisplayLayers, LayerData, LayerDataCache, LayerHandle};
-    pub(crate) use super::palette::*;
     pub(crate) use super::tiles::{TileData, TileDataCache, TileHandle};
     pub(crate) use super::transitions::{FadeInOut, apply_fade_in_out, tick_fade_in_out};
     pub(crate) use super::{CelSize, ImageMeta, image_from_data};

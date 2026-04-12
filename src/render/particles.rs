@@ -126,7 +126,7 @@ fn add_walking_dust<T>(
 ) where
     T: Visible,
 {
-    let texture_offset = cel_size.size.y as f32 / 2.;
+    let y_offset = cel_size.size.y as f32 / 2.;
 
     for children in query {
         let child = children
@@ -144,7 +144,7 @@ fn add_walking_dust<T>(
                     ..default()
                 },
                 ParticleEffectHandle(handle.handle.clone()),
-                Transform::from_translation(Vec3::new(0., -texture_offset, BACKGROUND_Z_DELTA)),
+                Transform::from_translation(Vec3::new(0., -y_offset, -LAYER_Z_DELTA)),
             ))
             .id();
         commands.entity(child).add_child(particle);

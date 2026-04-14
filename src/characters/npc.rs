@@ -55,7 +55,7 @@ impl Character for Slime {
             (
                 Transform::from_translation(pos.extend(FOREGROUND_Z)),
                 YSort(FOREGROUND_Z),
-                YSortOffset(-y_offset),
+                YSortOffset(y_offset),
                 Visibility::Inherited,
             ),
             // Physics

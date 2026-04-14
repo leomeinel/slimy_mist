@@ -197,7 +197,7 @@ fn on_spawn_character<T, A>(
     let entity = commands
         .entity(event.entity)
         .insert((
-            T::container_bundle(event.pos, animation_delay, collider_y_offset),
+            T::container_bundle(event.pos, animation_delay, -collider_y_offset),
             T::collider(collider_shape, collider_width, collider_height),
             children![T::shadow_bundle(&shadow)],
         ))

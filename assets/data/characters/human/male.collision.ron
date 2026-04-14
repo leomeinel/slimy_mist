@@ -2,6 +2,6 @@ CollisionData (
     shape: Some("capsule"),
     width: Some(14),
     height: Some(14.0),
-    // NOTE: We need 2 extra pixels because the sprite is not centered.
+    // NOTE: Apply y offset because the sprite content is not centered.
     y_offset: Some(-9.0),
 )

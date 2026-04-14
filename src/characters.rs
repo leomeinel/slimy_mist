@@ -154,7 +154,7 @@ where
             Mesh2d(shadow.mesh.clone()),
             // FIXME: Using `LightOccluder2d` might be a good idea instead, but we will
             //        have to wait for occluder support in `bevy_fast_light`.
-            //        This would also allow us to easily avoid additive blending for shadows.
+            //        This would also allow us to easily remove additive blending from shadows.
             MeshMaterial2d(shadow.material.clone()),
             Transform::from_xyz(0., shadow.y_offset, BACKGROUND_Z_DELTA),
         )

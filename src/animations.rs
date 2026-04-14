@@ -150,13 +150,17 @@ where
 {
     pub(crate) base: SpriteAnimation,
     pub(crate) floating: Option<SpriteAnimation>,
+    // TODO: Think about if this should also affect the collision.
+    //       Logically this makes sense, but would add extra complexity and for small
+    //       offsets almost seems completely unnecessary.
+    pub(crate) y_offset_map: HashMap<AnimationState, f32>,
     _phantom: PhantomData<T>,
 }
 impl<T> SpriteAnimations<T>
 where
     T: Visible,
 {
-    pub(crate) fn insert_animations(
+    pub(crate) fn insert_clips(
         &mut self,
         clips: &[AnimationClip],
         animations: &mut ResMut<Assets<Animation>>,
@@ -177,6 +181,9 @@ where
                     clip.create_animation(animations, floating_sheet, repetitions),
                 );
             }
+
+            self.y_offset_map
+                .insert(clip.state, clip.y_offset.unwrap_or_default());
         }
     }
 }
@@ -273,6 +280,7 @@ pub(crate) struct AnimationClip {
     pub(crate) sprite_coords: Vec<(usize, usize)>,
     pub(crate) audio_indexes: Vec<usize>,
     pub(crate) frame_duration_ms: u32,
+    pub(crate) y_offset: Option<f32>,
 }
 impl AnimationClip {
     pub(crate) fn create_animation(

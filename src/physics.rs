@@ -42,6 +42,9 @@ pub(crate) struct CollisionHandle<T>(pub(crate) Handle<CollisionData<T>>)
 where
     T: Visible;
 
+// FIXME: This should be split up to allow easy access without imports for non-physics systems.
+//        y_offset is currently only being used to offset other entities from the collision entity,
+//        therefore the current approach does not make sense.
 /// Cache for [`CollisionData`]
 ///
 /// This is to allow easier access.

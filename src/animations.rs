@@ -153,7 +153,7 @@ where
     // TODO: Think about if this should also affect the collision.
     //       Logically this makes sense, but would add extra complexity and for small
     //       offsets almost seems completely unnecessary.
-    pub(crate) y_offset_map: HashMap<AnimationState, f32>,
+    pub(crate) y_offset_map: HashMap<AnimationState, Option<f32>>,
     _phantom: PhantomData<T>,
 }
 impl<T> SpriteAnimations<T>
@@ -182,8 +182,7 @@ where
                 );
             }
 
-            self.y_offset_map
-                .insert(clip.state, clip.y_offset.unwrap_or_default());
+            self.y_offset_map.insert(clip.state, clip.y_offset);
         }
     }
 }

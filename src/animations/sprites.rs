@@ -105,7 +105,7 @@ pub(super) fn update_animations<T>(
     >,
     mut floating_query: Query<&mut SpritesheetAnimation, Without<AnimationBase>>,
     sprite_animations: Res<SpriteAnimations<T>>,
-    mut old_y_offset: Local<f32>,
+    mut last_y_offset: Local<f32>,
 ) where
     T: Visible,
 {
@@ -126,9 +126,13 @@ pub(super) fn update_animations<T>(
             &mut base_animation,
             &mut audio_index,
         );
-        if let Some(y_offset) = sprite_animations.y_offset_map.get(&*animation_state) {
-            transform.translation.y += *y_offset - *old_y_offset;
-            *old_y_offset = *y_offset;
+        if let Some(y_offset) = sprite_animations
+            .y_offset_map
+            .get(&*animation_state)
+            .and_then(|o| o.as_ref())
+        {
+            transform.translation.y += *y_offset - *last_y_offset;
+            *last_y_offset = *y_offset;
         }
 
         if let Some(children) = children

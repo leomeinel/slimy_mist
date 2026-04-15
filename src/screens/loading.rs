@@ -197,7 +197,6 @@ fn cache_animation_data_and_related<T>(
 fn cache_collision_data_and_related<T>(
     mut commands: Commands,
     mut data: ResMut<Assets<CollisionData<T>>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
     handle: Res<CollisionHandle<T>>,
 ) where
@@ -222,10 +221,8 @@ fn cache_collision_data_and_related<T>(
         y_offset,
         ..default()
     });
-    commands.insert_resource(ArtificialShadow::<T> {
-        // NOTE: We are dividing collider height by 2 because of 2:1 pixel ratio.
+    commands.insert_resource(Light2dShadow::<T> {
         mesh: meshes.add(Ellipse::new(width / 2., height / 2.)),
-        material: materials.add(SHADOW_COLOR),
         // NOTE: Move to the bottom but exclude the outline.
         y_offset: -height / 2. + 1.,
         ..default()

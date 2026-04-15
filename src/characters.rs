@@ -35,6 +35,7 @@ use std::marker::PhantomData;
 
 use bevy::{prelude::*, reflect::Reflectable};
 use bevy_asset_loader::asset_collection::AssetCollection;
+use bevy_fast_light::prelude::*;
 use bevy_prng::WyRand;
 use bevy_rapier2d::prelude::*;
 use bevy_spritesheet_animation::prelude::*;
@@ -146,16 +147,13 @@ where
         }
     }
 
-    fn shadow_bundle<T>(shadow: &ArtificialShadow<T>) -> impl Bundle
+    fn shadow_bundle<T>(shadow: &Light2dShadow<T>) -> impl Bundle
     where
         T: Visible,
     {
         (
             Mesh2d(shadow.mesh.clone()),
-            // FIXME: Using `LightOccluder2d` might be a good idea instead, but we will
-            //        have to wait for occluder support in `bevy_fast_light`.
-            //        This would also allow us to easily remove additive blending from shadows.
-            MeshMaterial2d(shadow.material.clone()),
+            Light2dOccluder,
             Transform::from_xyz(0., shadow.y_offset, BACKGROUND_Z_DELTA),
         )
     }
@@ -181,7 +179,7 @@ fn on_spawn_character<T, A>(
     mut commands: Commands,
     sprite_animations: Res<SpriteAnimations<T>>,
     collision_data: Res<CollisionDataCache<T>>,
-    shadow: Res<ArtificialShadow<T>>,
+    shadow: Res<Light2dShadow<T>>,
 ) where
     T: Character + Visible,
     A: Level,

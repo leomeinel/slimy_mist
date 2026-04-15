@@ -20,7 +20,7 @@ pub(crate) mod prelude {
     pub(crate) use super::Visible;
     pub(crate) use super::camera::CanvasCamera;
     pub(crate) use super::light::{DayTimer, DayUpdateTimer, LightWrapper, StreetLight};
-    pub(crate) use super::materials::ArtificialShadow;
+    pub(crate) use super::materials::Light2dShadow;
     pub(crate) use super::palette::*;
     pub(crate) use super::particles::{
         Particle, ParticleHandle, ParticleMeleeAttack, ParticleWalkingDust, SpawnParticleOnce,

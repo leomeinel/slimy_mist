@@ -13,6 +13,7 @@ mod rng;
 mod run_conditions;
 mod timers;
 
+#[allow(unused_imports)]
 pub(crate) mod prelude {
     pub(crate) use super::color::{color_from_rgb, color_from_rgba};
     pub(crate) use super::images::{has_opaque_neighbor, is_transparent_pixel, pixel_index};

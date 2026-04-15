@@ -13,8 +13,6 @@ use crate::utils::prelude::*;
 
 /// Outline [`Color`].
 pub(crate) const OUTLINE_COLOR: Color = color_from_rgb(RGB_PALETTE[0]);
-/// Shadow [`Color`].
-pub(crate) const SHADOW_COLOR: Color = color_from_rgba(RGB_PALETTE[0], 128);
 
 /// RGB color palette as [`u8`] arrays.
 ///

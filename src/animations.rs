@@ -187,9 +187,11 @@ where
     }
 }
 
-/// Marker [`Component`] for the animation base.
-#[derive(Component)]
-pub(crate) struct AnimationBase;
+/// Animation base [`Component`] used as a marker and as cache for [`AnimationBase::last_y_offset`].
+#[derive(Component, Default)]
+pub(crate) struct AnimationBase {
+    last_y_offset: Option<f32>,
+}
 
 /// Animation for a single [`Sprite`].
 #[derive(Default)]

@@ -99,13 +99,14 @@ pub(super) fn update_animations<T>(
         ),
         With<T>,
     >,
-    mut base_query: Query<
-        (&mut SpritesheetAnimation, &mut Transform, Option<&Children>),
-        With<AnimationBase>,
-    >,
+    mut base_query: Query<(
+        &mut SpritesheetAnimation,
+        &mut Transform,
+        &mut AnimationBase,
+        Option<&Children>,
+    )>,
     mut floating_query: Query<&mut SpritesheetAnimation, Without<AnimationBase>>,
     sprite_animations: Res<SpriteAnimations<T>>,
-    mut last_y_offset: Local<f32>,
 ) where
     T: Visible,
 {
@@ -115,7 +116,7 @@ pub(super) fn update_animations<T>(
             .iter()
             .find(|entity| base_query.contains(**entity))
             .expect(ERR_INVALID_CHILDREN);
-        let (mut base_animation, mut transform, children) =
+        let (mut base_animation, mut transform, mut base, children) =
             base_query.get_mut(*entity).expect(ERR_INVALID_CHILDREN);
         if timer.0.just_finished() {
             base_animation.reset();
@@ -131,8 +132,8 @@ pub(super) fn update_animations<T>(
             .get(&*animation_state)
             .and_then(|o| o.as_ref())
         {
-            transform.translation.y += *y_offset - *last_y_offset;
-            *last_y_offset = *y_offset;
+            transform.translation.y += *y_offset - base.last_y_offset.unwrap_or_default();
+            base.last_y_offset = Some(*y_offset);
         }
 
         if let Some(children) = children

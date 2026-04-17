@@ -960,9 +960,9 @@ dependencies = [
 
 [[package]]
 name = "bevy_fast_light"
-version = "0.7.0"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0edc6f767a2b4e81e29abe8b1c56c6c15898f9900ef438366b7aeed6f1b8758c"
+checksum = "b68eb766580afd7464cb0e1219790ba410debfec2556fc036cc5fec0f9ea3021"
 dependencies = [
  "bevy",
  "bytemuck",

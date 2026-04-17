@@ -2586,12 +2586,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d8b14ccef22fc6f5a8f4d7d768562a182c04ce9a3b3157b91390b52ddfdf1a76"
 
 [[package]]
-name = "earcutr"
-version = "0.5.0"
+name = "earcut"
+version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "afc28d89ac6cb489f679fcf51aaa62b4667bb0fb73a30f1d4d23949069707c07"
+checksum = "88459a2a8e3a514b6e6de38cf3aaa9250a894cb098f74a932db77fcc8341b6d0"
 dependencies = [
- "itertools 0.14.0",
  "num-traits",
 ]
 
@@ -3006,17 +3005,19 @@ dependencies = [
 
 [[package]]
 name = "geo"
-version = "0.32.0"
-source = "git+https://github.com/georust/geo.git?rev=a6e15a8b291c30211fb1b5ccf863c8820b2eb8db#a6e15a8b291c30211fb1b5ccf863c8820b2eb8db"
+version = "0.33.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d1f7044733d8570f68c486cd200318322c09a3f123893ae8cfd1543dd0ea3185"
 dependencies = [
- "earcutr",
+ "earcut",
  "float_next_after",
  "geo-types",
  "geographiclib-rs",
  "i_overlay",
  "log",
  "num-traits",
- "rand 0.9.4",
+ "rand 0.10.1",
+ "rand_pcg",
  "robust",
  "rstar",
  "sif-itree",
@@ -3025,8 +3026,9 @@ dependencies = [
 
 [[package]]
 name = "geo-types"
-version = "0.7.18"
-source = "git+https://github.com/georust/geo.git?rev=a6e15a8b291c30211fb1b5ccf863c8820b2eb8db#a6e15a8b291c30211fb1b5ccf863c8820b2eb8db"
+version = "0.7.19"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "94776032c45f950d30a13af6113c2ad5625316c9abfbccee4dd5a6695f8fe0f5"
 dependencies = [
  "approx",
  "num-traits",
@@ -3517,12 +3519,15 @@ name = "i_key_sort"
 version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3c4d36ff9fb73dc62e163e25a07523ca5c2126660fb2485cdecf063e59b58f29"
+dependencies = [
+ "rayon",
+]
 
 [[package]]
 name = "i_overlay"
-version = "4.4.1"
+version = "4.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "edb334802d238cf2ff3075896f39bae37bb9c6cc3b83abdb8f6919e63c7e52c3"
+checksum = "934cba666ad1bf60436a190af6eaa3f58f57b5bad28268ce3fb45d9185862232"
 dependencies = [
  "i_float",
  "i_key_sort",
@@ -3533,9 +3538,9 @@ dependencies = [
 
 [[package]]
 name = "i_shape"
-version = "1.16.0"
+version = "1.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7722ecde565c0b5845a8850934b18a4c08cda242a116e7ce1676ae990feea0e8"
+checksum = "bfa9eac533d7509a8ab87672b60ac610c17240f9ea4851d26227689fdfe349c8"
 dependencies = [
  "i_float",
 ]
@@ -4879,8 +4884,7 @@ dependencies = [
 [[package]]
 name = "polyanya"
 version = "0.16.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9a1cb0a84a11080ff93d943a023e9e386c34d3dcc3c988bc6785f990b1964277"
+source = "git+https://github.com/leomeinel/polyanya.git?branch=fix-132#72d9b92035465c1844062a069e22218ad2c6f027"
 dependencies = [
  "bvh2d",
  "geo",

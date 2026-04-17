@@ -46,7 +46,9 @@ bevy_rapier2d = { version = "0.33.0", default-features = false, features = [
 bevy_spritesheet_animation = "6.1.0"
 iyes_progress = "0.16.0"
 ordered-float = "5.3.0"
-polyanya = "0.16.1"
+# FIXME: Wait for new version to be released.
+#        Also see: https://github.com/vleue/polyanya/pull/147
+polyanya = { git = "https://github.com/leomeinel/polyanya.git", branch = "fix-132" }
 rand = "0.10.1"
 serde = "1.0.228"
 # Compile out low-severity logs to improve performance.
@@ -62,10 +64,8 @@ bevy_rand = { version = "0.14.2", features = ["wasm_js"] }
 
 [patch.crates-io]
 # FIXME: Wait for new version to be released.
-#        We need this because `geo` uses `rand ^0.8.0` in their latest release.
-#        Also see: https://github.com/vleue/polyanya/issues/132
-geo = { git = "https://github.com/georust/geo.git", rev = "a6e15a8b291c30211fb1b5ccf863c8820b2eb8db" }
-geo-types = { git = "https://github.com/georust/geo.git", rev = "a6e15a8b291c30211fb1b5ccf863c8820b2eb8db" }
+#        Also see: https://github.com/vleue/polyanya/pull/147
+polyanya = { git = "https://github.com/leomeinel/polyanya.git", branch = "fix-132" }
 
 [features]
 # Default to a native dev build.

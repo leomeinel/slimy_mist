@@ -10,7 +10,6 @@
  */
 
 use bevy::{platform::collections::HashMap, prelude::*};
-use bevy_asset_loader::asset_collection::AssetCollection;
 use virtual_joystick::{
     JoystickFixed, NoAction, VirtualJoystickBundle, VirtualJoystickInteractionArea,
     VirtualJoystickNode, VirtualJoystickUIBackground, VirtualJoystickUIKnob,
@@ -71,17 +70,6 @@ impl<const ID: u8> JoystickState<ID> {
     }
 }
 
-/// Assets for joystick
-#[derive(AssetCollection, Resource)]
-pub(crate) struct JoystickAssets {
-    #[asset(path = "images/ui/joystick-knob.webp")]
-    #[asset(image(sampler(filter = linear)))]
-    knob_image: Handle<Image>,
-    #[asset(path = "images/ui/joystick-background.webp")]
-    #[asset(image(sampler(filter = linear)))]
-    background_image: Handle<Image>,
-}
-
 /// Enum representation of a joystick ID to have a single source of truth for IDs.
 ///
 /// This can be used as a [`VirtualJoystickID`](virtual_joystick::VirtualJoystickID) after casting to [`u8`].
@@ -105,12 +93,11 @@ fn spawn_joystick<const ID: u8>(
     mut commands: Commands,
     mut joystick_map: ResMut<JoystickMap>,
     mut next_state: ResMut<NextState<JoystickState<ID>>>,
-    joystick_assets: Res<JoystickAssets>,
 ) {
     let Some((_, hud_entity)) = hud_query.iter().find(|(h, _)| **h == Hud::BottomLeft) else {
         return;
     };
-    let entity = commands.spawn(joystick::<ID>(&joystick_assets)).id();
+    let entity = commands.spawn(joystick::<ID>()).id();
     commands.entity(hud_entity).add_child(entity);
 
     joystick_map.0.insert(ID, entity);
@@ -133,7 +120,7 @@ fn despawn_joystick<const ID: u8>(
 }
 
 /// Joystick with `const ID`.
-fn joystick<const ID: u8>(joystick_assets: &JoystickAssets) -> impl Bundle {
+fn joystick<const ID: u8>() -> impl Bundle {
     (
         VirtualJoystickBundle::new(
             VirtualJoystickNode::default()
@@ -158,34 +145,33 @@ fn joystick<const ID: u8>(joystick_assets: &JoystickAssets) -> impl Bundle {
             ),
             (
                 VirtualJoystickUIBackground,
-                // TODO: Think about just using colored Node.
-                ImageNode {
-                    color: JOYSTICK_IMAGE,
-                    image: joystick_assets.background_image.clone(),
-                    ..default()
-                },
                 Node {
                     position_type: PositionType::Absolute,
                     width: px(JOYSTICK_BACKGROUND_SIZE.x),
                     height: px(JOYSTICK_BACKGROUND_SIZE.y),
+                    box_sizing: BoxSizing::BorderBox,
+                    border_radius: BorderRadius::MAX,
+                    border: UiRect::all(px(5)),
                     ..default()
+                },
+                BorderColor {
+                    top: JOYSTICK_HORIZONTAL_BORDER_COLOR.into(),
+                    right: JOYSTICK_VERTICAL_BORDER_COLOR.into(),
+                    bottom: JOYSTICK_HORIZONTAL_BORDER_COLOR.into(),
+                    left: JOYSTICK_VERTICAL_BORDER_COLOR.into()
                 },
                 ZIndex(0),
             ),
             (
                 VirtualJoystickUIKnob,
-                // TODO: Think about just using colored Node.
-                ImageNode {
-                    color: JOYSTICK_IMAGE,
-                    image: joystick_assets.knob_image.clone(),
-                    ..default()
-                },
                 Node {
                     position_type: PositionType::Absolute,
                     width: px(JOYSTICK_KNOB_SIZE.x),
                     height: px(JOYSTICK_KNOB_SIZE.y),
+                    border_radius: BorderRadius::MAX,
                     ..default()
                 },
+                BackgroundColor::from(JOYSTICK_KNOB_BACKGROUND_COLOR),
                 ZIndex(1),
             ),
         ],

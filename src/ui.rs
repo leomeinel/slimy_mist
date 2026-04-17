@@ -23,7 +23,7 @@ pub(crate) mod prelude {
     pub(crate) use super::buttons::{
         ButtonBase, ButtonText, button_circle, button_rounded, switch_rounded,
     };
-    pub(crate) use super::hud::joystick::{JoystickAssets, JoystickID, JoystickMap, JoystickState};
+    pub(crate) use super::hud::joystick::{JoystickID, JoystickMap, JoystickState};
     pub(crate) use super::hud::{Hud, HudSystems};
     pub(crate) use super::interaction::{
         InteractionAssets, InteractionOverride, InteractionPalette, OverrideInteraction,

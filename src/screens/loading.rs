@@ -58,8 +58,7 @@ impl Plugin for LoadingPlugin {
                 .with_dynamic_assets_file::<StandardDynamicAssetCollection>(
                     "data/characters/npc/slime.assets.ron",
                 )
-                .load_collection::<SlimeAssets>()
-                .load_collection::<JoystickAssets>(),
+                .load_collection::<SlimeAssets>(),
         );
 
         app.add_systems(

@@ -142,7 +142,7 @@ fn spawn_hud(
 const PAUSE_BUTTON_SIZE_PX: u32 = 60;
 
 #[cfg(any(target_os = "android", target_os = "ios"))]
-/// Spawn pause button.
+/// Pause button.
 fn pause_button(font: &UiFontHandle) -> impl Bundle {
     (
         Node {

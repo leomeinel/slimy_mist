@@ -20,9 +20,9 @@ use bevy_common_assets::ron::RonAssetPlugin;
 use iyes_progress::ProgressPlugin;
 
 use crate::{
-    animations::prelude::*, characters::prelude::*, images::prelude::*, input::prelude::*,
-    levels::prelude::*, log::prelude::*, physics::prelude::*, procgen::prelude::*,
-    render::prelude::*, screens::prelude::*, ui::prelude::*,
+    animations::prelude::*, characters::prelude::*, images::prelude::*, levels::prelude::*,
+    log::prelude::*, physics::prelude::*, procgen::prelude::*, render::prelude::*,
+    screens::prelude::*, ui::prelude::*,
 };
 
 pub(super) struct LoadingPlugin;

@@ -18,8 +18,6 @@ use crate::{core::prelude::*, screens::prelude::*, ui::prelude::*, utils::prelud
 pub(super) struct PausePlugin;
 impl Plugin for PausePlugin {
     fn build(&self, app: &mut App) {
-        #[cfg(any(target_os = "android", target_os = "ios"))]
-        app.add_systems(OnEnter(Screen::Gameplay), spawn_pause_button);
         app.add_systems(
             OnEnter(Menu::None),
             unpause.run_if(in_state(Screen::Gameplay)),
@@ -87,34 +85,6 @@ fn spawn_pause_menu(mut commands: Commands, font: Res<UiFontHandle>) {
                 enter_title_screen_on_click
             ),
         ],
-    ));
-}
-
-/// Pause button width and height in pixels.
-#[cfg(any(target_os = "android", target_os = "ios"))]
-const PAUSE_BUTTON_SIZE_PX: u32 = 60;
-
-/// Spawn pause button.
-#[cfg(any(target_os = "android", target_os = "ios"))]
-fn spawn_pause_button(mut commands: Commands, font: Res<UiFontHandle>) {
-    commands.spawn((
-        Node {
-            position_type: PositionType::Absolute,
-            width: px(PAUSE_BUTTON_SIZE_PX),
-            height: px(PAUSE_BUTTON_SIZE_PX),
-            right: vmin(10.),
-            top: vmin(10.),
-            ..default()
-        },
-        NodeRect::default(),
-        DespawnOnExit(Screen::Gameplay),
-        children![button_circle(
-            Some(px(PAUSE_BUTTON_SIZE_PX)),
-            "⋮",
-            font.0.clone(),
-            false,
-            enter_pause_menu_on_click
-        )],
     ));
 }
 

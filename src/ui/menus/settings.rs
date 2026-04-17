@@ -15,7 +15,7 @@
 
 use bevy::{audio::Volume, input::common_conditions::input_just_pressed, prelude::*};
 
-use crate::{input::prelude::*, log::prelude::*, ui::prelude::*};
+use crate::{log::prelude::*, ui::prelude::*};
 
 pub(super) struct SettingsPlugin;
 impl Plugin for SettingsPlugin {
@@ -30,7 +30,8 @@ impl Plugin for SettingsPlugin {
         app.add_systems(
             Update,
             (
-                update_joystick_button.before(AppUiSystems::VisualizeInteraction),
+                update_joystick_button::<{ JoystickID::MOVEMENT }>
+                    .before(AppUiSystems::VisualizeInteraction),
                 update_global_volume_label,
             )
                 .run_if(in_state(Menu::Settings)),
@@ -86,7 +87,7 @@ fn settings_grid(font: Handle<Font>) -> impl Bundle {
             settings_label(font.clone(), "Master Volume"),
             global_volume_widget(font.clone()),
             settings_label(font.clone(), "Joystick"),
-            toggle_joystick_widget(font.clone()),
+            toggle_joystick_widget::<{ JoystickID::MOVEMENT }>(font.clone()),
         ],
     )
 }
@@ -151,8 +152,8 @@ fn update_global_volume_label(
     label.0 = format!("{percent:3.0}%");
 }
 
-/// Widget to toggle movement joystick
-fn toggle_joystick_widget(font: Handle<Font>) -> impl Bundle {
+/// Widget to toggle joystick with `const ID`.
+fn toggle_joystick_widget<const ID: u8>(font: Handle<Font>) -> impl Bundle {
     (
         Name::new("Toggle Joystick Widget"),
         Node {
@@ -160,33 +161,31 @@ fn toggle_joystick_widget(font: Handle<Font>) -> impl Bundle {
             ..default()
         },
         children![(
-            ToggleJoystickButton::<{ JoystickID::Movement as u8 }>,
-            switch_rounded(None, "", font.clone(), true, toggle_joystick_on_click),
+            ToggleJoystickButton::<ID>,
+            switch_rounded(None, "", font.clone(), true, toggle_joystick_on_click::<ID>),
         )],
     )
 }
 
 /// Toggle [`JoystickState<ID>`].
-fn toggle_joystick_on_click(
+fn toggle_joystick_on_click<const ID: u8>(
     _: On<Pointer<Click>>,
-    mut next_state: ResMut<NextState<JoystickState<{ JoystickID::Movement as u8 }>>>,
-    state: Res<State<JoystickState<{ JoystickID::Movement as u8 }>>>,
+    mut next_state: ResMut<NextState<JoystickState<ID>>>,
+    state: Res<State<JoystickState<ID>>>,
 ) {
-    (*next_state).set_if_neq(JoystickState::<{ JoystickID::Movement as u8 }>::Toggled(
-        !state.is_active(),
-    ));
+    (*next_state).set_if_neq(JoystickState::<ID>::Toggled(!state.is_active()));
 }
 
-/// Update global volume label that displays volume
-fn update_joystick_button(
-    children: Single<&Children, With<ToggleJoystickButton<{ JoystickID::Movement as u8 }>>>,
+/// Update button for joystick with `const ID`.
+fn update_joystick_button<const ID: u8>(
+    children: Single<&Children, With<ToggleJoystickButton<ID>>>,
     mut base_query: Query<(&mut BackgroundColor, &Children), (With<ButtonBase>, Without<Button>)>,
     mut surface_query: Query<
         (&mut InteractionPalette, &Children),
         (With<Button>, Without<ButtonBase>),
     >,
     mut text_query: Query<&mut Text, With<ButtonText>>,
-    state: Res<State<JoystickState<{ JoystickID::Movement as u8 }>>>,
+    state: Res<State<JoystickState<ID>>>,
 ) {
     let (base_color, surface_color, hover_color, new_text) = if state.is_active() {
         (

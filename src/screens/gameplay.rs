@@ -15,7 +15,7 @@ use bevy::prelude::*;
 
 use crate::{
     characters::prelude::*, images::prelude::*, input::prelude::*, levels::prelude::*,
-    procgen::prelude::*, render::prelude::*, screens::prelude::*,
+    procgen::prelude::*, render::prelude::*, screens::prelude::*, ui::prelude::*,
 };
 
 pub(super) struct GameplayPlugin;

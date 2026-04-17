@@ -8,7 +8,6 @@
  */
 
 mod actions;
-mod joystick;
 mod mock;
 mod pointer;
 mod ui;
@@ -16,7 +15,6 @@ mod ui;
 pub(crate) mod prelude {
     pub(crate) use super::InputSystems;
     pub(crate) use super::actions::{Aim, Jump, Melee, Walk, player_input};
-    pub(crate) use super::joystick::{JoystickAssets, JoystickID, JoystickMap, JoystickState};
     pub(crate) use super::pointer::{MouseDrag, PointerStartTimeSecs, Swipe};
     pub(crate) use super::ui::scroll::{AutoScroll, InputScroll};
     pub(crate) use super::ui::{PointerBlockedByUi, UiNav, UiNavAction, UiNavActionSet};
@@ -24,14 +22,15 @@ pub(crate) mod prelude {
 
 use bevy::prelude::*;
 use bevy_enhanced_input::prelude::*;
+use virtual_joystick::VirtualJoystickPlugin;
 
 use crate::{characters::prelude::*, screens::prelude::*};
 
 pub(super) struct InputPlugin;
 impl Plugin for InputPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(EnhancedInputPlugin);
-        app.add_plugins((joystick::JoystickPlugin, ui::UiInputPlugin));
+        app.add_plugins((EnhancedInputPlugin, VirtualJoystickPlugin::<u8>::default()));
+        app.add_plugins(ui::UiInputPlugin);
 
         app.add_input_context::<Player>();
 

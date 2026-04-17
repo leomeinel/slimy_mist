@@ -22,8 +22,8 @@ use bevy_rapier2d::render::{DebugRenderContext, RapierDebugRenderPlugin};
 use vleue_navigator::prelude::*;
 
 use crate::{
-    characters::prelude::*, core::prelude::*, input::prelude::*, procgen::prelude::*,
-    screens::prelude::*, ui::prelude::*,
+    characters::prelude::*, core::prelude::*, procgen::prelude::*, screens::prelude::*,
+    ui::prelude::*,
 };
 
 pub(super) struct DebugPlugin;
@@ -59,7 +59,7 @@ impl Plugin for DebugPlugin {
             (
                 log_transitions::<Debug>,
                 log_transitions::<DespawnProcGen>,
-                log_transitions::<JoystickState<{ JoystickID::Movement as u8 }>>,
+                log_transitions::<JoystickState<{ JoystickID::MOVEMENT }>>,
                 log_transitions::<Menu>,
                 log_transitions::<OverrideInteraction>,
                 log_transitions::<Pause>,

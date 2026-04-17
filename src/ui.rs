@@ -12,15 +12,19 @@
 //! Reusable UI widgets & theming.
 
 mod buttons;
+mod hud;
 mod interaction;
 mod menus;
 mod palette;
 mod widgets;
 
+#[allow(unused_imports)]
 pub(crate) mod prelude {
     pub(crate) use super::buttons::{
         ButtonBase, ButtonText, button_circle, button_rounded, switch_rounded,
     };
+    pub(crate) use super::hud::joystick::{JoystickAssets, JoystickID, JoystickMap, JoystickState};
+    pub(crate) use super::hud::{Hud, HudSystems};
     pub(crate) use super::interaction::{
         InteractionAssets, InteractionOverride, InteractionPalette, OverrideInteraction,
     };
@@ -58,7 +62,11 @@ pub(super) struct UiPlugin;
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((InputDispatchPlugin, DirectionalNavigationPlugin));
-        app.add_plugins((menus::MenusPlugin, interaction::UiInteractionPlugin));
+        app.add_plugins((
+            menus::MenusPlugin,
+            interaction::UiInteractionPlugin,
+            hud::HudPlugin,
+        ));
 
         app.insert_resource(InputFocusVisible(true));
         // FIXME: This currently sometimes navigates in weird ways. This is especially visible in the `Settings`

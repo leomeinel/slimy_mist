@@ -11,7 +11,7 @@ use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_enhanced_input::prelude::*;
 use virtual_joystick::VirtualJoystickMessage;
 
-use crate::{characters::prelude::*, input::prelude::*, render::prelude::*};
+use crate::{characters::prelude::*, input::prelude::*, render::prelude::*, ui::prelude::*};
 
 /// Mock [`Walk`] from virtual [`VirtualJoystickMessage`].
 pub(super) fn mock_walk_from_virtual_joystick(
@@ -20,7 +20,7 @@ pub(super) fn mock_walk_from_virtual_joystick(
     mut commands: Commands,
 ) {
     for joystick in reader.read() {
-        if joystick.id() != JoystickID::Movement as u8 {
+        if joystick.id() != JoystickID::MOVEMENT {
             continue;
         }
 

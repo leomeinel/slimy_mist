@@ -46,7 +46,7 @@ impl Plugin for HudPlugin {
     }
 }
 
-/// A system set responsible for spawning the hud.
+/// A system set for ordering systems related to [`Hud`].
 #[derive(SystemSet, Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
 pub(crate) enum HudSystems {
     #[default]

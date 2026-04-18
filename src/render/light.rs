@@ -18,7 +18,10 @@ use crate::{
 pub(super) struct LightPlugin;
 impl Plugin for LightPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(FastLightPlugin::default());
+        // FIXME: We are only using 1.0 since otherwise we get small edge artifacts.
+        //        This is due to the texture scaling between real sprites and their z-level texture.
+        //        After this has been fixed in bevy_fast_light, this will no longer be necessary.
+        app.add_plugins(FastLightPlugin { texture_scale: 1. });
 
         app.add_systems(OnEnter(Screen::Gameplay), init_ambient);
         app.add_systems(OnExit(Screen::Gameplay), reset_ambient);

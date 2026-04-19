@@ -46,9 +46,9 @@ pub(crate) const PAUSE_BACKGROUND: Color = Color::srgba(0., 0., 0., 0.9);
 pub(crate) const CLEAR_BACKGROUND: Srgba = tailwind::SLATE_700;
 
 /// Color for the joystick backgrounds `left` and `right` border.
-pub(crate) const JOYSTICK_HORIZONTAL_BORDER_COLOR: Srgba = tailwind::SKY_500;
+pub(crate) const JOYSTICK_HORIZONTAL_BORDER_COLOR: Srgba = tailwind::SKY_700;
 /// Color for the joystick backgrounds `top` and `bottom` border.
-pub(crate) const JOYSTICK_VERTICAL_BORDER_COLOR: Srgba = tailwind::SKY_300;
+pub(crate) const JOYSTICK_VERTICAL_BORDER_COLOR: Srgba = tailwind::SKY_500;
 /// Color for the joystick knobs background.
 pub(crate) const JOYSTICK_KNOB_BACKGROUND_COLOR: Srgba = tailwind::SKY_100;
 

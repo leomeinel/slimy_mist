@@ -14,16 +14,24 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
+java {
+    // https://docs.gradle.org/current/userguide/toolchains.html
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
 kotlin {
+    // https://kotlinlang.org/docs/gradle-compiler-options.html#all-compiler-options
     compilerOptions {
         languageVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_3
-        jvmToolchain(8)
+        jvmToolchain(17)
     }
 }
 
 android {
     namespace = "dev.meinel.slimymist"
-    compileSdk = 36
+    compileSdk = 37
 
     // https://developer.android.com/reference/tools/gradle-api/9.1/com/android/build/api/dsl/SigningConfig
     signingConfigs {
@@ -43,8 +51,9 @@ android {
     // https://developer.android.com/reference/tools/gradle-api/9.1/com/android/build/api/dsl/DefaultConfig
     defaultConfig {
         applicationId = "dev.meinel.slimymist"
-        minSdk = 31
-        targetSdk = 36
+        // NOTE: `minSdk` is 26 because this is the minimum supported by `bevy_audio`
+        minSdk = 26
+        targetSdk = 37
         // NOTE: Increase by 1 on each release
         versionCode = 54
         // NOTE: Update with full semantic version on each release
@@ -86,8 +95,8 @@ android {
     }
     // https://developer.android.com/reference/tools/gradle-api/9.1/com/android/build/api/dsl/CompileOptions
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     // https://developer.android.com/reference/tools/gradle-api/9.1/com/android/build/api/dsl/BuildFeatures
     buildFeatures {

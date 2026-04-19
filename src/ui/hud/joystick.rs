@@ -149,7 +149,6 @@ fn joystick<const ID: u8>() -> impl Bundle {
                     position_type: PositionType::Absolute,
                     width: px(JOYSTICK_BACKGROUND_SIZE.x),
                     height: px(JOYSTICK_BACKGROUND_SIZE.y),
-                    box_sizing: BoxSizing::BorderBox,
                     border_radius: BorderRadius::MAX,
                     border: UiRect::all(px(5)),
                     ..default()

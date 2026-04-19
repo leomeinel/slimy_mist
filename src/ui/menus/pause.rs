@@ -63,27 +63,36 @@ fn spawn_pause_overlay(mut commands: Commands) {
 
 /// Spawn pause menu.
 fn spawn_pause_menu(mut commands: Commands, font: Res<UiFontHandle>) {
+    let button_continue = button(
+        ButtonConfig::navigable()
+            .with_text("Continue")
+            .with_header_font(font.0.clone()),
+        ButtonNodeConfig::round_big(),
+        exit_menus_on_click,
+    );
+    let button_settings = button(
+        ButtonConfig::navigable()
+            .with_text("Settings")
+            .with_header_font(font.0.clone()),
+        ButtonNodeConfig::round_big(),
+        enter_settings_menu_on_click,
+    );
+    let button_quit = button(
+        ButtonConfig::navigable()
+            .with_text("Quit to title")
+            .with_header_font(font.0.clone()),
+        ButtonNodeConfig::round_big(),
+        enter_title_screen_on_click,
+    );
     commands.spawn((
         root_widget("Pause Menu"),
         GlobalZIndex(2),
         DespawnOnExit(Menu::Pause),
         children![
             header_widget("Game paused", font.0.clone()),
-            button_rounded(None, "Continue", font.0.clone(), true, exit_menus_on_click),
-            button_rounded(
-                None,
-                "Settings",
-                font.0.clone(),
-                true,
-                enter_settings_menu_on_click
-            ),
-            button_rounded(
-                None,
-                "Quit to title",
-                font.0.clone(),
-                true,
-                enter_title_screen_on_click
-            ),
+            button_continue,
+            button_settings,
+            button_quit,
         ],
     ));
 }

@@ -21,7 +21,7 @@ mod widgets;
 #[allow(unused_imports)]
 pub(crate) mod prelude {
     pub(crate) use super::buttons::{
-        ButtonBase, ButtonText, button_circle, button_rounded, switch_rounded,
+        ButtonBase, ButtonConfig, ButtonContainer, ButtonNodeConfig, ButtonText, button, switch,
     };
     pub(crate) use super::hud::joystick::{JoystickID, JoystickMap, JoystickState};
     pub(crate) use super::hud::{Hud, HudSystems};
@@ -103,7 +103,7 @@ pub(crate) struct UiFontHandle(pub(crate) Handle<Font>);
 ///
 /// Can apply to [`Node::left`] and [`Node::bottom`] according to [`Self::0`].
 #[derive(Component, Default)]
-pub(crate) struct NodeOffset(pub(crate) IVec2);
+pub(crate) struct NodeOffset(pub(crate) Vec2);
 
 /// [`Rect`] of a [`Node`] in screen space.
 ///

@@ -51,6 +51,14 @@ pub(super) struct ToggleJoystickButton<const ID: u8>;
 
 /// Spawn settings menu
 fn spawn_settings_menu(mut commands: Commands, font: Res<UiFontHandle>) {
+    let button = button(
+        ButtonConfig::navigable()
+            .with_text("Back")
+            .with_header_font(font.0.clone()),
+        ButtonNodeConfig::round_big(),
+        enter_screen_back_menu_on_click,
+    );
+
     commands.spawn((
         root_widget("Settings Menu"),
         GlobalZIndex(2),
@@ -58,13 +66,7 @@ fn spawn_settings_menu(mut commands: Commands, font: Res<UiFontHandle>) {
         children![
             header_widget("Settings", font.0.clone()),
             settings_grid(font.0.clone()),
-            button_rounded(
-                None,
-                "Back",
-                font.0.clone(),
-                true,
-                enter_screen_back_menu_on_click
-            ),
+            button,
         ],
     ));
 }
@@ -96,6 +98,7 @@ fn settings_grid(font: Handle<Font>) -> impl Bundle {
 fn settings_label(font: Handle<Font>, label: &'static str) -> impl Bundle {
     (
         Node {
+            align_items: AlignItems::Center,
             justify_content: JustifyContent::End,
             ..default()
         },
@@ -105,6 +108,21 @@ fn settings_label(font: Handle<Font>, label: &'static str) -> impl Bundle {
 
 /// Widget to adjust global volume
 fn global_volume_widget(font: Handle<Font>) -> impl Bundle {
+    let button_minus = button(
+        ButtonConfig::navigable()
+            .with_text("-")
+            .with_body_font(font.clone()),
+        ButtonNodeConfig::circle_small(),
+        lower_global_volume_on_click,
+    );
+    let button_plus = button(
+        ButtonConfig::navigable()
+            .with_text("+")
+            .with_body_font(font.clone()),
+        ButtonNodeConfig::circle_small(),
+        raise_global_volume_on_click,
+    );
+
     (
         Name::new("Global Volume Widget"),
         Node {
@@ -112,7 +130,7 @@ fn global_volume_widget(font: Handle<Font>) -> impl Bundle {
             ..default()
         },
         children![
-            button_circle(None, "-", font.clone(), true, lower_global_volume_on_click),
+            button_minus,
             (
                 Name::new("Current Volume"),
                 Node {
@@ -121,7 +139,7 @@ fn global_volume_widget(font: Handle<Font>) -> impl Bundle {
                 },
                 children![(GlobalVolumeLabel, label_widget("", font.clone()))],
             ),
-            button_circle(None, "+", font.clone(), true, raise_global_volume_on_click),
+            button_plus,
         ],
     )
 }
@@ -154,16 +172,19 @@ fn update_global_volume_label(
 
 /// Widget to toggle joystick with `const ID`.
 fn toggle_joystick_widget<const ID: u8>(font: Handle<Font>) -> impl Bundle {
+    let switch = switch(
+        ButtonConfig::navigable().with_body_font(font.clone()),
+        ButtonNodeConfig::round_medium(),
+        toggle_joystick_on_click::<ID>,
+    );
+
     (
         Name::new("Toggle Joystick Widget"),
         Node {
             justify_content: JustifyContent::Center,
             ..default()
         },
-        children![(
-            ToggleJoystickButton::<ID>,
-            switch_rounded(None, "", font.clone(), true, toggle_joystick_on_click::<ID>),
-        )],
+        children![(ToggleJoystickButton::<ID>, switch)],
     )
 }
 
@@ -178,12 +199,9 @@ fn toggle_joystick_on_click<const ID: u8>(
 
 /// Update button for joystick with `const ID`.
 fn update_joystick_button<const ID: u8>(
-    children: Single<&Children, With<ToggleJoystickButton<ID>>>,
-    mut base_query: Query<(&mut BackgroundColor, &Children), (With<ButtonBase>, Without<Button>)>,
-    mut surface_query: Query<
-        (&mut InteractionPalette, &Children),
-        (With<Button>, Without<ButtonBase>),
-    >,
+    container_children: Single<&Children, (With<ToggleJoystickButton<ID>>, With<ButtonContainer>)>,
+    mut base_query: Query<&mut BackgroundColor, With<ButtonBase>>,
+    mut surface_query: Query<(&mut InteractionPalette, &Children), With<Button>>,
     mut text_query: Query<&mut Text, With<ButtonText>>,
     state: Res<State<JoystickState<ID>>>,
 ) {
@@ -203,28 +221,25 @@ fn update_joystick_button<const ID: u8>(
         )
     };
 
-    // `ButtonBase`
-    let child = children
+    let base = container_children
         .iter()
         .find(|e| base_query.contains(*e))
         .expect(ERR_INVALID_CHILDREN);
-    let (mut background, children) = base_query.get_mut(child).expect(ERR_INVALID_CHILDREN);
+    let mut background = base_query.get_mut(base).expect(ERR_INVALID_CHILDREN);
     background.0 = base_color.into();
 
-    // `Button`
-    let child = children
+    let surface = container_children
         .iter()
         .find(|e| surface_query.contains(*e))
         .expect(ERR_INVALID_CHILDREN);
-    let (mut palette, children) = surface_query.get_mut(child).expect(ERR_INVALID_CHILDREN);
+    let (mut palette, children) = surface_query.get_mut(surface).expect(ERR_INVALID_CHILDREN);
     palette.none = surface_color.into();
     palette.hovered = hover_color.into();
 
-    // `ButtonText`
-    let child = children
+    let text = children
         .iter()
         .find(|e| text_query.contains(*e))
         .expect(ERR_INVALID_CHILDREN);
-    let mut text = text_query.get_mut(child).expect(ERR_INVALID_CHILDREN);
+    let mut text = text_query.get_mut(text).expect(ERR_INVALID_CHILDREN);
     text.0 = new_text.to_uppercase();
 }

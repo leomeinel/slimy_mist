@@ -62,60 +62,45 @@ pub(crate) enum Menu {
 
 /// Spawn Main menu with [`State`] changing buttons.
 fn spawn_main_menu(mut commands: Commands, font: Res<UiFontHandle>) {
+    let button_play = button(
+        ButtonConfig::navigable()
+            .with_text("Play")
+            .with_header_font(font.0.clone()),
+        ButtonNodeConfig::round_big(),
+        enter_gameplay_screen_on_click,
+    );
+    let button_settings = button(
+        ButtonConfig::navigable()
+            .with_text("Settings")
+            .with_header_font(font.0.clone()),
+        ButtonNodeConfig::round_big(),
+        enter_settings_menu_on_click,
+    );
+    let button_credits = button(
+        ButtonConfig::navigable()
+            .with_text("Credits")
+            .with_header_font(font.0.clone()),
+        ButtonNodeConfig::round_big(),
+        enter_credits_menu_on_click,
+    );
+    #[cfg(not(any(target_family = "wasm", target_os = "android", target_os = "ios")))]
+    let button_exit = button(
+        ButtonConfig::navigable()
+            .with_text("Exit")
+            .with_header_font(font.0.clone()),
+        ButtonNodeConfig::round_big(),
+        exit_app_on_click,
+    );
+
     commands.spawn((
         root_widget("Main Menu"),
         GlobalZIndex(2),
         DespawnOnExit(Menu::Main),
         #[cfg(not(any(target_family = "wasm", target_os = "android", target_os = "ios")))]
-        children![
-            button_rounded(
-                None,
-                "Play",
-                font.0.clone(),
-                true,
-                enter_gameplay_screen_on_click
-            ),
-            button_rounded(
-                None,
-                "Settings",
-                font.0.clone(),
-                true,
-                enter_settings_menu_on_click
-            ),
-            button_rounded(
-                None,
-                "Credits",
-                font.0.clone(),
-                true,
-                enter_credits_menu_on_click
-            ),
-            button_rounded(None, "Exit", font.0.clone(), true, exit_app_on_click),
-        ],
+        children![button_play, button_settings, button_credits, button_exit],
         // Do not add exit button for wasm, android and ios
         #[cfg(any(target_family = "wasm", target_os = "android", target_os = "ios"))]
-        children![
-            button_rounded(
-                None,
-                "Play",
-                font.0.clone(),
-                true,
-                enter_gameplay_screen_on_click
-            ),
-            button_rounded(
-                None,
-                "Settings",
-                font.0.clone(),
-                true,
-                enter_settings_menu_on_click
-            ),
-            button_rounded(
-                None,
-                "Credits",
-                font.0.clone(),
-                true,
-                enter_credits_menu_on_click
-            ),
-        ],
+        children![button_play, button_settings, button_credits],
     ));
 }
 

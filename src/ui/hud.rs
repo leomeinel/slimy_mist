@@ -138,26 +138,26 @@ fn spawn_hud(
 }
 
 #[cfg(any(target_os = "android", target_os = "ios"))]
-/// Pause button width and height in pixels.
-const PAUSE_BUTTON_SIZE_PX: u32 = 60;
-
-#[cfg(any(target_os = "android", target_os = "ios"))]
 /// Pause button.
 fn pause_button(font: &UiFontHandle) -> impl Bundle {
+    let button_config = ButtonNodeConfig::circle_medium();
+    let button_width = button_config.width;
+    let button = button(
+        ButtonConfig::non_navigable()
+            .with_text("⋮")
+            .with_header_font(font.0.clone()),
+        button_config,
+        enter_pause_menu_on_click,
+    );
+
     (
         Node {
-            width: px(PAUSE_BUTTON_SIZE_PX),
-            height: px(PAUSE_BUTTON_SIZE_PX),
+            width: button_width,
+            height: button_width,
             ..default()
         },
         NodeRect::default(),
         DespawnOnExit(Screen::Gameplay),
-        children![button_circle(
-            Some(px(PAUSE_BUTTON_SIZE_PX)),
-            "⋮",
-            font.0.clone(),
-            false,
-            enter_pause_menu_on_click
-        )],
+        button,
     )
 }

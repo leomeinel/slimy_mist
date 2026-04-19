@@ -55,6 +55,13 @@ pub(super) fn spawn_credits_menu(
     credits_data: Res<CreditsDataCache>,
     font: Res<UiFontHandle>,
 ) {
+    let button_back = button(
+        ButtonConfig::navigable()
+            .with_text("Back")
+            .with_header_font(font.0.clone()),
+        ButtonNodeConfig::round_big(),
+        enter_main_menu_on_click,
+    );
     commands.spawn((
         root_auto_scroll_widget("Credits Menu"),
         GlobalZIndex(2),
@@ -66,7 +73,7 @@ pub(super) fn spawn_credits_menu(
             grid(credits_data.assets.clone(), font.0.clone()),
             header_widget("Code", font.0.clone()),
             grid(credits_data.code.clone(), font.0.clone()),
-            button_rounded(None, "Back", font.0.clone(), true, enter_main_menu_on_click),
+            button_back,
         ],
     ));
 }

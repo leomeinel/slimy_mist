@@ -132,7 +132,7 @@ impl ButtonNodeConfig {
     }
 }
 
-// FIXME: Currently there is a very small area at the top that is hoverable but will not trigger the observer when clicked.
+// FIXME: This still does only trigger the observer if the click is over both the base and the surface.
 /// A builder for creating [`Button`] [`Bundle`]s with customizable appearance, text, and interaction behavior.
 #[derive(Default)]
 struct ButtonBuilder {

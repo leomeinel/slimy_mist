@@ -65,6 +65,10 @@ bevy_rand = { version = "0.14.2", features = ["wasm_js"] }
 # FIXME: Wait for new version to be released.
 #        Also see: https://github.com/vleue/polyanya/pull/147
 polyanya = { git = "https://github.com/leomeinel/polyanya.git", branch = "fix-132" }
+# FIXME: Wait for new version to be released.
+#        Also see: https://github.com/georust/geo/pull/1525
+geo = { git = "https://github.com/leomeinel/geo.git", branch = "fix-wasm" }
+geo-types = { git = "https://github.com/leomeinel/geo.git", branch = "fix-wasm" }
 
 [features]
 # Default to a native dev build.

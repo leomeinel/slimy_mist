@@ -3006,8 +3006,7 @@ dependencies = [
 [[package]]
 name = "geo"
 version = "0.33.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d1f7044733d8570f68c486cd200318322c09a3f123893ae8cfd1543dd0ea3185"
+source = "git+https://github.com/leomeinel/geo.git?branch=fix-wasm#79a253386ad1e7f743b3e41962c733494e8d40b2"
 dependencies = [
  "earcut",
  "float_next_after",
@@ -3027,8 +3026,7 @@ dependencies = [
 [[package]]
 name = "geo-types"
 version = "0.7.19"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "94776032c45f950d30a13af6113c2ad5625316c9abfbccee4dd5a6695f8fe0f5"
+source = "git+https://github.com/leomeinel/geo.git?branch=fix-wasm#79a253386ad1e7f743b3e41962c733494e8d40b2"
 dependencies = [
  "approx",
  "num-traits",

@@ -25,7 +25,7 @@ pub(crate) mod prelude {
     pub(crate) use super::particles::{
         Particle, ParticleHandle, ParticleMeleeAttack, ParticleWalkingDust, SpawnParticleOnce,
     };
-    pub(crate) use super::ysort::{YSort, YSortOffset};
+    pub(crate) use super::ysort::{YSort, YSortYOffset};
     pub(crate) use super::z_levels::*;
 }
 

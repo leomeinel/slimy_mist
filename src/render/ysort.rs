@@ -9,7 +9,10 @@
 
 use bevy::prelude::*;
 
-use crate::{images::prelude::*, levels::prelude::*, procgen::prelude::*, render::prelude::*};
+use crate::{
+    animations::prelude::*, images::prelude::*, levels::prelude::*, procgen::prelude::*,
+    render::prelude::*,
+};
 
 /// Sorts entities by their y position.
 #[derive(Component, Default, Reflect, Debug)]
@@ -21,12 +24,20 @@ pub(crate) struct YSort(pub(crate) f32);
 /// The offset is expected to be in px of rendered [`Sprite`]s which is equivalent to world position delta.
 #[derive(Component, Default, Reflect)]
 #[reflect(Component)]
-pub(crate) struct YSortOffset(pub(crate) f32);
+pub(crate) struct YSortYOffset(pub(crate) f32);
 
 // FIXME: We currently can't use Changed<Transform> because we always need to update z-level based on relative position.
 /// Y-sort `T` [`Entity`]s.
 pub(super) fn relative_sort<T, A>(
-    query: Query<(&mut Transform, &YSort, Option<&YSortOffset>), With<T>>,
+    query: Query<
+        (
+            &mut Transform,
+            &YSort,
+            Option<&YSortYOffset>,
+            Option<&AnimationYOffset>,
+        ),
+        With<T>,
+    >,
     cache: Res<ProcGenCache<A>>,
     cel_size: Res<CelSize<T>>,
     level_dimensions: Res<LevelDimensions<A>>,
@@ -42,11 +53,12 @@ pub(super) fn relative_sort<T, A>(
     let scale_divisor = level_dimensions.world_height * 2.;
     let texture_offset = cel_size.size.y as f32 / 2.;
 
-    for (mut transform, sort, sort_offset) in query {
-        let sort_offset = sort_offset.map_or(0., |offset| offset.0);
+    for (mut transform, sort, sort_y_offset, y_offset) in query {
+        let total_y_offset =
+            sort_y_offset.map_or(0., |offset| offset.0) + y_offset.map_or(0., |offset| offset.0);
         let relative_y = transform.translation.y - min_world_y;
 
         transform.translation.z =
-            sort.0 - (relative_y - texture_offset + sort_offset) / scale_divisor;
+            sort.0 - (relative_y - texture_offset + total_y_offset) / scale_divisor;
     }
 }

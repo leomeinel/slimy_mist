@@ -93,30 +93,29 @@ pub(super) fn update_animations<T>(
     container_query: Query<
         (
             &mut AnimationAudioIndex,
-            &mut AnimationState,
+            &mut AnimationYOffset,
+            &AnimationState,
             &AnimationTimer,
             &Children,
         ),
         With<T>,
     >,
-    mut base_query: Query<(
-        &mut SpritesheetAnimation,
-        &mut Transform,
-        &mut AnimationBase,
-        Option<&Children>,
-    )>,
+    mut base_query: Query<
+        (&mut SpritesheetAnimation, &mut Transform, Option<&Children>),
+        With<AnimationBase>,
+    >,
     mut floating_query: Query<&mut SpritesheetAnimation, Without<AnimationBase>>,
     sprite_animations: Res<SpriteAnimations<T>>,
 ) where
     T: Visible,
 {
-    for (mut audio_index, animation_state, timer, children) in container_query {
+    for (mut audio_index, mut y_offset, animation_state, timer, children) in container_query {
         let children: Vec<_> = children.iter().collect();
         let entity = children
             .iter()
             .find(|entity| base_query.contains(**entity))
             .expect(ERR_INVALID_CHILDREN);
-        let (mut base_animation, mut transform, mut base, children) =
+        let (mut base_animation, mut transform, children) =
             base_query.get_mut(*entity).expect(ERR_INVALID_CHILDREN);
         if timer.0.just_finished() {
             base_animation.reset();
@@ -127,13 +126,13 @@ pub(super) fn update_animations<T>(
             &mut base_animation,
             &mut audio_index,
         );
-        if let Some(y_offset) = sprite_animations
+        if let Some(next_y_offset) = sprite_animations
             .y_offset_map
-            .get(&*animation_state)
+            .get(animation_state)
             .and_then(|o| o.as_ref())
         {
-            transform.translation.y += *y_offset - base.last_y_offset.unwrap_or_default();
-            base.last_y_offset = Some(*y_offset);
+            transform.translation.y += *next_y_offset - y_offset.0;
+            y_offset.0 = *next_y_offset;
         }
 
         if let Some(children) = children

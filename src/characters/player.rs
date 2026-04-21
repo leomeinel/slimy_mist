@@ -53,7 +53,7 @@ impl Character for Player {
             (
                 Transform::from_translation(pos.extend(FOREGROUND_Z)),
                 YSort(FOREGROUND_Z),
-                YSortOffset(y_offset),
+                YSortYOffset(y_offset),
                 Visibility::Inherited,
             ),
             // Physics
@@ -87,6 +87,7 @@ impl Character for Player {
             (
                 AnimationAudioIndex::default(),
                 AnimationState::default(),
+                AnimationYOffset::default(),
                 AnimationTimer(Timer::from_seconds(animation_delay, TimerMode::Once)),
             ),
         )

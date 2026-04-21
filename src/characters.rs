@@ -203,7 +203,7 @@ fn on_spawn_character<T, A>(
             let mut animation = commands.spawn((
                 T::animation_bundle(&sprite_animations.base),
                 Transform::from_xyz(0., -collider_y_offset, 0.),
-                AnimationBase::default(),
+                AnimationBase,
             ));
             if let Some(floating) = &sprite_animations.floating {
                 animation.with_children(|commands| {

@@ -27,7 +27,7 @@ pub(crate) mod prelude {
     pub(crate) use super::{
         ANIMATION_DELAY_RANGE_SECS, AnimationAction, AnimationBase, AnimationClip, AnimationData,
         AnimationDataCache, AnimationHandle, AnimationOrientation, AnimationRng, AnimationState,
-        AnimationTimer, SpriteAnimation, SpriteAnimations,
+        AnimationTimer, AnimationYOffset, SpriteAnimation, SpriteAnimations,
     };
 }
 
@@ -189,9 +189,13 @@ where
 
 /// Animation base [`Component`] used as a marker and as cache for [`AnimationBase::last_y_offset`].
 #[derive(Component, Default)]
-pub(crate) struct AnimationBase {
-    last_y_offset: Option<f32>,
-}
+pub(crate) struct AnimationBase;
+
+/// Applies an offset to the [`Transform::translation`]'s y position of an [`Entity`] with [`AnimationBase`].
+///
+/// The offset is expected to be in px of rendered [`Sprite`]s which is equivalent to world position delta.
+#[derive(Component, Default)]
+pub(crate) struct AnimationYOffset(pub(crate) f32);
 
 /// Animation for a single [`Sprite`].
 #[derive(Default)]

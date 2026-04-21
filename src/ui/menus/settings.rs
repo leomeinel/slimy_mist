@@ -199,42 +199,40 @@ fn toggle_joystick_on_click<const ID: u8>(
 
 /// Update button for joystick with `const ID`.
 fn update_joystick_button<const ID: u8>(
-    container_children: Single<&Children, (With<ToggleJoystickButton<ID>>, With<ButtonContainer>)>,
-    mut base_query: Query<&mut BackgroundColor, With<ButtonBase>>,
-    mut surface_query: Query<(&mut InteractionPalette, &Children), With<Button>>,
+    button_container_children: Single<
+        &Children,
+        (With<ToggleJoystickButton<ID>>, With<ButtonContainer>),
+    >,
+    mut button_query: Query<(&mut InteractionPalette, &mut BoxShadow, &Children), With<Button>>,
     mut text_query: Query<&mut Text, With<ButtonText>>,
     state: Res<State<JoystickState<ID>>>,
 ) {
-    let (base_color, surface_color, hover_color, new_text) = if state.is_active() {
+    let (shadow_color, switch_color, hover_color, new_text) = if state.is_active() {
         (
-            SWITCH_BASE_ON_BACKGROUND,
+            SWITCH_SHADOW_ON,
             SWITCH_ON_BACKGROUND,
             SWITCH_ON_HOVERED_BACKGROUND,
             "On",
         )
     } else {
         (
-            SWITCH_BASE_OFF_BACKGROUND,
+            SWITCH_SHADOW_OFF,
             SWITCH_OFF_BACKGROUND,
             SWITCH_OFF_HOVERED_BACKGROUND,
             "Off",
         )
     };
 
-    let base = container_children
+    let button = button_container_children
         .iter()
-        .find(|e| base_query.contains(*e))
+        .find(|e| button_query.contains(*e))
         .expect(ERR_INVALID_CHILDREN);
-    let mut background = base_query.get_mut(base).expect(ERR_INVALID_CHILDREN);
-    background.0 = base_color.into();
-
-    let surface = container_children
-        .iter()
-        .find(|e| surface_query.contains(*e))
-        .expect(ERR_INVALID_CHILDREN);
-    let (mut palette, children) = surface_query.get_mut(surface).expect(ERR_INVALID_CHILDREN);
-    palette.none = surface_color.into();
+    let (mut palette, mut box_shadow, children) =
+        button_query.get_mut(button).expect(ERR_INVALID_CHILDREN);
+    palette.none = switch_color.into();
     palette.hovered = hover_color.into();
+    let shadow = box_shadow.0.first_mut().expect(ERR_INVALID_BOX_SHADOW);
+    shadow.color = shadow_color.into();
 
     let text = children
         .iter()

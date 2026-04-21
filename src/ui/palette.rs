@@ -18,8 +18,8 @@ pub(crate) const HEADER_TEXT: Color = Color::WHITE;
 
 /// Color for button text
 pub(crate) const BUTTON_TEXT: Color = Color::WHITE;
-/// Background color for button base
-pub(crate) const BUTTON_BASE_BACKGROUND: Srgba = tailwind::SKY_700;
+/// Color for button shadow
+pub(crate) const BUTTON_SHADOW: Srgba = tailwind::SKY_700;
 /// Background color for button
 pub(crate) const BUTTON_BACKGROUND: Srgba = tailwind::SKY_600;
 /// Background color for button if hovered
@@ -27,14 +27,14 @@ pub(crate) const BUTTON_HOVERED_BACKGROUND: Srgba = tailwind::SKY_500;
 /// Background color for button if pressed
 pub(crate) const BUTTON_PRESSED_BACKGROUND: Color = Color::NONE;
 
-/// Background color for switch button base if toggled on
-pub(crate) const SWITCH_BASE_ON_BACKGROUND: Srgba = tailwind::GREEN_700;
+/// Color for switch shadow if toggled on
+pub(crate) const SWITCH_SHADOW_ON: Srgba = tailwind::GREEN_700;
 /// Background color for switch button if toggled on
 pub(crate) const SWITCH_ON_BACKGROUND: Srgba = tailwind::GREEN_600;
 /// Background color for switch button if toggled on and hovered
 pub(crate) const SWITCH_ON_HOVERED_BACKGROUND: Srgba = tailwind::GREEN_500;
-/// Background color for switch button base if toggled off
-pub(crate) const SWITCH_BASE_OFF_BACKGROUND: Srgba = tailwind::RED_700;
+/// Color for switch shadow if toggled off
+pub(crate) const SWITCH_SHADOW_OFF: Srgba = tailwind::RED_700;
 /// Background color for switch button if toggled off
 pub(crate) const SWITCH_OFF_BACKGROUND: Srgba = tailwind::RED_600;
 /// Background color for switch button if toggled off and hovered

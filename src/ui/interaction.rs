@@ -15,7 +15,7 @@ use bevy::{
 };
 use bevy_asset_loader::prelude::*;
 
-use crate::{audio::prelude::*, ui::prelude::*};
+use crate::{audio::prelude::*, log::prelude::*, ui::prelude::*};
 
 pub(super) struct UiInteractionPlugin;
 impl Plugin for UiInteractionPlugin {
@@ -140,15 +140,30 @@ fn visualize_button_hover(
     }
 }
 
-/// Move [`Node`] based on [`NodeOffset`] according to [`Interaction`].
+/// Move [`Node`] based on attached [`BoxShadow`]'s offset according to [`Interaction`].
 fn visualize_button_pressed(
-    query: Query<(&Interaction, &NodeOffset, &mut Node), (Changed<Interaction>, With<Button>)>,
+    button_query: Query<
+        (&Interaction, &BoxShadow, &Children),
+        (Changed<Interaction>, With<Button>),
+    >,
+    mut text_query: Query<&mut Node, With<Text>>,
 ) {
-    for (interaction, offset, mut node) in query {
+    for (interaction, box_shadow, children) in button_query {
+        let y_offset = box_shadow
+            .0
+            .first()
+            .map(|s| s.y_offset)
+            .expect(ERR_INVALID_BOX_SHADOW);
+        let text_node = children
+            .iter()
+            .find(|e| text_query.contains(*e))
+            .expect(ERR_INVALID_CHILDREN);
+        let mut text_node = text_query.get_mut(text_node).expect(ERR_INVALID_CHILDREN);
+
         if *interaction == Interaction::Pressed {
-            node.bottom = px(0);
+            text_node.top = y_offset;
         } else {
-            node.bottom = px(offset.0.y);
+            text_node.top = px(0);
         }
     }
 }

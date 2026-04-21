@@ -21,7 +21,7 @@ mod widgets;
 #[allow(unused_imports)]
 pub(crate) mod prelude {
     pub(crate) use super::buttons::{
-        ButtonBase, ButtonConfig, ButtonContainer, ButtonNodeConfig, ButtonText, button, switch,
+        ButtonConfig, ButtonContainer, ButtonNodeConfig, ButtonText, button, switch,
     };
     pub(crate) use super::hud::joystick::{JoystickID, JoystickMap, JoystickState};
     pub(crate) use super::hud::{Hud, HudSystems};
@@ -43,7 +43,7 @@ pub(crate) mod prelude {
         header_widget, label_widget, root_auto_scroll_widget, root_widget,
     };
     pub(crate) use super::{
-        AppUiSystems, BODY_FONT_SIZE, HEADER_FONT_SIZE, NodeOffset, NodeRect, UiFontHandle,
+        AppUiSystems, BODY_FONT_SIZE, HEADER_FONT_SIZE, NodeRect, UiFontHandle,
     };
 }
 
@@ -98,12 +98,6 @@ pub(crate) enum AppUiSystems {
 /// Wrapper for [`Handle<Font>`] for the ui.
 #[derive(Resource, Default)]
 pub(crate) struct UiFontHandle(pub(crate) Handle<Font>);
-
-/// Stored offset for a [`Node`].
-///
-/// Can apply to [`Node::left`] and [`Node::bottom`] according to [`Self::0`].
-#[derive(Component, Default)]
-pub(crate) struct NodeOffset(pub(crate) Vec2);
 
 /// [`Rect`] of a [`Node`] in screen space.
 ///

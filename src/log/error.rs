@@ -9,6 +9,8 @@
 
 /// Error on invalid attacker [`Entity`](bevy::prelude::Entity).
 pub(crate) const ERR_INVALID_ATTACKER: &str = "Invalid attacker entity. This might be a bug.";
+/// Error on invalid [`bevy::prelude::BoxShadow`].
+pub(crate) const ERR_INVALID_BOX_SHADOW: &str = "Invalid box shadow. This might be a bug.";
 /// Error on invalid [`bevy::prelude::Children`].
 pub(crate) const ERR_INVALID_CHILDREN: &str = "Invalid children. This might be a bug.";
 /// Error on invalid domain of [`bevy::prelude::EasingCurve`].

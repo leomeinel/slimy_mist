@@ -20,11 +20,6 @@ use crate::{input::prelude::*, ui::prelude::*};
 #[reflect(Component)]
 pub(crate) struct ButtonContainer;
 
-/// Button base marker
-#[derive(Component, Reflect)]
-#[reflect(Component)]
-pub(crate) struct ButtonBase;
-
 /// Button text marker.
 #[derive(Component, Reflect)]
 #[reflect(Component)]
@@ -71,7 +66,7 @@ pub(crate) struct ButtonNodeConfig {
     pub(crate) width: Val,
     pub(crate) aspect_ratio: Option<f32>,
     pub(crate) border_radius: BorderRadius,
-    pub(crate) offset: NodeOffset,
+    pub(crate) shadow_offset: Vec2,
 }
 impl ButtonNodeConfig {
     pub(crate) fn circle_small() -> Self {
@@ -79,7 +74,7 @@ impl ButtonNodeConfig {
             width: px(30),
             aspect_ratio: Some(1.),
             border_radius: BorderRadius::MAX,
-            offset: NodeOffset(Vec2::new(0., 4.)),
+            shadow_offset: Vec2::new(0., 4.),
         }
     }
     #[cfg(any(target_os = "android", target_os = "ios"))]
@@ -88,7 +83,7 @@ impl ButtonNodeConfig {
             width: px(60),
             aspect_ratio: Some(1.),
             border_radius: BorderRadius::MAX,
-            offset: NodeOffset(Vec2::new(0., 4.)),
+            offset: Vec2::new(0., 4.),
         }
     }
     pub(crate) fn round_medium() -> Self {
@@ -96,7 +91,7 @@ impl ButtonNodeConfig {
             width: px(60),
             aspect_ratio: Some(2.),
             border_radius: BorderRadius::all(px(30)),
-            offset: NodeOffset(Vec2::new(0., 4.)),
+            shadow_offset: Vec2::new(0., 4.),
         }
     }
     pub(crate) fn round_big() -> Self {
@@ -104,51 +99,27 @@ impl ButtonNodeConfig {
             width: px(400),
             aspect_ratio: Some(4.5),
             border_radius: BorderRadius::all(px(30)),
-            offset: NodeOffset(Vec2::new(0., 6.)),
+            shadow_offset: Vec2::new(0., 6.),
         }
-    }
-    fn into_bundles(self) -> (Node, (Node, NodeOffset)) {
-        let base_node = Node {
-            width: self.width,
-            aspect_ratio: self.aspect_ratio,
-            align_items: AlignItems::Center,
-            justify_content: JustifyContent::Center,
-            border_radius: self.border_radius,
-            ..default()
-        };
-        (
-            Node {
-                ..base_node.clone()
-            },
-            (
-                Node {
-                    position_type: PositionType::Absolute,
-                    bottom: px(self.offset.0.y),
-                    ..base_node.clone()
-                },
-                self.offset,
-            ),
-        )
     }
 }
 
-// FIXME: This still does only trigger the observer if the click is over both the base and the surface.
 /// A builder for creating [`Button`] [`Bundle`]s with customizable appearance, text, and interaction behavior.
 #[derive(Default)]
 struct ButtonBuilder {
     config: ButtonConfig,
     node_config: ButtonNodeConfig,
     name: &'static str,
-    base_background: Color,
-    surface_background: Color,
+    shadow_color: Color,
+    background: Color,
     hovered_background: Color,
 }
 impl ButtonBuilder {
     fn with_button(self) -> Self {
         Self {
             name: "Button",
-            base_background: BUTTON_BASE_BACKGROUND.into(),
-            surface_background: BUTTON_BACKGROUND.into(),
+            shadow_color: BUTTON_SHADOW.into(),
+            background: BUTTON_BACKGROUND.into(),
             hovered_background: BUTTON_HOVERED_BACKGROUND.into(),
             ..self
         }
@@ -156,8 +127,8 @@ impl ButtonBuilder {
     fn with_switch(self) -> Self {
         Self {
             name: "Switch",
-            base_background: SWITCH_BASE_OFF_BACKGROUND.into(),
-            surface_background: SWITCH_OFF_BACKGROUND.into(),
+            shadow_color: SWITCH_SHADOW_OFF.into(),
+            background: SWITCH_OFF_BACKGROUND.into(),
             hovered_background: SWITCH_OFF_HOVERED_BACKGROUND.into(),
             ..self
         }
@@ -168,53 +139,56 @@ impl ButtonBuilder {
         E: EntityEvent,
         B: Bundle,
     {
-        let (base_bundle, surface_bundle) = self.node_config.into_bundles();
         let observer = IntoObserverSystem::into_system(action);
         (
-            Name::new(self.name),
+            Name::new(format!("{} Container", self.name)),
             ButtonContainer,
-            Node {
-                padding: UiRect::top(surface_bundle.0.bottom),
-                ..default()
-            },
+            Node::default(),
             Children::spawn(SpawnWith(move |commands: &mut ChildSpawner| {
-                commands.spawn((
-                    Name::new(format!("{} Base", self.name)),
-                    ButtonBase,
-                    BackgroundColor(self.base_background),
-                    base_bundle,
-                    ZIndex(0),
-                ));
-                let mut surface = commands.spawn((
-                    Name::new(format!("{} Surface", self.name)),
+                let mut button = commands.spawn((
+                    Name::new(self.name),
                     Button,
-                    BackgroundColor(self.surface_background),
+                    BackgroundColor(self.background),
                     InteractionPalette {
-                        none: self.surface_background,
+                        none: self.background,
                         hovered: self.hovered_background,
                         pressed: BUTTON_PRESSED_BACKGROUND,
                     },
-                    surface_bundle,
+                    Node {
+                        width: self.node_config.width,
+                        aspect_ratio: self.node_config.aspect_ratio,
+                        align_items: AlignItems::Center,
+                        justify_content: JustifyContent::Center,
+                        border_radius: self.node_config.border_radius,
+                        ..default()
+                    },
+                    BoxShadow::new(
+                        self.shadow_color,
+                        Val::ZERO,
+                        px(self.node_config.shadow_offset.y),
+                        Val::ZERO,
+                        Val::ZERO,
+                    ),
                     ZIndex(1),
                     children![(
                         Name::new(format!("{} Text", self.name)),
                         ButtonText,
+                        Node::default(),
                         Text(self.config.text.to_uppercase()),
                         self.config.text_font,
                         TextColor(BUTTON_TEXT),
-                        // Don't bubble picking events from the text up to the button.
                         Pickable::IGNORE,
                         ZIndex(2),
                     )],
                 ));
                 if self.config.navigable {
-                    surface.insert((
+                    button.insert((
                         InteractionOverride::default(),
                         AutoDirectionalNavigation::default(),
                         UiNav,
                     ));
                 }
-                surface.observe(observer);
+                button.observe(observer);
             })),
         )
     }

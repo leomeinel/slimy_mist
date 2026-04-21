@@ -83,7 +83,7 @@ impl ButtonNodeConfig {
             width: px(60),
             aspect_ratio: Some(1.),
             border_radius: BorderRadius::MAX,
-            offset: Vec2::new(0., 4.),
+            shadow_offset: Vec2::new(0., 4.),
         }
     }
     pub(crate) fn round_medium() -> Self {

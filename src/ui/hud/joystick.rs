@@ -73,9 +73,12 @@ impl<const ID: u8> JoystickState<ID> {
 /// Enum representation of a joystick ID to have a single source of truth for IDs.
 ///
 /// This can be used as a [`VirtualJoystickID`](virtual_joystick::VirtualJoystickID) after casting to [`u8`].
-pub(crate) struct JoystickID;
+#[repr(u8)]
+pub(crate) enum JoystickID {
+    Movement,
+}
 impl JoystickID {
-    pub(crate) const MOVEMENT: u8 = 0;
+    pub(crate) const MOVEMENT: u8 = Self::Movement as u8;
 }
 
 /// Map of [`JoystickID`]s as [`u8`] mapped to their [`Entity`].

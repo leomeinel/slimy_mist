@@ -18,7 +18,7 @@ pub(crate) struct YSort(pub(crate) f32);
 
 /// Applies an offset to the [`YSort`].
 ///
-/// The offset is expected to be in px.
+/// The offset is expected to be in px of rendered [`Sprite`]s which is equivalent to world position delta.
 #[derive(Component, Default, Reflect)]
 #[reflect(Component)]
 pub(crate) struct YSortOffset(pub(crate) f32);

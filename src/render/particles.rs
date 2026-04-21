@@ -28,15 +28,10 @@ impl Plugin for ParticlesPlugin {
         );
         app.add_systems(
             Update,
-            update_particles::<Player, ParticleWalkingDust>
-                .after(EnterGameplaySystems::Levels)
-                .run_if(in_state(Screen::Gameplay)),
-        );
-        app.add_systems(
-            Update,
             tick_component_timers::<ParticleTimer>.in_set(AppSystems::TickTimers),
         );
 
+        app.add_observer(on_toggle_particle::<ParticleWalkingDust>);
         app.add_observer(on_spawn_particle_once::<ParticleMeleeAttack>);
     }
 }
@@ -64,10 +59,10 @@ impl ParticleSpawnerExt for ParticleSpawnerState {
 
 /// Marker component for walking dust particles.
 #[derive(Component, Default)]
-pub(crate) struct ParticleWalkingDust(AnimationAction);
+pub(crate) struct ParticleWalkingDust;
 impl Particle for ParticleWalkingDust {
     fn is_active(&self, action: AnimationAction) -> bool {
-        self.0 == action
+        action == AnimationAction::Walk
     }
 }
 
@@ -75,6 +70,29 @@ impl Particle for ParticleWalkingDust {
 #[derive(Component, Default)]
 pub(crate) struct ParticleMeleeAttack;
 impl Particle for ParticleMeleeAttack {}
+
+/// Toggle a [`Particle`].
+#[derive(EntityEvent)]
+pub(crate) struct ToggleParticle<T>
+where
+    T: Particle,
+{
+    pub(crate) entity: Entity,
+    pub(crate) activate: bool,
+    pub(crate) _phantom: PhantomData<T>,
+}
+impl<T> ToggleParticle<T>
+where
+    T: Particle,
+{
+    pub(crate) fn new(entity: Entity, activate: bool) -> Self {
+        Self {
+            entity,
+            activate,
+            _phantom: PhantomData,
+        }
+    }
+}
 
 /// Spawn a [`Particle`] once
 #[derive(Event)]
@@ -96,22 +114,7 @@ where
 /// Timer that tracks particles.
 #[derive(Component, Debug, Clone, PartialEq, Reflect, Deref, DerefMut)]
 #[reflect(Component)]
-struct ParticleTimer(Timer);
-
-/// Spawn and despawn a [`Particle`] once.
-fn on_spawn_particle_once<T>(event: On<SpawnParticleOnce>, mut commands: Commands)
-where
-    T: Particle,
-{
-    commands.spawn((
-        T::default(),
-        OneShot::Despawn,
-        ParticleSpawner::default(),
-        NoAutoAabb,
-        Transform::from_translation(event.pos),
-        ParticleEffectHandle(event.handle.clone()),
-    ));
-}
+pub(crate) struct ParticleTimer(pub(crate) Timer);
 
 /// Interval for [`ParticleWalkingDust`].
 const WALKING_DUST_SECS: f32 = 0.5;
@@ -135,7 +138,7 @@ fn add_walking_dust<T>(
             .expect(ERR_INVALID_CHILDREN);
         let particle = commands
             .spawn((
-                ParticleWalkingDust(AnimationAction::Walk),
+                ParticleWalkingDust,
                 ParticleTimer(Timer::from_seconds(WALKING_DUST_SECS, TimerMode::Repeating)),
                 ParticleSpawner::default(),
                 NoAutoAabb,
@@ -151,39 +154,28 @@ fn add_walking_dust<T>(
     }
 }
 
-/// Update particle for type `T`.
-fn update_particles<T, A>(
-    base_query: Query<&Children, With<AnimationBase>>,
-    character_query: Query<(&mut AnimationState, &Children), With<T>>,
-    mut particle_query: Query<
-        (
-            &ParticleWalkingDust,
-            &ParticleTimer,
-            &mut ParticleSpawnerState,
-        ),
-        With<A>,
-    >,
+/// Enable [`Particle`] on [`ToggleParticle`].
+fn on_toggle_particle<T>(
+    event: On<ToggleParticle<T>>,
+    mut particle_query: Query<&mut ParticleSpawnerState, With<T>>,
 ) where
-    T: Visible,
-    A: Particle,
+    T: Particle,
 {
-    for (animation_state, children) in character_query {
-        let child = children
-            .iter()
-            .find(|e| base_query.contains(*e))
-            .expect(ERR_INVALID_CHILDREN);
-        let children = base_query.get(child).expect(ERR_INVALID_CHILDREN);
-        let child = children
-            .iter()
-            .find(|e| particle_query.contains(*e))
-            .expect(ERR_INVALID_CHILDREN);
-        let (particle, timer, mut state) =
-            particle_query.get_mut(child).expect(ERR_INVALID_CHILDREN);
+    let mut state = particle_query.get_mut(event.entity).unwrap();
+    state.set_new_active(event.activate);
+}
 
-        if !timer.0.just_finished() {
-            continue;
-        }
-
-        state.set_new_active(particle.is_active(animation_state.0.0));
-    }
+/// Spawn and despawn a [`Particle`] once.
+fn on_spawn_particle_once<T>(event: On<SpawnParticleOnce>, mut commands: Commands)
+where
+    T: Particle,
+{
+    commands.spawn((
+        T::default(),
+        OneShot::Despawn,
+        ParticleSpawner::default(),
+        NoAutoAabb,
+        Transform::from_translation(event.pos),
+        ParticleEffectHandle(event.handle.clone()),
+    ));
 }

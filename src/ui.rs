@@ -71,6 +71,7 @@ impl Plugin for UiPlugin {
         app.insert_resource(InputFocusVisible(true));
         // FIXME: This currently sometimes navigates in weird ways. This is especially visible in the `Settings`
         //        `Menu`. The current `min_alignment_factor` is usable, but still not great.
+        //        By falling back to `NorthEast`, `SouthEast` in case there is no overlap, we might be able to fix this.
         app.insert_resource(AutoNavigationConfig {
             min_alignment_factor: 0.01,
             prefer_aligned: true,

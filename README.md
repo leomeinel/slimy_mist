@@ -48,7 +48,6 @@ This repository is not entirely licensed as Apache-2.0. More details about the a
 | `/assets/images/*`                                                                                                    | [Leopold Meinel](https://github.com/leomeinel), Shave    | [CC-BY-NC-SA-4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode)                                                        |
 | `/graphics/characters/*`                                                                                              | Shave                                                    | [CC-BY-NC-SA-4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode)                                                        |
 | `/graphics/levels/*`                                                                                                  | Shave                                                    | [CC-BY-NC-SA-4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode)                                                        |
-| `/graphics/ui/*`                                                                                                      | [Leopold Meinel](https://github.com/leomeinel)           | [CC-BY-NC-SA-4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode)                                                        |
 
 ## Credits
 

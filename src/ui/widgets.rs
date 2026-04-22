@@ -43,7 +43,7 @@ fn ui_root_bundle(name: &'static str, overflow: Overflow) -> impl Bundle {
             align_items: AlignItems::Center,
             justify_content: JustifyContent::Center,
             flex_direction: FlexDirection::Column,
-            row_gap: px(20),
+            row_gap: px(30),
             overflow,
             ..default()
         },

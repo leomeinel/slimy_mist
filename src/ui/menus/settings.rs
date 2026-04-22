@@ -81,7 +81,7 @@ fn settings_grid(font: Handle<Font>) -> impl Bundle {
         Node {
             width: px(SETTINGS_GRID_WIDTH_PX),
             display: Display::Grid,
-            row_gap: px(BODY_FONT_SIZE / 2.),
+            row_gap: px(BODY_FONT_SIZE),
             grid_template_columns: RepeatedGridTrack::px(2, SETTINGS_GRID_WIDTH_PX / 2.),
             ..default()
         },

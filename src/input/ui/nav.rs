@@ -13,7 +13,7 @@ use core::time::Duration;
 
 use bevy::{
     camera::NormalizedRenderTarget,
-    input_focus::{InputFocus, InputFocusVisible},
+    input_focus::{InputFocus, InputFocusVisible, directional_navigation::AutoNavigationConfig},
     math::CompassOctant,
     picking::{
         backend::HitData,
@@ -28,6 +28,12 @@ use crate::{input::prelude::*, log::prelude::*, ui::prelude::*};
 pub(super) struct UiInputNavPlugin;
 impl Plugin for UiInputNavPlugin {
     fn build(&self, app: &mut App) {
+        app.insert_resource(AutoNavigationConfig {
+            min_alignment_factor: 0.5,
+            max_search_distance: Some(70.),
+            prefer_aligned: false,
+        });
+
         app.add_systems(OnEnter(OverrideInteraction(true)), set_input_focus);
         app.add_systems(
             OnEnter(OverrideInteraction(false)),
@@ -158,12 +164,20 @@ pub(super) fn override_interaction_on_release(
 
 /// Navigate to [`UiNavActionSet::direction`].
 pub(super) fn navigate(mut navigator: AutoDirectionalNavigator, action_set: Res<UiNavActionSet>) {
-    // Navigate to `maybe_direction`.
     let direction = action_set.direction().map(CompassOctant::from);
     if let Some(direction) = direction
         && let Err(_e) = navigator.navigate(direction)
     {
-        warn!("{}", WARN_INVALID_UI_NAV);
+        let directions = match direction {
+            CompassOctant::North => &[CompassOctant::NorthWest, CompassOctant::NorthEast],
+            CompassOctant::East => &[CompassOctant::SouthEast, CompassOctant::NorthEast],
+            CompassOctant::South => &[CompassOctant::SouthEast, CompassOctant::SouthWest],
+            CompassOctant::West => &[CompassOctant::NorthWest, CompassOctant::SouthWest],
+            _ => unreachable!(),
+        };
+        if !directions.iter().any(|d| navigator.navigate(*d).is_ok()) {
+            warn!("{}", WARN_INVALID_UI_NAV);
+        }
     }
 }
 

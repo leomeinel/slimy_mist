@@ -68,11 +68,11 @@ pub(super) fn spawn_credits_menu(
         DespawnOnExit(Menu::Credits),
         children![
             header_widget("Created by", font.0.clone()),
-            grid(credits_data.created_by.clone(), font.0.clone()),
+            credits_grid(credits_data.created_by.clone(), font.0.clone()),
             header_widget("Assets", font.0.clone()),
-            grid(credits_data.assets.clone(), font.0.clone()),
+            credits_grid(credits_data.assets.clone(), font.0.clone()),
             header_widget("Code", font.0.clone()),
-            grid(credits_data.code.clone(), font.0.clone()),
+            credits_grid(credits_data.code.clone(), font.0.clone()),
             button_back,
         ],
     ));
@@ -88,7 +88,7 @@ pub(super) fn start_credits_music(mut commands: Commands, credits_music: Res<Cre
 }
 
 /// Grid with custom settings that fit the credits screen
-fn grid(content: Vec<[String; 2]>, font: Handle<Font>) -> impl Bundle {
+fn credits_grid(content: Vec<[String; 2]>, font: Handle<Font>) -> impl Bundle {
     (
         Name::new("Grid"),
         Node {

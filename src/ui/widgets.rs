@@ -40,6 +40,7 @@ fn ui_root_bundle(name: &'static str, overflow: Overflow) -> impl Bundle {
             position_type: PositionType::Absolute,
             width: percent(100),
             height: percent(100),
+            padding: UiRect::vertical(px(20)),
             align_items: AlignItems::Center,
             justify_content: JustifyContent::Center,
             flex_direction: FlexDirection::Column,

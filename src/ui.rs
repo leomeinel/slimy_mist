@@ -95,6 +95,7 @@ pub(crate) struct UiFontHandle(pub(crate) Handle<Font>);
 ///
 /// This is useful since it allows directly checking if it contains pointer positions.
 #[derive(Component, Default)]
+#[require(Node)]
 pub(crate) struct NodeRect(pub(crate) Rect);
 impl NodeRect {
     pub(crate) fn touched_id(&self, touches: &Touches) -> Option<u64> {

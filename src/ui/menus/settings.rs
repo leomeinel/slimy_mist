@@ -134,8 +134,8 @@ fn global_volume_widget(font: Handle<Font>) -> impl Bundle {
             (
                 Name::new("Current Volume"),
                 Node {
-                    align_items: AlignItems::Center,
                     padding: UiRect::horizontal(px(10)),
+                    align_items: AlignItems::Center,
                     ..default()
                 },
                 children![(GlobalVolumeLabel, label_widget("", font.clone()))],

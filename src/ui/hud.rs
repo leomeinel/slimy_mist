@@ -46,6 +46,12 @@ impl Plugin for HudPlugin {
     }
 }
 
+/// Maximum width of any element in the [`Hud`].
+///
+/// This is calculated to be equal to the maximum possible width that of any section of the [`Hud`].
+pub(crate) const HUD_MAX_ELEMENT_WIDTH: Val =
+    Val::Px((MIN_SIDE_SCALE_THRESHOLD * (1. - HUD_PADDING_PERCENT / 50.)) / 2.);
+
 /// A system set for ordering systems related to [`Hud`].
 #[derive(SystemSet, Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
 pub(crate) enum HudSystems {
@@ -64,12 +70,6 @@ pub(crate) enum Hud {
     BottomLeft,
     BottomRight,
 }
-
-/// Maximum width of any element in the [`Hud`].
-///
-/// This is calculated to be equal to the maximum possible width that of any section of the [`Hud`].
-pub(crate) const HUD_MAX_ELEMENT_WIDTH: Val =
-    Val::Px((MIN_SIDE_SCALE_THRESHOLD * (1. - HUD_PADDING_PERCENT / 50.)) / 2.);
 
 /// [`Node::row_gap`] for [`Hud::Root`].
 const HUD_ROW_GAP: Val = Val::Percent(5.);

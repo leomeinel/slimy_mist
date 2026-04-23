@@ -141,6 +141,9 @@ fn visualize_button_hover(
 }
 
 /// Move [`Node`] based on attached [`BoxShadow`]'s offset according to [`Interaction`].
+///
+/// This asserts that [`BoxShadow::0`] has exactly one element because this is the expected state.
+/// If it wouldn't assert that, the text [`Node`] could be moved to an unexpected location.
 fn visualize_button_pressed(
     button_query: Query<
         (&Interaction, &BoxShadow, &Children),
@@ -149,6 +152,7 @@ fn visualize_button_pressed(
     mut text_query: Query<&mut Node, With<Text>>,
 ) {
     for (interaction, box_shadow, children) in button_query {
+        assert_eq!(box_shadow.0.len(), 1);
         let y_offset = box_shadow
             .0
             .first()

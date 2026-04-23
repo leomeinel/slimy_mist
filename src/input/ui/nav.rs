@@ -30,7 +30,9 @@ impl Plugin for UiInputNavPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(AutoNavigationConfig {
             min_alignment_factor: 0.5,
-            max_search_distance: Some(70.),
+            // NOTE: Currently this is chosen so that users can navigate horizontally in the settings menu without
+            //       reaching the back button. This is somewhat arbitrary, but works reliably.
+            max_search_distance: Some(95.),
             prefer_aligned: false,
         });
 

@@ -34,7 +34,7 @@ impl Plugin for CorePlugin {
 /// Scale threshold for the minimum length of a window side.
 ///
 /// This is used for scaling [`UiScale`] and [`Projection`].
-pub(crate) const MIN_SIDE_SCALE_THRESHOLD: f32 = 500.;
+pub(crate) const MIN_SIDE_SCALE_THRESHOLD: f32 = 720.;
 
 /// High-level groupings of systems for the app in the `Update` schedule.
 /// When adding a new variant, make sure to order it in the `configure_sets`

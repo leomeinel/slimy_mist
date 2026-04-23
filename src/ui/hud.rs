@@ -155,6 +155,7 @@ fn spawn_hud(
     ));
 }
 
+// FIXME: This is currently static. It should scale with health.
 /// Health bar showing the current [`Health`](crate::characters::prelude::Health) of the [`Player`](crate::characters::prelude::Player).
 fn health_bar() -> impl Bundle {
     let bar = BarBuilder::round_big_hud()

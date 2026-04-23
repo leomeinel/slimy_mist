@@ -11,7 +11,6 @@
 
 //! Reusable UI widgets & theming.
 
-mod buttons;
 mod hud;
 mod interaction;
 mod menus;
@@ -20,11 +19,8 @@ mod widgets;
 
 #[allow(unused_imports)]
 pub(crate) mod prelude {
-    pub(crate) use super::buttons::{
-        ButtonConfig, ButtonContainer, ButtonNodeConfig, ButtonText, button, switch,
-    };
     pub(crate) use super::hud::joystick::{JoystickID, JoystickMap, JoystickState};
-    pub(crate) use super::hud::{Hud, HudSystems};
+    pub(crate) use super::hud::{HUD_MAX_ELEMENT_WIDTH, Hud, HudSystems};
     pub(crate) use super::interaction::{
         InteractionAssets, InteractionOverride, InteractionPalette, OverrideInteraction,
     };
@@ -39,6 +35,10 @@ pub(crate) mod prelude {
         exit_menus_on_click,
     };
     pub(crate) use super::palette::*;
+    pub(crate) use super::widgets::bar::BarBuilder;
+    pub(crate) use super::widgets::button::{
+        ButtonConfig, ButtonContainer, ButtonNodeConfig, ButtonText, button, switch,
+    };
     pub(crate) use super::widgets::{
         header_widget, label_widget, root_auto_scroll_widget, root_widget,
     };

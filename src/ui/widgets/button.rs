@@ -1,5 +1,5 @@
 /*
- * File: buttons.rs
+ * File: button.rs
  * Author: Leopold Johannes Meinel (leo@meinel.dev)
  * -----
  * Copyright (c) 2026 Leopold Johannes Meinel & contributors
@@ -64,7 +64,7 @@ impl ButtonConfig {
 #[derive(Default)]
 pub(crate) struct ButtonNodeConfig {
     pub(crate) width: Val,
-    pub(crate) aspect_ratio: Option<f32>,
+    pub(crate) aspect_ratio: f32,
     pub(crate) border_radius: BorderRadius,
     pub(crate) shadow_offset: Vec2,
 }
@@ -72,7 +72,7 @@ impl ButtonNodeConfig {
     pub(crate) fn circle_small() -> Self {
         Self {
             width: px(30),
-            aspect_ratio: Some(1.),
+            aspect_ratio: 1.,
             border_radius: BorderRadius::MAX,
             shadow_offset: Vec2::new(0., 4.),
         }
@@ -81,7 +81,7 @@ impl ButtonNodeConfig {
     pub(crate) fn circle_medium() -> Self {
         Self {
             width: px(60),
-            aspect_ratio: Some(1.),
+            aspect_ratio: 1.,
             border_radius: BorderRadius::MAX,
             shadow_offset: Vec2::new(0., 4.),
         }
@@ -89,7 +89,7 @@ impl ButtonNodeConfig {
     pub(crate) fn round_medium() -> Self {
         Self {
             width: px(60),
-            aspect_ratio: Some(2.),
+            aspect_ratio: 2.,
             border_radius: BorderRadius::all(px(30)),
             shadow_offset: Vec2::new(0., 4.),
         }
@@ -97,7 +97,7 @@ impl ButtonNodeConfig {
     pub(crate) fn round_big() -> Self {
         Self {
             width: px(400),
-            aspect_ratio: Some(4.5),
+            aspect_ratio: 4.5,
             border_radius: BorderRadius::all(px(30)),
             shadow_offset: Vec2::new(0., 6.),
         }
@@ -156,7 +156,7 @@ impl ButtonBuilder {
                     },
                     Node {
                         width: self.node_config.width,
-                        aspect_ratio: self.node_config.aspect_ratio,
+                        aspect_ratio: Some(self.node_config.aspect_ratio),
                         align_items: AlignItems::Center,
                         justify_content: JustifyContent::Center,
                         border_radius: self.node_config.border_radius,

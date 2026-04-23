@@ -11,6 +11,8 @@
 
 //! Helper functions for creating common widgets.
 
+pub(super) mod button;
+
 use bevy::{prelude::*, ui::FocusPolicy};
 
 use crate::{input::prelude::*, ui::prelude::*};

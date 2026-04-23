@@ -71,7 +71,7 @@ impl Character for Slime {
             Navigator,
             // Attack
             (
-                Health(5.),
+                Health::new(5.),
                 AimDirection::default(),
                 AttackStats {
                     _attacks: HashSet::from([punch()]),

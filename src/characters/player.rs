@@ -74,7 +74,7 @@ impl Character for Player {
             NavTarget(128),
             // Attack
             (
-                Health(10.),
+                Health::new(10.),
                 AimDirection::default(),
                 AttackStats {
                     _attacks: HashSet::from([punch()]),

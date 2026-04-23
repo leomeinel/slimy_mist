@@ -10,8 +10,27 @@
 use bevy::prelude::*;
 
 /// Health that determines if a [`Component`] should be despawned.
-#[derive(Component, Default)]
-pub(crate) struct Health(pub(crate) f32);
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+pub(crate) struct Health {
+    pub(crate) max: f32,
+    pub(crate) current: f32,
+}
+impl Health {
+    pub(crate) fn new(max: f32) -> Self {
+        Self { max, current: max }
+    }
+    pub(crate) fn fraction(&self) -> f32 {
+        if self.max > 0. {
+            (self.current / self.max).clamp(0., 1.)
+        } else {
+            0.
+        }
+    }
+    pub(crate) fn is_alive(&self) -> bool {
+        self.current > 0.
+    }
+}
 
 /// Apply damage to [`Health`].
 #[derive(Event)]
@@ -30,8 +49,8 @@ pub(super) fn on_damage(
         let Ok(mut health) = target_query.get_mut(*entity) else {
             continue;
         };
-        health.0 -= event.damage;
-        if health.0 <= 0. {
+        health.current -= event.damage;
+        if !health.is_alive() {
             commands.entity(*entity).despawn();
         }
     }

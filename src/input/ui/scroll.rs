@@ -162,18 +162,18 @@ pub(super) fn reset_scroll_node_layout(
         let delta = computed.content_size() - computed.size();
 
         if node.overflow.x == OverflowAxis::Scroll {
-            if delta.x < 0. {
-                node.align_items = AlignItems::Center;
-            } else {
+            if delta.x > 0. {
                 node.align_items = AlignItems::FlexStart;
+            } else {
+                node.align_items = AlignItems::Center;
             }
         }
 
         if node.overflow.y == OverflowAxis::Scroll {
-            if delta.y < 0. {
-                node.justify_content = JustifyContent::Center;
-            } else {
+            if delta.y > 0. {
                 node.justify_content = JustifyContent::FlexStart;
+            } else {
+                node.justify_content = JustifyContent::Center;
             }
         }
     }

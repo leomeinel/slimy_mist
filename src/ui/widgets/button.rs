@@ -120,21 +120,28 @@ struct ButtonBuilder {
     hovered_background: Color,
 }
 impl ButtonBuilder {
-    fn with_button(self) -> Self {
+    fn button() -> Self {
         Self {
             name: "Button",
             shadow_color: BUTTON_SHADOW.into(),
             background: BUTTON_BACKGROUND.into(),
             hovered_background: BUTTON_HOVERED_BACKGROUND.into(),
-            ..self
+            ..default()
         }
     }
-    fn with_switch(self) -> Self {
+    fn switch() -> Self {
         Self {
             name: "Switch",
             shadow_color: SWITCH_SHADOW_OFF.into(),
             background: SWITCH_OFF_BACKGROUND.into(),
             hovered_background: SWITCH_OFF_HOVERED_BACKGROUND.into(),
+            ..default()
+        }
+    }
+    fn with_configs(self, config: ButtonConfig, node_config: ButtonNodeConfig) -> Self {
+        Self {
+            config,
+            node_config,
             ..self
         }
     }
@@ -209,12 +216,9 @@ where
     E: EntityEvent,
     B: Bundle,
 {
-    let builder = ButtonBuilder {
-        config,
-        node_config,
-        ..default()
-    };
-    builder.with_button().build(action)
+    ButtonBuilder::button()
+        .with_configs(config, node_config)
+        .build(action)
 }
 
 /// A switch [`Button`] with text and an action defined as an [`Observer`].
@@ -227,10 +231,7 @@ where
     E: EntityEvent,
     B: Bundle,
 {
-    let builder = ButtonBuilder {
-        config,
-        node_config,
-        ..default()
-    };
-    builder.with_switch().build(action)
+    ButtonBuilder::switch()
+        .with_configs(config, node_config)
+        .build(action)
 }

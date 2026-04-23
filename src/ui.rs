@@ -45,7 +45,7 @@ pub(crate) mod prelude {
         root_widget,
     };
     pub(crate) use super::{
-        AppUiSystems, BODY_FONT_SIZE, HEADER_FONT_SIZE, NodeRect, UiFontHandle,
+        AppUiSystems, BODY_FONT_SIZE, BORDER_RADIUS_ROUND, HEADER_FONT_SIZE, NodeRect, UiFontHandle,
     };
 }
 
@@ -78,6 +78,9 @@ impl Plugin for UiPlugin {
         );
     }
 }
+
+/// [`BorderRadius`] for round [`Node`]s.
+pub(crate) const BORDER_RADIUS_ROUND: BorderRadius = BorderRadius::all(Val::Px(45.));
 
 /// Font size for any header.
 pub(crate) const HEADER_FONT_SIZE: f32 = 54.;

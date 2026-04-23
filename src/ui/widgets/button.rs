@@ -95,7 +95,7 @@ impl ButtonNodeConfig {
         Self {
             width: MEDIUM_BUTTON_WIDTH,
             aspect_ratio: 2.,
-            border_radius: BorderRadius::all(px(50)),
+            border_radius: BORDER_RADIUS_ROUND,
             shadow_offset: Vec2::new(0., 4.),
         }
     }
@@ -103,7 +103,7 @@ impl ButtonNodeConfig {
         Self {
             width: px(ROOT_MAX_ELEMENT_WIDTH_PX),
             aspect_ratio: 4.5,
-            border_radius: BorderRadius::all(px(50)),
+            border_radius: BORDER_RADIUS_ROUND,
             shadow_offset: Vec2::new(0., 6.),
         }
     }

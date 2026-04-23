@@ -11,7 +11,7 @@ pub(super) mod joystick;
 
 use bevy::prelude::*;
 
-use crate::{screens::prelude::*, ui::prelude::*};
+use crate::{core::prelude::*, screens::prelude::*, ui::prelude::*};
 
 pub(super) struct HudPlugin;
 impl Plugin for HudPlugin {
@@ -65,9 +65,28 @@ pub(crate) enum Hud {
     BottomRight,
 }
 
+/// Maximum width of any element in the [`Hud`].
+///
+/// This is calculated to be equal to the maximum possible width that of any section of the [`Hud`].
+pub(crate) const HUD_MAX_ELEMENT_WIDTH: Val =
+    Val::Px((MIN_SIDE_SCALE_THRESHOLD * (1. - HUD_PADDING_PERCENT / 50.)) / 2.);
+
 /// [`Node::row_gap`] for [`Hud::Root`].
 const HUD_ROW_GAP: Val = Val::Percent(5.);
 
+/// [`Node::padding`] for [`Hud::Root`] in percent.
+const HUD_PADDING_PERCENT: f32 = 10.;
+
+/// Spawn [`Hud`].
+///
+/// The [`Hud`] is the main way to display UI outside of menus.
+///
+/// It has a padding on each side and is separated into four sections that content can be added to:
+///
+/// - [`Hud::TopLeft`]
+/// - [`Hud::TopRight`]
+/// - [`Hud::BottomLeft`]
+/// - [`Hud::BottomRight`]
 fn spawn_hud(
     mut commands: Commands,
     #[cfg(any(target_os = "android", target_os = "ios"))] font: Res<UiFontHandle>,
@@ -79,7 +98,7 @@ fn spawn_hud(
             position_type: PositionType::Absolute,
             width: percent(100.),
             height: percent(100.),
-            padding: UiRect::all(vmin(10)),
+            padding: UiRect::all(vmin(HUD_PADDING_PERCENT)),
             display: Display::Grid,
             grid_template_columns: RepeatedGridTrack::percent(2, 50.),
             ..default()
@@ -95,10 +114,7 @@ fn spawn_hud(
                     row_gap: HUD_ROW_GAP,
                     ..default()
                 },
-                children![(
-                    #[cfg(any(target_os = "android", target_os = "ios"))]
-                    pause_button(&font),
-                )],
+                children![health_bar()],
             ),
             (
                 Hud::TopRight,
@@ -110,6 +126,8 @@ fn spawn_hud(
                     row_gap: HUD_ROW_GAP,
                     ..default()
                 },
+                #[cfg(any(target_os = "android", target_os = "ios"))]
+                children![pause_button(&font)],
             ),
             (
                 Hud::BottomLeft,
@@ -135,6 +153,15 @@ fn spawn_hud(
             )
         ],
     ));
+}
+
+/// Health bar showing the current [`Health`](crate::characters::prelude::Health) of the [`Player`](crate::characters::prelude::Player).
+fn health_bar() -> impl Bundle {
+    let bar = BarBuilder::round_big_hud()
+        .with_bar_background(HEALTH_BAR_BACKGROUND)
+        .build();
+
+    (NodeRect::default(), bar)
 }
 
 #[cfg(any(target_os = "android", target_os = "ios"))]

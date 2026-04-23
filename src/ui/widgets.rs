@@ -11,6 +11,7 @@
 
 //! Helper functions for creating common widgets.
 
+pub(super) mod bar;
 pub(super) mod button;
 
 use bevy::{prelude::*, ui::FocusPolicy};

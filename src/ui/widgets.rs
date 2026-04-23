@@ -16,7 +16,16 @@ pub(super) mod button;
 
 use bevy::{prelude::*, ui::FocusPolicy};
 
-use crate::{input::prelude::*, ui::prelude::*};
+use crate::{core::prelude::*, input::prelude::*, ui::prelude::*};
+
+/// Maximum width of any element in the UI root in pixels.
+///
+/// This is calculated to be equal to the maximum possible width.
+pub(crate) const ROOT_MAX_ELEMENT_WIDTH_PX: f32 =
+    MIN_SIDE_SCALE_THRESHOLD * (1. - ROOT_PADDING_PERCENT / 50.);
+
+/// [`Node::padding`] for UI root in percent.
+const ROOT_PADDING_PERCENT: f32 = 10.;
 
 /// A non-scrolling root UI [`Bundle`] with centered content that fills its parent [`Node`].
 pub(crate) fn root_widget(name: &'static str) -> impl Bundle {
@@ -43,7 +52,7 @@ fn ui_root_bundle(name: &'static str, overflow: Overflow) -> impl Bundle {
             position_type: PositionType::Absolute,
             width: percent(100),
             height: percent(100),
-            padding: UiRect::vertical(px(20)),
+            padding: UiRect::all(vmin(ROOT_PADDING_PERCENT)),
             align_items: AlignItems::Center,
             justify_content: JustifyContent::Center,
             flex_direction: FlexDirection::Column,

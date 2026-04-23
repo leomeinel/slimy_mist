@@ -85,11 +85,6 @@ impl JoystickID {
 #[derive(Resource, Default)]
 pub(crate) struct JoystickMap(pub(crate) HashMap<u8, Entity>);
 
-/// Size of the joystick knob in pixels
-const JOYSTICK_KNOB_SIZE: Vec2 = Vec2::splat(75.);
-/// Size of the joystick background in pixels
-const JOYSTICK_BACKGROUND_SIZE: Vec2 = Vec2::splat(150.);
-
 /// Spawn joystick with with `const ID`.
 fn spawn_joystick<const ID: u8>(
     hud_query: Query<(&Hud, Entity)>,
@@ -122,6 +117,11 @@ fn despawn_joystick<const ID: u8>(
     (*next_state).set_if_neq(JoystickState::<ID>::None);
 }
 
+/// [`Node::width`] of a joystick.
+const JOYSTICK_WIDTH: Val = Val::Px(HUD_MAX_ELEMENT_WIDTH_PX / 1.5);
+/// [`Node::width`] of a joystick knob.
+const JOYSTICK_KNOB_WIDTH: Val = Val::Px(HUD_MAX_ELEMENT_WIDTH_PX / 3.);
+
 /// Joystick with `const ID`.
 fn joystick<const ID: u8>() -> impl Bundle {
     (
@@ -132,8 +132,8 @@ fn joystick<const ID: u8>() -> impl Bundle {
                 .with_action(NoAction),
         )
         .set_style(Node {
-            width: px(JOYSTICK_BACKGROUND_SIZE.x),
-            height: px(JOYSTICK_BACKGROUND_SIZE.y),
+            width: JOYSTICK_WIDTH,
+            aspect_ratio: Some(1.),
             ..default()
         }),
         children![
@@ -150,8 +150,8 @@ fn joystick<const ID: u8>() -> impl Bundle {
                 VirtualJoystickUIBackground,
                 Node {
                     position_type: PositionType::Absolute,
-                    width: px(JOYSTICK_BACKGROUND_SIZE.x),
-                    height: px(JOYSTICK_BACKGROUND_SIZE.y),
+                    width: JOYSTICK_WIDTH,
+                    aspect_ratio: Some(1.),
                     border_radius: BorderRadius::MAX,
                     border: UiRect::all(px(5)),
                     ..default()
@@ -168,8 +168,8 @@ fn joystick<const ID: u8>() -> impl Bundle {
                 VirtualJoystickUIKnob,
                 Node {
                     position_type: PositionType::Absolute,
-                    width: px(JOYSTICK_KNOB_SIZE.x),
-                    height: px(JOYSTICK_KNOB_SIZE.y),
+                    width: JOYSTICK_KNOB_WIDTH,
+                    aspect_ratio: Some(1.),
                     border_radius: BorderRadius::MAX,
                     ..default()
                 },

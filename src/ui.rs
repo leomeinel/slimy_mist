@@ -20,7 +20,7 @@ mod widgets;
 #[allow(unused_imports)]
 pub(crate) mod prelude {
     pub(crate) use super::hud::joystick::{JoystickID, JoystickMap, JoystickState};
-    pub(crate) use super::hud::{HUD_MAX_ELEMENT_WIDTH, Hud, HudSystems};
+    pub(crate) use super::hud::{HUD_MAX_ELEMENT_WIDTH_PX, Hud, HudSystems};
     pub(crate) use super::interaction::{
         InteractionAssets, InteractionOverride, InteractionPalette, OverrideInteraction,
     };
@@ -37,10 +37,12 @@ pub(crate) mod prelude {
     pub(crate) use super::palette::*;
     pub(crate) use super::widgets::bar::BarBuilder;
     pub(crate) use super::widgets::button::{
-        ButtonConfig, ButtonContainer, ButtonNodeConfig, ButtonText, button, switch,
+        ButtonConfig, ButtonContainer, ButtonNodeConfig, ButtonText, MEDIUM_BUTTON_WIDTH, button,
+        switch,
     };
     pub(crate) use super::widgets::{
-        header_widget, label_widget, root_auto_scroll_widget, root_widget,
+        ROOT_MAX_ELEMENT_WIDTH_PX, header_widget, label_widget, root_auto_scroll_widget,
+        root_widget,
     };
     pub(crate) use super::{
         AppUiSystems, BODY_FONT_SIZE, HEADER_FONT_SIZE, NodeRect, UiFontHandle,
@@ -78,9 +80,9 @@ impl Plugin for UiPlugin {
 }
 
 /// Font size for any header.
-pub(crate) const HEADER_FONT_SIZE: f32 = 36.;
+pub(crate) const HEADER_FONT_SIZE: f32 = 54.;
 /// Font size for any body.
-pub(crate) const BODY_FONT_SIZE: f32 = 18.;
+pub(crate) const BODY_FONT_SIZE: f32 = 27.;
 
 #[derive(SystemSet, Debug, Clone, Copy, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub(crate) enum AppUiSystems {

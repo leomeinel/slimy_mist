@@ -46,11 +46,11 @@ impl Plugin for HudPlugin {
     }
 }
 
-/// Maximum width of any element in the [`Hud`].
+/// Maximum width of any element in the [`Hud`] in pixels.
 ///
 /// This is calculated to be equal to the maximum possible width that of any section of the [`Hud`].
-pub(crate) const HUD_MAX_ELEMENT_WIDTH: Val =
-    Val::Px((MIN_SIDE_SCALE_THRESHOLD * (1. - HUD_PADDING_PERCENT / 50.)) / 2.);
+pub(crate) const HUD_MAX_ELEMENT_WIDTH_PX: f32 =
+    (MIN_SIDE_SCALE_THRESHOLD * (1. - HUD_PADDING_PERCENT / 50.)) / 2.;
 
 /// A system set for ordering systems related to [`Hud`].
 #[derive(SystemSet, Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
@@ -171,7 +171,7 @@ fn pause_button(font: &UiFontHandle) -> impl Bundle {
         ButtonConfig::non_navigable()
             .with_text("⋮")
             .with_header_font(font.0.clone()),
-        ButtonNodeConfig::circle_medium(),
+        ButtonNodeConfig::circle_big_hud(),
         enter_pause_menu_on_click,
     );
 

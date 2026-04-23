@@ -15,15 +15,16 @@ use crate::ui::prelude::*;
 #[derive(Default)]
 pub(crate) struct BarBuilder {
     pub(crate) width: Val,
-    pub(crate) aspect_ratio: f32,
+    pub(crate) height: Val,
     pub(crate) border: UiRect,
     pub(crate) bar_background: BackgroundColor,
 }
 impl BarBuilder {
     pub(crate) fn round_big_hud() -> Self {
         Self {
-            width: HUD_MAX_ELEMENT_WIDTH,
-            aspect_ratio: 4.5,
+            width: px(HUD_MAX_ELEMENT_WIDTH_PX),
+            // NOTE: This ensures height consistency with big circle hud buttons.
+            height: MEDIUM_BUTTON_WIDTH,
             border: UiRect::all(px(5)),
             ..default()
         }
@@ -41,11 +42,11 @@ impl BarBuilder {
         (
             Node {
                 width: self.width,
-                aspect_ratio: Some(self.aspect_ratio),
+                height: self.height,
                 align_items: AlignItems::Center,
                 justify_items: JustifyItems::Start,
                 border: self.border,
-                border_radius: BorderRadius::all(px(30)),
+                border_radius: BorderRadius::all(px(50)),
                 padding: self.border,
                 ..default()
             },
@@ -53,7 +54,7 @@ impl BarBuilder {
             BackgroundColor::from(BAR_CONTAINER_BACKGROUND),
             children![(
                 Node {
-                    border_radius: BorderRadius::all(px(30)),
+                    border_radius: BorderRadius::all(px(50)),
                     width: percent(100),
                     height: percent(100),
                     ..default()

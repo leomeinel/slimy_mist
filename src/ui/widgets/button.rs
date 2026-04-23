@@ -60,6 +60,11 @@ impl ButtonConfig {
     }
 }
 
+/// [`Node::width`] of a small button.
+const SMALL_BUTTON_WIDTH: Val = Val::Px(ROOT_MAX_ELEMENT_WIDTH_PX / 14.);
+/// [`Node::width`] of a medium button.
+pub(crate) const MEDIUM_BUTTON_WIDTH: Val = Val::Px(ROOT_MAX_ELEMENT_WIDTH_PX / 7.);
+
 /// Config for the [`Node`] used by a button.
 #[derive(Default)]
 pub(crate) struct ButtonNodeConfig {
@@ -71,16 +76,16 @@ pub(crate) struct ButtonNodeConfig {
 impl ButtonNodeConfig {
     pub(crate) fn circle_small() -> Self {
         Self {
-            width: px(30),
+            width: SMALL_BUTTON_WIDTH,
             aspect_ratio: 1.,
             border_radius: BorderRadius::MAX,
             shadow_offset: Vec2::new(0., 4.),
         }
     }
     #[cfg(any(target_os = "android", target_os = "ios"))]
-    pub(crate) fn circle_medium() -> Self {
+    pub(crate) fn circle_big_hud() -> Self {
         Self {
-            width: px(60),
+            width: MEDIUM_BUTTON_WIDTH,
             aspect_ratio: 1.,
             border_radius: BorderRadius::MAX,
             shadow_offset: Vec2::new(0., 4.),
@@ -88,17 +93,17 @@ impl ButtonNodeConfig {
     }
     pub(crate) fn round_medium() -> Self {
         Self {
-            width: px(60),
+            width: MEDIUM_BUTTON_WIDTH,
             aspect_ratio: 2.,
-            border_radius: BorderRadius::all(px(30)),
+            border_radius: BorderRadius::all(px(50)),
             shadow_offset: Vec2::new(0., 4.),
         }
     }
     pub(crate) fn round_big() -> Self {
         Self {
-            width: px(400),
+            width: px(ROOT_MAX_ELEMENT_WIDTH_PX),
             aspect_ratio: 4.5,
-            border_radius: BorderRadius::all(px(30)),
+            border_radius: BorderRadius::all(px(50)),
             shadow_offset: Vec2::new(0., 6.),
         }
     }

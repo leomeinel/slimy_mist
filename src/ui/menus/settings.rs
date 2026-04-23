@@ -71,18 +71,15 @@ fn spawn_settings_menu(mut commands: Commands, font: Res<UiFontHandle>) {
     ));
 }
 
-/// Total width of [`settings_grid`].
-const SETTINGS_GRID_WIDTH_PX: f32 = 400.;
-
 /// Custom settings grid
 fn settings_grid(font: Handle<Font>) -> impl Bundle {
     (
         Name::new("Settings Grid"),
         Node {
-            width: px(SETTINGS_GRID_WIDTH_PX),
+            width: px(ROOT_MAX_ELEMENT_WIDTH_PX),
             display: Display::Grid,
             row_gap: px(BODY_FONT_SIZE),
-            grid_template_columns: RepeatedGridTrack::px(2, SETTINGS_GRID_WIDTH_PX / 2.),
+            grid_template_columns: RepeatedGridTrack::px(2, ROOT_MAX_ELEMENT_WIDTH_PX / 2.),
             ..default()
         },
         children![

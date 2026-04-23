@@ -17,6 +17,7 @@ pub(crate) struct BarBuilder {
     pub(crate) width: Val,
     pub(crate) height: Val,
     pub(crate) border: UiRect,
+    pub(crate) padding: UiRect,
     pub(crate) bar_background: BackgroundColor,
 }
 impl BarBuilder {
@@ -26,6 +27,10 @@ impl BarBuilder {
             // NOTE: This ensures height consistency with big circle hud buttons.
             height: MEDIUM_BUTTON_WIDTH,
             border: UiRect::all(px(5)),
+            // FIXME: This is a hack to avoid overflow not respecting `border_radius`.
+            //        Additionally it is necessary because of the `Outline` hack.
+            //        It should actually be 10 pixels.
+            padding: UiRect::all(px(12)),
             ..default()
         }
     }
@@ -43,23 +48,39 @@ impl BarBuilder {
             Node {
                 width: self.width,
                 height: self.height,
-                align_items: AlignItems::Center,
-                justify_items: JustifyItems::Start,
                 border: self.border,
-                border_radius: BorderRadius::all(px(50)),
-                padding: self.border,
+                border_radius: BORDER_RADIUS_ROUND,
+                align_items: AlignItems::Center,
+                padding: self.padding,
                 ..default()
             },
             BorderColor::all(BAR_CONTAINER_BORDER),
             BackgroundColor::from(BAR_CONTAINER_BACKGROUND),
             children![(
                 Node {
-                    border_radius: BorderRadius::all(px(50)),
+                    display: Display::Flex,
+                    align_items: AlignItems::Center,
+                    flex_direction: FlexDirection::RowReverse,
+                    justify_content: JustifyContent::FlexStart,
                     width: percent(100),
                     height: percent(100),
+                    border_radius: BORDER_RADIUS_ROUND,
                     ..default()
                 },
                 self.bar_background,
+                children![(
+                    Node {
+                        width: Val::ZERO,
+                        height: percent(100),
+                        ..default()
+                    },
+                    // FIXME: This is a hack to circumvent rounding errors causing a pixel on the
+                    //        right of the bar to be visible.
+                    //        I sadly couldn't reproduce this in a minimal example yet, therefore
+                    //        no bug report has been submitted.
+                    Outline::new(px(1), Val::ZERO, BAR_CONTAINER_BACKGROUND.into()),
+                    BackgroundColor::from(BAR_CONTAINER_BACKGROUND),
+                )]
             )],
         )
     }

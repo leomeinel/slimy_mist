@@ -7,6 +7,7 @@
  * URL: https://www.apache.org/licenses/LICENSE-2.0
  */
 
+mod health;
 pub(super) mod joystick;
 
 use bevy::prelude::*;
@@ -42,6 +43,13 @@ impl Plugin for HudPlugin {
         app.add_systems(
             OnEnter(Screen::Gameplay),
             spawn_hud.in_set(HudSystems::Spawn),
+        );
+
+        app.add_systems(
+            Update,
+            health::update_health_bar
+                .run_if(in_state(Screen::Gameplay))
+                .in_set(AppSystems::Update),
         );
     }
 }
@@ -114,7 +122,7 @@ fn spawn_hud(
                     row_gap: HUD_ROW_GAP,
                     ..default()
                 },
-                children![health_bar()],
+                children![health::health_bar()],
             ),
             (
                 Hud::TopRight,
@@ -153,16 +161,6 @@ fn spawn_hud(
             )
         ],
     ));
-}
-
-// FIXME: This is currently static. It should scale with health.
-/// Health bar showing the current [`Health`](crate::characters::prelude::Health) of the [`Player`](crate::characters::prelude::Player).
-fn health_bar() -> impl Bundle {
-    let bar = BarBuilder::round_big_hud()
-        .with_bar_background(HEALTH_BAR_BACKGROUND)
-        .build();
-
-    (NodeRect::default(), bar)
 }
 
 #[cfg(any(target_os = "android", target_os = "ios"))]

@@ -45,7 +45,8 @@ pub(crate) mod prelude {
         root_widget,
     };
     pub(crate) use super::{
-        AppUiSystems, BODY_FONT_SIZE, BORDER_RADIUS_ROUND, HEADER_FONT_SIZE, NodeRect, UiFontHandle,
+        AppUiSystems, BODY_FONT_SIZE, BORDER_RADIUS_ROUND_BIG, BORDER_RADIUS_ROUND_MEDIUM,
+        HEADER_FONT_SIZE, NodeRect, UiFontHandle,
     };
 }
 
@@ -79,8 +80,10 @@ impl Plugin for UiPlugin {
     }
 }
 
-/// [`BorderRadius`] for round [`Node`]s.
-pub(crate) const BORDER_RADIUS_ROUND: BorderRadius = BorderRadius::all(Val::Px(45.));
+/// [`BorderRadius`] for round big [`Node`]s.
+pub(crate) const BORDER_RADIUS_ROUND_BIG: BorderRadius = BorderRadius::all(Val::Px(40.));
+/// [`BorderRadius`] for round medium [`Node`]s.
+pub(crate) const BORDER_RADIUS_ROUND_MEDIUM: BorderRadius = BorderRadius::all(Val::Px(15.));
 
 /// Font size for any header.
 pub(crate) const HEADER_FONT_SIZE: f32 = 54.;

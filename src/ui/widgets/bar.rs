@@ -16,7 +16,6 @@ use crate::ui::prelude::*;
 pub(crate) struct BarBuilder {
     pub(crate) width: Val,
     pub(crate) height: Val,
-    pub(crate) border: UiRect,
     pub(crate) padding: UiRect,
     pub(crate) bar_background: BackgroundColor,
 }
@@ -26,11 +25,7 @@ impl BarBuilder {
             width: px(HUD_MAX_ELEMENT_WIDTH_PX),
             // NOTE: This ensures height consistency with big circle hud buttons.
             height: MEDIUM_BUTTON_WIDTH,
-            border: UiRect::all(px(5)),
-            // FIXME: This is a hack to avoid overflow not respecting `border_radius`.
-            //        Additionally it is necessary because of the `Outline` hack.
-            //        It should actually be 10 pixels.
-            padding: UiRect::all(px(12)),
+            padding: UiRect::all(px(15)),
             ..default()
         }
     }
@@ -48,28 +43,24 @@ impl BarBuilder {
             Node {
                 width: self.width,
                 height: self.height,
-                border: self.border,
-                border_radius: BORDER_RADIUS_ROUND,
+                border_radius: BorderRadius::MAX,
                 align_items: AlignItems::Center,
                 padding: self.padding,
                 ..default()
             },
-            BorderColor::all(BAR_CONTAINER_BORDER),
             BackgroundColor::from(BAR_CONTAINER_BACKGROUND),
             children![(
                 Node {
-                    display: Display::Flex,
-                    align_items: AlignItems::Center,
-                    flex_direction: FlexDirection::RowReverse,
-                    justify_content: JustifyContent::FlexStart,
                     width: percent(100),
                     height: percent(100),
-                    border_radius: BORDER_RADIUS_ROUND,
+                    border_radius: BorderRadius::MAX,
                     ..default()
                 },
                 self.bar_background,
                 children![(
                     Node {
+                        position_type: PositionType::Absolute,
+                        right: Val::ZERO,
                         width: Val::ZERO,
                         height: percent(100),
                         ..default()

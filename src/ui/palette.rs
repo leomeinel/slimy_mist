@@ -18,8 +18,6 @@ pub(crate) const HEADER_TEXT: Color = Color::WHITE;
 
 /// Color for bar container background.
 pub(crate) const BAR_CONTAINER_BACKGROUND: Srgba = tailwind::SKY_100;
-/// Color for all bar container borders.
-pub(crate) const BAR_CONTAINER_BORDER: Srgba = tailwind::SKY_500;
 /// Color for health bar background.
 pub(crate) const HEALTH_BAR_BACKGROUND: Srgba = tailwind::RED_500;
 

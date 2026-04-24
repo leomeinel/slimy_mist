@@ -80,7 +80,7 @@ pub(super) fn mock_melee_from_touch(
 pub(super) fn mock_aim_from_touch(
     aim: Single<Entity, With<Player>>,
     camera: Single<(&Camera, &GlobalTransform), With<CanvasCamera>>,
-    player_transform: Single<&Transform, With<Player>>,
+    player_transform: Single<&GlobalTransform, With<Player>>,
     mut commands: Commands,
     pointer_blocked: Res<PointerBlockedByUi>,
     touches: Res<Touches>,
@@ -95,7 +95,7 @@ pub(super) fn mock_aim_from_touch(
         if let Ok(world_pointer_pos) =
             camera.viewport_to_world_2d(camera_transform, touch.position())
         {
-            let direction = world_pointer_pos - player_transform.translation.xy();
+            let direction = world_pointer_pos - player_transform.translation().xy();
             commands.entity(*aim).mock::<Player, Aim>(
                 TriggerState::Fired,
                 direction.normalize_or_zero(),
@@ -132,7 +132,7 @@ pub(super) fn mock_melee_from_click(
 pub(super) fn mock_aim_from_click(
     aim: Single<Entity, With<Player>>,
     camera: Single<(&Camera, &GlobalTransform), With<CanvasCamera>>,
-    player_transform: Single<&Transform, With<Player>>,
+    player_transform: Single<&GlobalTransform, With<Player>>,
     window: Single<&Window, With<PrimaryWindow>>,
     mut commands: Commands,
     mouse: Res<ButtonInput<MouseButton>>,
@@ -148,7 +148,7 @@ pub(super) fn mock_aim_from_click(
     if let Some(pointer_pos) = window.cursor_position()
         && let Ok(world_pointer_pos) = camera.viewport_to_world_2d(camera_transform, pointer_pos)
     {
-        let direction = world_pointer_pos - player_transform.translation.xy();
+        let direction = world_pointer_pos - player_transform.translation().xy();
         commands.entity(*aim).mock::<Player, Aim>(
             TriggerState::Fired,
             direction.normalize_or_zero(),

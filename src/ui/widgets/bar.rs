@@ -34,7 +34,7 @@ impl BarBuilder {
             width: px(HUD_MAX_ELEMENT_WIDTH_PX),
             // NOTE: This ensures height consistency with big circle hud buttons.
             height: MEDIUM_BUTTON_WIDTH,
-            padding: UiRect::all(px(15)),
+            padding: UiRect::all(px(20)),
             ..default()
         }
     }

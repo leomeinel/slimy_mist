@@ -21,17 +21,18 @@ pub(super) fn health_bar() -> impl Bundle {
         .with_bar_background(HEALTH_BAR_BACKGROUND)
         .build();
 
-    (HudHealthBar, NodeRect::default(), bar)
+    (HudHealthBar, NodeRect::default(), Visibility::Hidden, bar)
 }
 
 /// Update health bar from [`Player`] [`Health`].
 pub(super) fn update_health_bar(
     health: Single<&Health, (Changed<Health>, With<Player>)>,
-    bar_container_children: Single<&Children, With<HudHealthBar>>,
+    bar_container: Single<(&mut Visibility, &Children), With<HudHealthBar>>,
     children_query: Query<&Children>,
     mut node_query: Query<&mut Node>,
 ) {
-    let child = bar_container_children
+    let (mut visibility, children) = bar_container.into_inner();
+    let child = children
         .iter()
         .find(|e| children_query.contains(*e))
         .expect(ERR_INVALID_CHILDREN);
@@ -43,5 +44,10 @@ pub(super) fn update_health_bar(
     let mut mask_node = node_query.get_mut(child).expect(ERR_INVALID_CHILDREN);
 
     let mask_percent = (1. - health.fraction()) * 100.;
+    *visibility = if mask_percent > 0. {
+        Visibility::Inherited
+    } else {
+        Visibility::Hidden
+    };
     mask_node.width = percent(mask_percent);
 }

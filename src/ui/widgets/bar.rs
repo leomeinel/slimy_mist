@@ -14,12 +14,21 @@ use crate::ui::prelude::*;
 /// A builder for creating bar [`Bundle`]s with customizable appearance.
 #[derive(Default)]
 pub(crate) struct BarBuilder {
+    pub(crate) position_type: PositionType,
     pub(crate) width: Val,
     pub(crate) height: Val,
     pub(crate) padding: UiRect,
     pub(crate) bar_background: BackgroundColor,
 }
 impl BarBuilder {
+    pub(crate) fn health_medium_world() -> Self {
+        Self {
+            width: WORLD_UI_HEALTH_BAR_WIDTH,
+            height: WORLD_UI_HEALTH_BAR_HEIGHT,
+            padding: UiRect::all(WORLD_UI_HEALTH_BAR_PADDING),
+            ..default()
+        }
+    }
     pub(crate) fn round_big_hud() -> Self {
         Self {
             width: px(HUD_MAX_ELEMENT_WIDTH_PX),
@@ -27,6 +36,12 @@ impl BarBuilder {
             height: MEDIUM_BUTTON_WIDTH,
             padding: UiRect::all(px(15)),
             ..default()
+        }
+    }
+    pub(crate) fn with_position_type(self, position_type: PositionType) -> Self {
+        Self {
+            position_type,
+            ..self
         }
     }
     pub(crate) fn with_bar_background<T>(self, color: T) -> Self
@@ -41,6 +56,7 @@ impl BarBuilder {
     pub(crate) fn build(self) -> impl Bundle {
         (
             Node {
+                position_type: self.position_type,
                 width: self.width,
                 height: self.height,
                 border_radius: BorderRadius::MAX,

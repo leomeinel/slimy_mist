@@ -16,6 +16,7 @@ mod interaction;
 mod menus;
 mod palette;
 mod widgets;
+mod world;
 
 #[allow(unused_imports)]
 pub(crate) mod prelude {
@@ -44,6 +45,11 @@ pub(crate) mod prelude {
         ROOT_MAX_ELEMENT_WIDTH_PX, header_widget, label_widget, root_auto_scroll_widget,
         root_widget,
     };
+    pub(crate) use super::world::health::{
+        WORLD_UI_HEALTH_BAR_HEIGHT, WORLD_UI_HEALTH_BAR_PADDING, WORLD_UI_HEALTH_BAR_WIDTH,
+        WorldUiHealthBarMap,
+    };
+    pub(crate) use super::world::{WorldUi, WorldUiAnchor};
     pub(crate) use super::{
         AppUiSystems, BODY_FONT_SIZE, BORDER_RADIUS_ROUND_BIG, BORDER_RADIUS_ROUND_MEDIUM,
         HEADER_FONT_SIZE, NodeRect, UiFontHandle,
@@ -68,6 +74,7 @@ impl Plugin for UiPlugin {
             menus::MenusPlugin,
             interaction::UiInteractionPlugin,
             hud::HudPlugin,
+            world::WorldUiPlugin,
         ));
 
         app.insert_resource(InputFocusVisible(true));

@@ -44,7 +44,7 @@ use rand::RngExt as _;
 use crate::{
     animations::prelude::*, characters::prelude::*, core::prelude::*, levels::prelude::*,
     physics::prelude::*, procgen::prelude::*, render::prelude::*, screens::prelude::*,
-    utils::prelude::*,
+    ui::prelude::*, utils::prelude::*,
 };
 
 pub(super) struct CharactersPlugin;
@@ -197,6 +197,7 @@ fn on_spawn_character<T, A>(
         .insert((
             T::container_bundle(event.pos, animation_delay, -collider_y_offset),
             T::collider(collider_shape, collider_width, collider_height),
+            WorldUiAnchor::HealthBar(Vec2::new(0., collider_height * 2.)),
             children![T::shadow_bundle(&shadow)],
         ))
         .with_children(|commands| {

@@ -11,8 +11,9 @@ use bevy::prelude::*;
 
 use crate::{characters::prelude::*, log::prelude::*, ui::prelude::*};
 
+/// Health bar for the [`Hud`].
 #[derive(Component)]
-pub(super) struct HealthBar;
+pub(super) struct HudHealthBar;
 
 /// Health bar showing the current [`Health`] of the [`Player`].
 pub(super) fn health_bar() -> impl Bundle {
@@ -20,13 +21,13 @@ pub(super) fn health_bar() -> impl Bundle {
         .with_bar_background(HEALTH_BAR_BACKGROUND)
         .build();
 
-    (HealthBar, NodeRect::default(), bar)
+    (HudHealthBar, NodeRect::default(), bar)
 }
 
 /// Update health bar from [`Player`] [`Health`].
 pub(super) fn update_health_bar(
     health: Single<&Health, (Changed<Health>, With<Player>)>,
-    bar_container_children: Single<&Children, With<HealthBar>>,
+    bar_container_children: Single<&Children, With<HudHealthBar>>,
     children_query: Query<&Children>,
     mut node_query: Query<&mut Node>,
 ) {

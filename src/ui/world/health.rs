@@ -101,10 +101,12 @@ pub(super) fn update_health_bar<T>(
         let mut mask_node = node_query.get_mut(child).expect(ERR_INVALID_CHILDREN);
 
         let mask_percent = (1. - health.fraction()) * 100.;
-        if mask_percent > 0. {
-            *visibility = Visibility::Inherited;
-            mask_node.width = percent(mask_percent);
-        }
+        *visibility = if mask_percent > 0. {
+            Visibility::Inherited
+        } else {
+            Visibility::Hidden
+        };
+        mask_node.width = percent(mask_percent);
     }
 }
 

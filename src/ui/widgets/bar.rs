@@ -67,8 +67,7 @@ impl BarBuilder {
                     },
                     // FIXME: This is a hack to circumvent rounding errors causing a pixel on the
                     //        right of the bar to be visible.
-                    //        I sadly couldn't reproduce this in a minimal example yet, therefore
-                    //        no bug report has been submitted.
+                    //        Also see: https://github.com/bevyengine/bevy/issues/23964
                     Outline::new(px(1), Val::ZERO, BAR_CONTAINER_BACKGROUND.into()),
                     BackgroundColor::from(BAR_CONTAINER_BACKGROUND),
                 )]

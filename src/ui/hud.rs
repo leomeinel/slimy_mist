@@ -111,6 +111,7 @@ fn spawn_hud(
             grid_template_columns: RepeatedGridTrack::percent(2, 50.),
             ..default()
         },
+        Pickable::IGNORE,
         children![
             (
                 Hud::TopLeft,

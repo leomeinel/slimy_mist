@@ -52,6 +52,6 @@ pub(super) fn spawn_world_ui(mut commands: Commands) {
         },
         WorldUi,
         Pickable::IGNORE,
-        GlobalZIndex(-1)
+        GlobalZIndex(-1),
     ));
 }

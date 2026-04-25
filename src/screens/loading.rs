@@ -135,12 +135,16 @@ fn insert_handle_resources(mut commands: Commands, assets: Res<AssetServer>) {
     ));
 
     // `ParticleHandle` not needing a custom data struct
-    commands.insert_resource(ParticleHandle::<ParticleWalkingDust> {
-        handle: assets.load("data/particles/walking-dust.particle.ron"),
+    commands.insert_resource(ParticleHandle::<ParticleBlood> {
+        handle: assets.load("data/particles/blood.particle.ron"),
         ..default()
     });
     commands.insert_resource(ParticleHandle::<ParticleMeleeAttack> {
         handle: assets.load("data/particles/melee-attack.particle.ron"),
+        ..default()
+    });
+    commands.insert_resource(ParticleHandle::<ParticleWalkingDust> {
+        handle: assets.load("data/particles/walking-dust.particle.ron"),
         ..default()
     });
 

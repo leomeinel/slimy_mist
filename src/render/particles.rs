@@ -32,6 +32,7 @@ impl Plugin for ParticlesPlugin {
         );
 
         app.add_observer(on_toggle_particle::<ParticleWalkingDust>);
+        app.add_observer(on_spawn_particle_once::<ParticleBlood>);
         app.add_observer(on_spawn_particle_once::<ParticleMeleeAttack>);
     }
 }
@@ -57,6 +58,16 @@ impl ParticleSpawnerExt for ParticleSpawnerState {
     }
 }
 
+/// Marker component for blood particles.
+#[derive(Component, Default)]
+pub(crate) struct ParticleBlood;
+impl Particle for ParticleBlood {}
+
+/// Marker component for [`Attack::Melee`] particles.
+#[derive(Component, Default)]
+pub(crate) struct ParticleMeleeAttack;
+impl Particle for ParticleMeleeAttack {}
+
 /// Marker component for walking dust particles.
 #[derive(Component, Default)]
 pub(crate) struct ParticleWalkingDust;
@@ -65,11 +76,6 @@ impl Particle for ParticleWalkingDust {
         action == AnimationAction::Walk
     }
 }
-
-/// Marker component for [`Attack::Melee`] particles.
-#[derive(Component, Default)]
-pub(crate) struct ParticleMeleeAttack;
-impl Particle for ParticleMeleeAttack {}
 
 /// Toggle a [`Particle`].
 #[derive(EntityEvent)]
@@ -95,10 +101,26 @@ where
 }
 
 /// Spawn a [`Particle`] once
-#[derive(Event)]
-pub(crate) struct SpawnParticleOnce {
+#[derive(Event, Default)]
+pub(crate) struct SpawnParticleOnce<T>
+where
+    T: Particle,
+{
     pub(crate) pos: Vec3,
     pub(crate) handle: Handle<Particle2dEffect>,
+    _phantom: PhantomData<T>,
+}
+impl<T> SpawnParticleOnce<T>
+where
+    T: Particle,
+{
+    pub(crate) fn new(pos: Vec3, handle: Handle<Particle2dEffect>) -> Self {
+        Self {
+            pos,
+            handle,
+            ..default()
+        }
+    }
 }
 
 /// Handle for [`Particle2dEffect`].
@@ -166,7 +188,7 @@ fn on_toggle_particle<T>(
 }
 
 /// Spawn and despawn a [`Particle`] once.
-fn on_spawn_particle_once<T>(event: On<SpawnParticleOnce>, mut commands: Commands)
+fn on_spawn_particle_once<T>(event: On<SpawnParticleOnce<T>>, mut commands: Commands)
 where
     T: Particle,
 {

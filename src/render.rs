@@ -23,8 +23,8 @@ pub(crate) mod prelude {
     pub(crate) use super::materials::Light2dShadow;
     pub(crate) use super::palette::*;
     pub(crate) use super::particles::{
-        Particle, ParticleHandle, ParticleMeleeAttack, ParticleTimer, ParticleWalkingDust,
-        SpawnParticleOnce, ToggleParticle,
+        Particle, ParticleBlood, ParticleHandle, ParticleMeleeAttack, ParticleTimer,
+        ParticleWalkingDust, SpawnParticleOnce, ToggleParticle,
     };
     pub(crate) use super::ysort::{YSort, YSortYOffset};
     pub(crate) use super::z_levels::*;

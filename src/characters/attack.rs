@@ -153,10 +153,10 @@ pub(super) fn on_melee_attack<T>(
         // Apply attack
         let damage = stats.damage_factor * *melee.damage;
         commands.trigger(Damage { targets, damage });
-        commands.trigger(SpawnParticleOnce {
-            pos: shape_pos.extend(OVERLAY_Z),
-            handle: particle_handle.handle.clone(),
-        });
+        commands.trigger(SpawnParticleOnce::<ParticleMeleeAttack>::new(
+            shape_pos.extend(OVERLAY_Z),
+            particle_handle.handle.clone(),
+        ));
     }
 }
 

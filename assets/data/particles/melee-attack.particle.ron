@@ -18,8 +18,8 @@
     scale_curve: Some((points: [(1.5, 0.0, None), (0.0, 1.0, Some(BackIn))])),
     color_curve:Some((
             points: [
-                ((red: 1.0, green: 1.0, blue: 1.0, alpha: 0.5), 0.0, None),
-                ((red: 0.5, green: 0.5, blue: 0.5, alpha: 0.5), 1.0, None),
+                ((red: 0.92156863, green: 0.9411765, blue: 0.93333334, alpha: 0.4), 0.0, None), // RGB_PALETTE[8]
+                ((red: 0.48235294, green: 0.49019608, blue: 0.46666667, alpha: 0.4), 1.0, None), // RGB_PALETTE[4]
             ]
         )),
     attractors: None,

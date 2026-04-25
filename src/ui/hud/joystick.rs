@@ -162,7 +162,6 @@ fn joystick<const ID: u8>() -> impl Bundle {
                     bottom: JOYSTICK_HORIZONTAL_BORDER_COLOR.into(),
                     left: JOYSTICK_VERTICAL_BORDER_COLOR.into()
                 },
-                ZIndex(0),
             ),
             (
                 VirtualJoystickUIKnob,

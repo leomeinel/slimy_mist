@@ -10,7 +10,7 @@
     angular_speed: Some((0.4, 0.5)),
     angular_acceleration: None,
     scale: None,
-    color: Some((red: 1.0, green: 1.0, blue: 1.0, alpha: 0.3)),
+    color: Some((red: 1.0, green: 1.0, blue: 1.0, alpha: 0.6)),
     gravity_direction: None,
     gravity_speed: None,
     linear_damp: None,

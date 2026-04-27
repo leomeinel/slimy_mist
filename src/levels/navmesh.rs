@@ -56,26 +56,22 @@ pub(crate) fn spawn_navmesh<T, A>(
     //       Otherwise we would only have to offset it by: `NAVMESH_SIZE` / 2 as world pos.
     let target_pos = (-NAVMESH_SIZE.as_vec2() + (CHUNK_SIZE.as_vec2() - 1.)) * tile_size / 2.;
 
-    let entity = commands
-        .spawn((
-            NavMeshSettings {
-                simplify: 0.05,
-                merge_steps: 1,
-                fixed: Triangulation::from_outer_edges(&[
-                    Vec2::ZERO,
-                    Vec2::new(NAVMESH_SIZE.x as f32, 0.),
-                    NAVMESH_SIZE.as_vec2(),
-                    Vec2::new(0., NAVMESH_SIZE.y as f32),
-                ]),
-                ..default()
-            },
-            // NOTE: We have to use `OnDemand` since without any obstacles, the other modes never execute.
-            NavMeshUpdateMode::OnDemand(false),
-            Transform::from_translation(target_pos.extend(0.)).with_scale(Vec3::splat(tile_size)),
-        ))
-        .id();
-
-    commands.entity(*level).add_child(entity);
+    commands.entity(*level).with_child((
+        NavMeshSettings {
+            simplify: 0.05,
+            merge_steps: 1,
+            fixed: Triangulation::from_outer_edges(&[
+                Vec2::ZERO,
+                Vec2::new(NAVMESH_SIZE.x as f32, 0.),
+                NAVMESH_SIZE.as_vec2(),
+                Vec2::new(0., NAVMESH_SIZE.y as f32),
+            ]),
+            ..default()
+        },
+        // NOTE: We have to use `OnDemand` since without any obstacles, the other modes never execute.
+        NavMeshUpdateMode::OnDemand(false),
+        Transform::from_translation(target_pos.extend(0.)).with_scale(Vec3::splat(tile_size)),
+    ));
 }
 
 /// Move [`ManagedNavMesh`] with generated chunks

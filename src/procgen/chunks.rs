@@ -81,12 +81,12 @@ pub(super) fn spawn_on_procgen_chunks<T, A, B>(
             let texture_index = TileTextureIndex(rng.random_range(0..8));
             let tile_pos = TilePos { x, y };
             let entity = commands
-                .spawn((TileBundle {
+                .spawn(TileBundle {
                     position: tile_pos,
                     texture_index,
                     tilemap_id: TilemapId(container),
                     ..default()
-                },))
+                })
                 .id();
             commands.entity(container).add_child(entity);
             storage.set(&tile_pos, entity);

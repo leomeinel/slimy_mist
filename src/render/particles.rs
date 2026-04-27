@@ -162,21 +162,18 @@ fn add_walking_dust<T>(
             .iter()
             .find(|e| base_query.contains(*e))
             .expect(ERR_INVALID_CHILDREN);
-        let particle = commands
-            .spawn((
-                ParticleWalkingDust,
-                ParticleTimer(Timer::from_seconds(WALKING_DUST_SECS, TimerMode::Repeating)),
-                ParticleSpawner::default(),
-                NoAutoAabb,
-                ParticleSpawnerState {
-                    active: false,
-                    ..default()
-                },
-                ParticleEffectHandle(handle.handle.clone()),
-                Transform::from_translation(Vec3::new(0., -y_offset, -LAYER_Z_DELTA)),
-            ))
-            .id();
-        commands.entity(child).add_child(particle);
+        commands.entity(child).with_child((
+            ParticleWalkingDust,
+            ParticleTimer(Timer::from_seconds(WALKING_DUST_SECS, TimerMode::Repeating)),
+            ParticleSpawner::default(),
+            NoAutoAabb,
+            ParticleSpawnerState {
+                active: false,
+                ..default()
+            },
+            ParticleEffectHandle(handle.handle.clone()),
+            Transform::from_translation(Vec3::new(0., -y_offset, -LAYER_Z_DELTA)),
+        ));
     }
 }
 

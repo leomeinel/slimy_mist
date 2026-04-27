@@ -139,6 +139,10 @@ fn insert_handle_resources(mut commands: Commands, assets: Res<AssetServer>) {
         handle: assets.load("data/particles/blood.particle.ron"),
         ..default()
     });
+    commands.insert_resource(ParticleHandle::<ParticleDeath> {
+        handle: assets.load("data/particles/death.particle.ron"),
+        ..default()
+    });
     commands.insert_resource(ParticleHandle::<ParticleMeleeAttack> {
         handle: assets.load("data/particles/melee-attack.particle.ron"),
         ..default()

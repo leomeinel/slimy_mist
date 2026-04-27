@@ -14,7 +14,8 @@ use bevy_enoki::prelude::*;
 
 use crate::{
     animations::prelude::*, characters::prelude::*, core::prelude::*, images::prelude::*,
-    log::prelude::*, render::prelude::*, screens::prelude::*, utils::prelude::*,
+    levels::prelude::*, log::prelude::*, render::prelude::*, screens::prelude::*,
+    utils::prelude::*,
 };
 
 pub(super) struct ParticlesPlugin;
@@ -32,8 +33,9 @@ impl Plugin for ParticlesPlugin {
         );
 
         app.add_observer(on_toggle_particle::<ParticleWalkingDust>);
-        app.add_observer(on_spawn_particle_once::<ParticleBlood>);
-        app.add_observer(on_spawn_particle_once::<ParticleMeleeAttack>);
+        app.add_observer(on_spawn_child_particle_once::<ParticleBlood>);
+        app.add_observer(on_spawn_child_particle_once::<ParticleMeleeAttack>);
+        app.add_observer(on_spawn_particle_once::<ParticleDeath, Overworld>);
     }
 }
 
@@ -62,6 +64,11 @@ impl ParticleSpawnerExt for ParticleSpawnerState {
 #[derive(Component, Default)]
 pub(crate) struct ParticleBlood;
 impl Particle for ParticleBlood {}
+
+/// Marker component for death particles.
+#[derive(Component, Default)]
+pub(crate) struct ParticleDeath;
+impl Particle for ParticleDeath {}
 
 /// Marker component for [`Attack::Melee`] particles.
 #[derive(Component, Default)]
@@ -104,7 +111,7 @@ where
 ///
 /// If `entity` has been despawned, this will not spawn a [`Particle`].
 #[derive(Event)]
-pub(crate) struct SpawnParticleOnce<T>
+pub(crate) struct SpawnChildParticleOnce<T>
 where
     T: Particle,
 {
@@ -113,7 +120,7 @@ where
     pub(crate) handle: Handle<Particle2dEffect>,
     _phantom: PhantomData<T>,
 }
-impl<T> SpawnParticleOnce<T>
+impl<T> SpawnChildParticleOnce<T>
 where
     T: Particle,
 {
@@ -123,6 +130,29 @@ where
             offset,
             handle,
             _phantom: PhantomData,
+        }
+    }
+}
+
+/// Spawn a [`Particle`] once at `pos`.
+#[derive(Event, Default)]
+pub(crate) struct SpawnParticleOnce<T>
+where
+    T: Particle,
+{
+    pub(crate) pos: Vec3,
+    pub(crate) handle: Handle<Particle2dEffect>,
+    _phantom: PhantomData<T>,
+}
+impl<T> SpawnParticleOnce<T>
+where
+    T: Particle,
+{
+    pub(crate) fn new(pos: Vec3, handle: Handle<Particle2dEffect>) -> Self {
+        Self {
+            pos,
+            handle,
+            ..default()
         }
     }
 }
@@ -188,8 +218,8 @@ fn on_toggle_particle<T>(
     state.set_new_active(event.activate);
 }
 
-/// Spawn and despawn a [`Particle`] once.
-fn on_spawn_particle_once<T>(event: On<SpawnParticleOnce<T>>, mut commands: Commands)
+/// Spawn and despawn a [`Particle`] as child once.
+fn on_spawn_child_particle_once<T>(event: On<SpawnChildParticleOnce<T>>, mut commands: Commands)
 where
     T: Particle,
 {
@@ -203,4 +233,23 @@ where
             ParticleEffectHandle(event.handle.clone()),
         ));
     }
+}
+
+/// Spawn and despawn a [`Particle`] once at a specific position.
+fn on_spawn_particle_once<T, A>(
+    event: On<SpawnParticleOnce<T>>,
+    level: Single<Entity, With<A>>,
+    mut commands: Commands,
+) where
+    T: Particle,
+    A: Level,
+{
+    commands.entity(*level).with_child((
+        T::default(),
+        OneShot::Despawn,
+        ParticleSpawner::default(),
+        NoAutoAabb,
+        Transform::from_translation(event.pos),
+        ParticleEffectHandle(event.handle.clone()),
+    ));
 }

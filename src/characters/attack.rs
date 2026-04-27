@@ -134,8 +134,8 @@ pub(super) fn on_melee_attack<T>(
 
         // Collect all entities within attack range
         let shape_half_size = Vec2::new(*melee.range.0, *melee.range.1) / 2.;
-        let offset = extent + shape_half_size.x;
-        let shape_pos = pos + direction.0 * offset;
+        let offset = direction.0 * (extent + shape_half_size.x);
+        let shape_pos = pos + offset;
         let shape_rot = direction.0.to_angle();
         let shape = shape::Cuboid::new(shape_half_size.into());
         // Filter for anything that is not the source
@@ -154,7 +154,8 @@ pub(super) fn on_melee_attack<T>(
         let damage = stats.damage_factor * *melee.damage;
         commands.trigger(Damage { targets, damage });
         commands.trigger(SpawnParticleOnce::<ParticleMeleeAttack>::new(
-            shape_pos.extend(OVERLAY_Z),
+            *entity,
+            offset.extend(OVERLAY_Z),
             particle_handle.handle.clone(),
         ));
     }

@@ -100,13 +100,16 @@ where
     }
 }
 
-/// Spawn a [`Particle`] once
-#[derive(Event, Default)]
+/// Spawn a [`Particle`] once as child of `entity`.
+///
+/// If `entity` has been despawned, this will not spawn a [`Particle`].
+#[derive(Event)]
 pub(crate) struct SpawnParticleOnce<T>
 where
     T: Particle,
 {
-    pub(crate) pos: Vec3,
+    pub(crate) entity: Entity,
+    pub(crate) offset: Vec3,
     pub(crate) handle: Handle<Particle2dEffect>,
     _phantom: PhantomData<T>,
 }
@@ -114,11 +117,12 @@ impl<T> SpawnParticleOnce<T>
 where
     T: Particle,
 {
-    pub(crate) fn new(pos: Vec3, handle: Handle<Particle2dEffect>) -> Self {
+    pub(crate) fn new(entity: Entity, offset: Vec3, handle: Handle<Particle2dEffect>) -> Self {
         Self {
-            pos,
+            entity,
+            offset,
             handle,
-            ..default()
+            _phantom: PhantomData,
         }
     }
 }
@@ -192,12 +196,14 @@ fn on_spawn_particle_once<T>(event: On<SpawnParticleOnce<T>>, mut commands: Comm
 where
     T: Particle,
 {
-    commands.spawn((
-        T::default(),
-        OneShot::Despawn,
-        ParticleSpawner::default(),
-        NoAutoAabb,
-        Transform::from_translation(event.pos),
-        ParticleEffectHandle(event.handle.clone()),
-    ));
+    if let Ok(mut entity_commands) = commands.get_entity(event.entity) {
+        entity_commands.with_child((
+            T::default(),
+            OneShot::Despawn,
+            ParticleSpawner::default(),
+            NoAutoAabb,
+            Transform::from_translation(event.offset),
+            ParticleEffectHandle(event.handle.clone()),
+        ));
+    }
 }

@@ -44,20 +44,23 @@ pub(crate) struct Damage {
 /// Apply [`Damage`] to [`Health`] and handle despawning.
 pub(super) fn on_damage(
     event: On<Damage>,
-    mut target_query: Query<(&mut Health, &Transform)>,
+    mut target_query: Query<&mut Health>,
     mut commands: Commands,
     particle_handle: Res<ParticleHandle<ParticleBlood>>,
 ) {
     for entity in &event.targets {
-        let Ok((mut health, transform)) = target_query.get_mut(*entity) else {
+        let Ok(mut health) = target_query.get_mut(*entity) else {
             continue;
         };
+
         health.current -= event.damage;
         if !health.is_alive() {
             commands.entity(*entity).despawn();
         }
+
         commands.trigger(SpawnParticleOnce::<ParticleMeleeAttack>::new(
-            transform.translation,
+            *entity,
+            Vec3::new(0., 0., -LAYER_Z_DELTA),
             particle_handle.handle.clone(),
         ));
     }

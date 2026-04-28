@@ -39,7 +39,7 @@ if [[ -z "${1}" ]]; then
     else
         cargo run --bin "${BINARY_NAME}" --no-default-features --release -j default
     fi
-elif [[ "${1}" == "web" ]]; then
+elif [[ "${1}" == "web-release" ]]; then
     "${SCRIPT_DIR}"/build.sh "${1}"
     run_web "${1}"
 elif [[ "${1}" == "web-dev" ]]; then

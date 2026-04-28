@@ -163,9 +163,10 @@ pub(super) fn on_melee_attack<T>(
 
 /// Insert [`AttackTimer`] to delay [`Attack`]s.
 pub(super) fn on_delay_attack(event: On<DelayAttack>, mut commands: Commands) {
+    // NOTE: Using try here is necessary since the entity might have been despawned elsewhere.
     commands
         .entity(event.entity)
-        .insert(AttackTimer(Timer::from_seconds(
+        .try_insert(AttackTimer(Timer::from_seconds(
             event.cooldown_secs,
             TimerMode::Once,
         )));

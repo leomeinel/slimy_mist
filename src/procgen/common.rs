@@ -88,7 +88,8 @@ pub(super) fn despawn<T>(
     let entities: Vec<_> = cache.to_despawn.drain().collect();
     for entity in entities {
         cache.chunk_positions.remove(&entity);
-        commands.entity(entity).despawn();
+        // NOTE: Using try here is necessary since the entity might have been despawned elsewhere.
+        commands.entity(entity).try_despawn();
     }
 
     (*next_state).set_if_neq(DespawnProcGen(false));

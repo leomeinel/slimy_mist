@@ -129,7 +129,8 @@ pub(super) fn set_jump(
     let (entity, mut animation_state) = player.into_inner();
 
     if animation_state.0.0 != AnimationAction::Jump {
-        commands.entity(entity).insert(JumpTimer::default());
+        // NOTE: Using try here is necessary since the entity might have been despawned elsewhere.
+        commands.entity(entity).try_insert(JumpTimer::default());
         animation_state.set_new_action(AnimationAction::Jump);
     }
 }

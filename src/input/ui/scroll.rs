@@ -184,6 +184,7 @@ pub(super) fn reset_scroll_node_layout(
 /// This also overrides [`AutoScroll`].
 pub(super) fn on_scroll_action(event: On<ScrollAction>, mut commands: Commands) {
     let entity = event.entity;
+    // NOTE: Using try here is necessary since the entity might have been despawned elsewhere.
     commands.entity(entity).try_remove::<AutoScroll>();
     commands.trigger(Scroll {
         entity,

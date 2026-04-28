@@ -78,7 +78,8 @@ pub(super) fn find_path<T>(
             continue;
         };
 
-        commands.entity(entity).insert(Path {
+        // NOTE: Using try here is necessary since the entity might have been despawned elsewhere.
+        commands.entity(entity).try_insert(Path {
             current,
             next,
             target,
@@ -234,7 +235,7 @@ pub(super) fn on_stop_nav(
         return;
     };
 
-    // NOTE: We are using `try_remove` to avoid use after despawn because of `procgen::despawn`.
+    // NOTE: Using try here is necessary since the entity might have been despawned elsewhere.
     commands.entity(entity).try_remove::<Path>();
     animation_state.set_new_action(AnimationAction::Idle);
 }

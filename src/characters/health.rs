@@ -62,7 +62,8 @@ pub(super) fn on_damage(
                 particle_blood.handle.clone(),
             ));
         } else {
-            commands.entity(*entity).despawn();
+            // NOTE: Using try here is necessary since the entity might have been despawned elsewhere.
+            commands.entity(*entity).try_despawn();
             commands.trigger(SpawnParticleOnce::<ParticleDeath>::new(
                 transform.translation.xy().extend(OVERLAY_Z),
                 particle_death.handle.clone(),

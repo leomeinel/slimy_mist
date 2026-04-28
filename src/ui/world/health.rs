@@ -68,6 +68,7 @@ pub(super) fn despawn_health_bar<T>(
         let Some(entity) = map.0.remove(&entity) else {
             continue;
         };
+        // NOTE: Using try here is necessary since the entity might have been despawned elsewhere.
         commands.entity(entity).try_despawn();
     }
 }

@@ -28,3 +28,16 @@ where
 {
     timer.tick(time.delta());
 }
+
+/// Remove [`Timer`]s wrapped in [`Component`]s using [`TimerMode::Once`] after they are finished.
+pub(crate) fn remove_oneshot_component_timers<T>(query: Query<(Entity, &T)>, mut commands: Commands)
+where
+    T: Component<Mutability = Mutable> + DerefMut<Target = Timer>,
+{
+    for (entity, timer) in query {
+        if timer.mode() == TimerMode::Once && timer.is_finished() {
+            // NOTE: Using try here is necessary since the entity might have been despawned elsewhere.
+            commands.entity(entity).try_remove::<T>();
+        }
+    }
+}

@@ -96,6 +96,10 @@ impl Plugin for AnimationsPlugin {
             Update,
             tick_component_timers::<AnimationTimer>.in_set(AppSystems::TickTimers),
         );
+        app.add_systems(
+            PostUpdate,
+            remove_oneshot_component_timers::<AnimationTimer>,
+        );
     }
 }
 

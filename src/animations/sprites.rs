@@ -110,7 +110,6 @@ pub(super) fn setup_animations<T>(
 pub(super) fn update_animations<T>(
     container_query: Query<
         (
-            Entity,
             &mut LastAnimationAction,
             &mut AnimationAudioIndex,
             &mut AnimationYOffset,
@@ -125,13 +124,11 @@ pub(super) fn update_animations<T>(
         With<AnimationBase>,
     >,
     mut floating_query: Query<&mut SpritesheetAnimation, Without<AnimationBase>>,
-    mut commands: Commands,
     sprite_animations: Res<SpriteAnimations<T>>,
 ) where
     T: Visible,
 {
-    for (entity, mut last_action, mut audio_index, mut y_offset, state, timer, children) in
-        container_query
+    for (mut last_action, mut audio_index, mut y_offset, state, timer, children) in container_query
     {
         let children: Vec<_> = children.iter().collect();
         let child_entity = children
@@ -143,8 +140,6 @@ pub(super) fn update_animations<T>(
             .expect(ERR_INVALID_CHILDREN);
         if timer.is_some_and(|t| t.0.just_finished()) {
             base_animation.reset();
-            // NOTE: Using try here is necessary since the entity might have been despawned elsewhere.
-            commands.entity(entity).try_remove::<AnimationTimer>();
         }
 
         state.switch(

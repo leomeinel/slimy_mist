@@ -88,6 +88,13 @@ impl Plugin for CharactersPlugin {
             )
                 .in_set(AppSystems::TickTimers),
         );
+        app.add_systems(
+            PostUpdate,
+            (
+                remove_oneshot_component_timers::<attack::AttackTimer>,
+                remove_oneshot_component_timers::<movement::JumpTimer>,
+            ),
+        );
 
         app.add_observer(attack::on_delay_attack);
         app.add_observer(health::on_damage);

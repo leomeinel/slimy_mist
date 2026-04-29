@@ -1,30 +1,19 @@
-<!--
-  File: index.html
-  Author: Leopold Johannes Meinel (leo@meinel.dev)
-  -----
-  Copyright (c) 2026 Leopold Johannes Meinel & contributors
-  SPDX ID: Apache-2.0
-  URL: https://www.apache.org/licenses/LICENSE-2.0
-  -----
-  Heavily inspired by: https://github.com/bevyengine/bevy_github_ci_template
--->
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <body style="margin: 0px; width: 100vw; height: 100vh">
-    <script type="module">
-      import "./restart-audio-context.js";
-      import init from "./bevy_game.js";
+    <body style="margin: 0px; width: 100vw; height: 100vh">
+        <script type="module">
+            import "./restart-audio-context.js";
+            import init from "./bevy_game.js";
 
-      init().catch((error) => {
-        if (
-          !error.message.startsWith(
-            "Using exceptions for control flow, don't mind me. This isn't actually an error!"
-          )
-        ) {
-          throw error;
-        }
-      });
-    </script>
-  </body>
+            init().catch((error) => {
+                if (
+                    !error.message.startsWith(
+                        "Using exceptions for control flow, don't mind me. This isn't actually an error!"
+                    )
+                ) {
+                    throw error;
+                }
+            });
+        </script>
+    </body>
 </html>

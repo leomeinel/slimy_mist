@@ -1,12 +1,3 @@
-/*
- * File: images.rs
- * Author: Leopold Johannes Meinel (leo@meinel.dev)
- * -----
- * Copyright (c) 2026 Leopold Johannes Meinel & contributors
- * SPDX ID: Apache-2.0
- * URL: https://www.apache.org/licenses/LICENSE-2.0
- */
-
 /// Offsets of pixel neighbors.
 const NEIGHBOR_OFFSETS: &[(i32, i32)] = &[(1, 0), (-1, 0), (0, 1), (0, -1)];
 

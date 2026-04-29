@@ -1,12 +1,6 @@
 /*
- * File: layers.rs
- * Author: Leopold Johannes Meinel (leo@meinel.dev)
- * -----
- * Copyright (c) 2026 Leopold Johannes Meinel & contributors
- * SPDX ID: Apache-2.0
- * URL: https://www.apache.org/licenses/LICENSE-2.0
- * -----
- * Heavily inspired by: https://github.com/NiklasEi/bevy_asset_loader/blob/main/bevy_asset_loader/examples/custom_dynamic_assets
+ * Heavily inspired by:
+ * - https://github.com/NiklasEi/bevy_asset_loader/blob/main/bevy_asset_loader/examples/custom_dynamic_assets
  */
 
 use std::marker::PhantomData;

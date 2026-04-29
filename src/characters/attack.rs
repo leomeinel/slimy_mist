@@ -1,12 +1,3 @@
-/*
- * File: attack.rs
- * Author: Leopold Johannes Meinel (leo@meinel.dev)
- * -----
- * Copyright (c) 2026 Leopold Johannes Meinel & contributors
- * SPDX ID: Apache-2.0
- * URL: https://www.apache.org/licenses/LICENSE-2.0
- */
-
 use bevy::{platform::collections::HashSet, prelude::*};
 use bevy_rapier2d::{parry::shape, prelude::*};
 use ordered_float::OrderedFloat;

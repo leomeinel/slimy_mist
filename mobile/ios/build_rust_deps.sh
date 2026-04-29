@@ -1,16 +1,7 @@
 #!/usr/bin/env bash
-###
-# File: build_rust_deps.sh
-# Author: Leopold Johannes Meinel (leo@meinel.dev)
-# -----
-# Copyright (c) 2026 Leopold Johannes Meinel & contributors
-# SPDX ID: Apache-2.0
-# URL: https://www.apache.org/licenses/LICENSE-2.0
-# -----
 # Heavily inspired by:
 # - https://github.com/mozilla/glean/blob/main/build-scripts/xc-universal-binary.sh
 # - https://github.com/bevyengine/bevy/tree/main/examples/mobile
-###
 
 # FIXME: Make this independent of xcode?
 

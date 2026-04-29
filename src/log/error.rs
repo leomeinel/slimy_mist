@@ -1,12 +1,3 @@
-/*
- * File: error.rs
- * Author: Leopold Johannes Meinel (leo@meinel.dev)
- * -----
- * Copyright (c) 2026 Leopold Johannes Meinel & contributors
- * SPDX ID: Apache-2.0
- * URL: https://www.apache.org/licenses/LICENSE-2.0
- */
-
 /// Error on invalid attacker [`Entity`](bevy::prelude::Entity).
 pub(crate) const ERR_INVALID_ATTACKER: &str = "Invalid attacker entity. This might be a bug.";
 /// Error on invalid [`bevy::prelude::BoxShadow`].

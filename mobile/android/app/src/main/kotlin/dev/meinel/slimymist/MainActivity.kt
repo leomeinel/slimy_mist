@@ -1,11 +1,4 @@
 /*
- * File: MainActivity.kt
- * Author: Leopold Johannes Meinel (leo@meinel.dev)
- * -----
- * Copyright (c) 2026 Leopold Johannes Meinel & contributors
- * SPDX ID: Apache-2.0
- * URL: https://www.apache.org/licenses/LICENSE-2.0
- * -----
  * Heavily inspired by:
  * - https://github.com/bevyengine/bevy/tree/main/examples/mobile
  * - https://developer.android.com/develop/ui/views/layout/immersive#java

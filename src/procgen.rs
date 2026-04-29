@@ -1,12 +1,3 @@
-/*
- * File: procgen.rs
- * Author: Leopold Johannes Meinel (leo@meinel.dev)
- * -----
- * Copyright (c) 2026 Leopold Johannes Meinel & contributors
- * SPDX ID: Apache-2.0
- * URL: https://www.apache.org/licenses/LICENSE-2.0
- */
-
 // FIXME: Find a way to avoid rounding errors by f32 causing problems with the infinite world.
 //        Currently `1 << 20` is the limit where there is almost no visible rounding errors.
 //        This was determined after a visual inspection at that position, no other testing has been done.

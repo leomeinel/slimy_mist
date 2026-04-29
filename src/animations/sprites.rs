@@ -150,7 +150,7 @@ pub(super) fn update_animations<T>(
         state.switch(
             &sprite_animations.base,
             &mut base_animation,
-            &mut last_action,
+            &mut last_action.base,
             &mut audio_index,
         );
         if let Some(next_y_offset) = sprite_animations
@@ -173,7 +173,7 @@ pub(super) fn update_animations<T>(
             state.switch(
                 animation,
                 &mut floating_animation,
-                &mut last_action,
+                &mut last_action.floating,
                 &mut audio_index,
             );
         }

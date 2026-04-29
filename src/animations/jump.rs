@@ -42,11 +42,17 @@ pub(super) fn move_sprite(
 }
 
 /// Switch [`AnimationState`] out of [`AnimationAction::Jump`] after [`JumpTimer`] has finished.
-pub(super) fn switch_animation(player: Single<(&mut AnimationState, &JumpTimer), With<Player>>) {
-    let (mut state, timer) = player.into_inner();
+pub(super) fn switch_animation(
+    player: Single<(Entity, &mut AnimationState, &JumpTimer), With<Player>>,
+    mut commands: Commands,
+) {
+    let (entity, mut state, timer) = player.into_inner();
     if !timer.0.just_finished() {
         return;
     }
+
+    // NOTE: Using try here is necessary since the entity might have been despawned elsewhere.
+    commands.entity(entity).try_remove::<JumpTimer>();
     if state.0.0 == AnimationAction::Jump {
         state.0.0 = AnimationAction::Idle;
     }

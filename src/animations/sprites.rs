@@ -92,10 +92,11 @@ pub(super) fn setup_animations<T>(
 pub(super) fn update_animations<T>(
     container_query: Query<
         (
+            Entity,
             &mut AnimationAudioIndex,
             &mut AnimationYOffset,
             &AnimationState,
-            &AnimationTimer,
+            Option<&AnimationTimer>,
             &Children,
         ),
         With<T>,
@@ -105,20 +106,25 @@ pub(super) fn update_animations<T>(
         With<AnimationBase>,
     >,
     mut floating_query: Query<&mut SpritesheetAnimation, Without<AnimationBase>>,
+    mut commands: Commands,
     sprite_animations: Res<SpriteAnimations<T>>,
 ) where
     T: Visible,
 {
-    for (mut audio_index, mut y_offset, animation_state, timer, children) in container_query {
+    for (entity, mut audio_index, mut y_offset, animation_state, timer, children) in container_query
+    {
         let children: Vec<_> = children.iter().collect();
-        let entity = children
+        let child_entity = children
             .iter()
-            .find(|entity| base_query.contains(**entity))
+            .find(|e| base_query.contains(**e))
             .expect(ERR_INVALID_CHILDREN);
-        let (mut base_animation, mut transform, children) =
-            base_query.get_mut(*entity).expect(ERR_INVALID_CHILDREN);
-        if timer.0.just_finished() {
+        let (mut base_animation, mut transform, children) = base_query
+            .get_mut(*child_entity)
+            .expect(ERR_INVALID_CHILDREN);
+        if timer.is_some_and(|t| t.0.just_finished()) {
             base_animation.reset();
+            // NOTE: Using try here is necessary since the entity might have been despawned elsewhere.
+            commands.entity(entity).try_remove::<AnimationTimer>();
         }
 
         animation_state.switch(
@@ -136,13 +142,11 @@ pub(super) fn update_animations<T>(
         }
 
         if let Some(children) = children
-            && let Some(entity) = children
-                .iter()
-                .find(|entity| floating_query.contains(*entity))
+            && let Some(entity) = children.iter().find(|e| floating_query.contains(*e))
             && let Ok(mut floating_animation) = floating_query.get_mut(entity)
             && let Some(animation) = &&sprite_animations.floating
         {
-            if timer.0.just_finished() {
+            if timer.is_some_and(|t| t.0.just_finished()) {
                 floating_animation.reset();
             }
             animation_state.switch(animation, &mut floating_animation, &mut audio_index);

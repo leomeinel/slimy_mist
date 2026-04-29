@@ -32,8 +32,7 @@ bevy_common_assets = { version = "0.16.0", features = ["ron"] }
 bevy_ecs_tilemap = "0.18.1"
 bevy_enhanced_input = "0.24.4"
 # FIXME: Wait for new version to be released.
-#        Also see: https://github.com/Lommix/bevy_enoki/pull/43
-bevy_enoki = { git = "https://github.com/leomeinel/bevy_enoki.git", branch = "fix-despawn" }
+bevy_enoki = { git = "https://github.com/Lommix/bevy_enoki.git", rev = "eb0fe27d88dd66bb817977c5787ad6767557ae9b" }
 bevy_fast_light = "0.7.1"
 bevy-inspector-egui = { version = "0.36.0", optional = true }
 bevy_prng = { version = "0.14.2", features = ["chacha20", "wyrand"] }

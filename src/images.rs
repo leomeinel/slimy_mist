@@ -73,6 +73,7 @@ where
     T: Visible,
 {
     fn from_animation_data(animation_data: &AnimationDataCache<T>, meta: &ImageMeta<T>) -> Self {
+        // NOTE: This asserts that `atlas_columns` and `atlas_rows` are correct for `meta`.
         assert_eq!(meta.size.width % animation_data.atlas_columns as u32, 0);
         assert_eq!(meta.size.height % animation_data.atlas_rows as u32, 0);
         let size = UVec2::new(
@@ -115,6 +116,7 @@ where
         // NOTE: This is to ensure that we do have an alpha channel. We could extend this in the future.
         assert_eq!(format, TextureFormat::bevy_default());
 
+        // NOTE: This asserts that each image has the same metadata.
         assert!(data.base.iter().all(|image| {
             let descriptor = &images
                 .get(image)

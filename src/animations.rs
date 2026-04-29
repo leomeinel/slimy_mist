@@ -193,6 +193,13 @@ where
     }
 }
 
+/// Animation for a single [`Sprite`].
+#[derive(Default)]
+pub(crate) struct SpriteAnimation {
+    pub(crate) sprite: Sprite,
+    pub(crate) map: HashMap<AnimationState, Handle<Animation>>,
+}
+
 /// Marker [`Component`] for animation base.
 #[derive(Component, Default)]
 pub(crate) struct AnimationBase;
@@ -202,13 +209,6 @@ pub(crate) struct AnimationBase;
 /// The offset is expected to be in px of rendered [`Sprite`]s which is equivalent to world position delta.
 #[derive(Component, Default)]
 pub(crate) struct AnimationYOffset(pub(crate) f32);
-
-/// Animation for a single [`Sprite`].
-#[derive(Default)]
-pub(crate) struct SpriteAnimation {
-    pub(crate) sprite: Sprite,
-    pub(crate) map: HashMap<AnimationState, Handle<Animation>>,
-}
 
 /// Animation action.
 #[derive(Deserialize, Clone, Copy, Default, PartialEq, Eq, Hash, Reflect, Debug)]

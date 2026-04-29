@@ -188,13 +188,13 @@ pub(super) fn update_animation_orientations<T>(
 ) where
     T: Visible,
 {
-    for (mut animation_state, direction, children) in container_query {
+    for (mut state, direction, children) in container_query {
         let Some(orientation) = AnimationOrientation::try_from_vec2(direction.0) else {
             continue;
         };
-        animation_state.0.1 = orientation;
+        state.0.1 = orientation;
 
-        if animation_state.0.1 == AnimationOrientation::East {
+        if state.0.1 == AnimationOrientation::East {
             let child = children
                 .iter()
                 .find(|e| base_query.contains(*e))

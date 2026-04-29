@@ -19,8 +19,8 @@ pub(super) fn move_sprite(
     player: Single<(&AnimationState, &mut JumpHeight, &JumpTimer, &Children), With<Player>>,
     mut base_query: Query<&mut Transform, With<AnimationBase>>,
 ) {
-    let (animation_state, mut jump_height, timer, children) = player.into_inner();
-    if animation_state.0.0 != AnimationAction::Jump {
+    let (state, mut jump_height, timer, children) = player.into_inner();
+    if state.0.0 != AnimationAction::Jump {
         return;
     }
 
@@ -43,11 +43,11 @@ pub(super) fn move_sprite(
 
 /// Switch [`AnimationState`] out of [`AnimationAction::Jump`] after [`JumpTimer`] has finished.
 pub(super) fn switch_animation(player: Single<(&mut AnimationState, &JumpTimer), With<Player>>) {
-    let (mut animation_state, timer) = player.into_inner();
+    let (mut state, timer) = player.into_inner();
     if !timer.0.just_finished() {
         return;
     }
-    if animation_state.0.0 == AnimationAction::Jump {
-        animation_state.0.0 = AnimationAction::Idle;
+    if state.0.0 == AnimationAction::Jump {
+        state.0.0 = AnimationAction::Idle;
     }
 }

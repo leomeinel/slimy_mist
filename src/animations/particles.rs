@@ -35,7 +35,7 @@ pub(super) fn toggle_walking_dust<T>(
 ) where
     T: Visible,
 {
-    for (animation_state, controller_output, walk_speed, children) in character_query {
+    for (state, controller_output, walk_speed, children) in character_query {
         let child = children
             .iter()
             .find(|e| base_query.contains(*e))
@@ -49,7 +49,7 @@ pub(super) fn toggle_walking_dust<T>(
         let (entity, particle, timer) = particle_query.get(child).expect(ERR_INVALID_CHILDREN);
 
         if timer.0.just_finished() {
-            let activate = particle.is_active(animation_state.0.0)
+            let activate = particle.is_active(state.0.0)
                 && controller_output.desired_translation.length_squared()
                     > ((walk_speed.0 * MIN_WALK_SPEED_FRAC) * time.delta_secs()).squared();
 

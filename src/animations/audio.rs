@@ -47,7 +47,7 @@ pub(super) fn update_animation_sounds<T, A>(
     T: Visible,
     A: CharacterAssets,
 {
-    for (mut audio_index, animation_state, children) in character_query {
+    for (mut audio_index, state, children) in character_query {
         let child = children
             .iter()
             .find(|e| base_query.contains(*e))
@@ -65,9 +65,9 @@ pub(super) fn update_animation_sounds<T, A>(
         let Some(sound) = choose_sound(
             &mut rng,
             &current_frame,
-            animation_state,
+            state,
             &audio_map.map,
-            assets.sounds(animation_state.0.0),
+            assets.sounds(state.0.0),
         ) else {
             audio_index.0 = None;
             continue;
@@ -86,11 +86,11 @@ pub(super) fn update_animation_sounds<T, A>(
 fn choose_sound(
     rng: &mut WyRand,
     current_frame: &usize,
-    animation_state: &AnimationState,
+    state: &AnimationState,
     audio_map: &HashMap<AnimationState, Vec<usize>>,
     sounds: &Option<Vec<Handle<AudioSource>>>,
 ) -> Option<Handle<AudioSource>> {
-    let Some(audio_indexes) = audio_map.get(animation_state) else {
+    let Some(audio_indexes) = audio_map.get(state) else {
         warn_once!("{}", WARN_INCOMPLETE_ANIMATION_DATA);
         return None;
     };

@@ -28,7 +28,7 @@ pub(crate) mod prelude {
     pub(crate) use super::{
         ANIMATION_DELAY_RANGE_SECS, AnimationAction, AnimationBase, AnimationClip, AnimationData,
         AnimationDataCache, AnimationHandle, AnimationOrientation, AnimationRng, AnimationState,
-        AnimationTimer, AnimationYOffset, SpriteAnimation, SpriteAnimations,
+        AnimationTimer, AnimationYOffset, LastAnimationAction, SpriteAnimation, SpriteAnimations,
     };
 }
 
@@ -269,12 +269,18 @@ impl AnimationState {
         &self,
         animation: &SpriteAnimation,
         sprite_animation: &mut SpritesheetAnimation,
+        last_action: &mut LastAnimationAction,
         audio_index: &mut AnimationAudioIndex,
     ) {
         let new_animation = self.animation(animation);
         if sprite_animation.animation != new_animation {
-            sprite_animation.switch(new_animation);
+            if last_action.0 == self.0.0 {
+                sprite_animation.animation = new_animation;
+            } else {
+                sprite_animation.switch(new_animation);
+            }
             audio_index.0 = None;
+            last_action.0 = self.0.0;
         }
     }
 }
@@ -283,6 +289,10 @@ impl Borrow<(AnimationAction, AnimationOrientation)> for AnimationState {
         &self.0
     }
 }
+
+/// Last [`AnimationAction`] used for transition logic.
+#[derive(Component, Default)]
+pub(crate) struct LastAnimationAction(pub(crate) AnimationAction);
 
 /// Deserializable animation clip containing animation data for every [`AnimationState`].
 #[derive(Deserialize, Clone, Debug, Default)]

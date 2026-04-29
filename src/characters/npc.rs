@@ -84,6 +84,7 @@ impl Character for Slime {
             (
                 AnimationAudioIndex::default(),
                 AnimationState::default(),
+                LastAnimationAction::default(),
                 AnimationYOffset::default(),
                 AnimationTimer(Timer::from_seconds(animation_delay, TimerMode::Once)),
             ),

@@ -59,6 +59,12 @@ pub(super) fn setup_animations<T>(
         animation_data.walk_clips.as_ref(),
         animation_data.jump_clips.as_ref(),
     );
+    // NOTE: This asserts that each direction of the clip is the same length.
+    assert!(
+        idle_clips
+            .windows(2)
+            .all(|c| { c[0].sprite_coords.len() == c[1].sprite_coords.len() })
+    );
     sprite_animations.insert_clips(
         idle_clips,
         &mut animations,
@@ -67,6 +73,12 @@ pub(super) fn setup_animations<T>(
         AnimationRepeat::Loop,
     );
     if let Some(walk_clips) = walk_clips {
+        // NOTE: This asserts that each direction of the clip is the same length.
+        assert!(
+            walk_clips
+                .windows(2)
+                .all(|c| { c[0].sprite_coords.len() == c[1].sprite_coords.len() })
+        );
         sprite_animations.insert_clips(
             walk_clips,
             &mut animations,
@@ -76,6 +88,12 @@ pub(super) fn setup_animations<T>(
         );
     }
     if let Some(jump_clips) = jump_clips {
+        // NOTE: This asserts that each direction of the clip is the same length.
+        assert!(
+            jump_clips
+                .windows(2)
+                .all(|c| { c[0].sprite_coords.len() == c[1].sprite_coords.len() })
+        );
         sprite_animations.insert_clips(
             jump_clips,
             &mut animations,
@@ -93,6 +111,7 @@ pub(super) fn update_animations<T>(
     container_query: Query<
         (
             Entity,
+            &mut LastAnimationAction,
             &mut AnimationAudioIndex,
             &mut AnimationYOffset,
             &AnimationState,
@@ -111,7 +130,8 @@ pub(super) fn update_animations<T>(
 ) where
     T: Visible,
 {
-    for (entity, mut audio_index, mut y_offset, animation_state, timer, children) in container_query
+    for (entity, mut last_action, mut audio_index, mut y_offset, state, timer, children) in
+        container_query
     {
         let children: Vec<_> = children.iter().collect();
         let child_entity = children
@@ -127,14 +147,15 @@ pub(super) fn update_animations<T>(
             commands.entity(entity).try_remove::<AnimationTimer>();
         }
 
-        animation_state.switch(
+        state.switch(
             &sprite_animations.base,
             &mut base_animation,
+            &mut last_action,
             &mut audio_index,
         );
         if let Some(next_y_offset) = sprite_animations
             .y_offset_map
-            .get(animation_state)
+            .get(state)
             .and_then(|o| o.as_ref())
         {
             transform.translation.y += *next_y_offset - y_offset.0;
@@ -149,7 +170,12 @@ pub(super) fn update_animations<T>(
             if timer.is_some_and(|t| t.0.just_finished()) {
                 floating_animation.reset();
             }
-            animation_state.switch(animation, &mut floating_animation, &mut audio_index);
+            state.switch(
+                animation,
+                &mut floating_animation,
+                &mut last_action,
+                &mut audio_index,
+            );
         }
     }
 }

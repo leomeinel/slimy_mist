@@ -155,7 +155,7 @@ pub(super) fn on_melee_attack<T>(
         commands.trigger(Damage { targets, damage });
         commands.trigger(SpawnChildParticleOnce::<ParticleMeleeAttack>::new(
             *entity,
-            offset.extend(OVERLAY_Z),
+            offset.extend(BASE_Z_DELTA),
             particle_handle.handle.clone(),
         ));
     }

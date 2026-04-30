@@ -119,58 +119,60 @@ fn insert_material_handle_resources(
 /// Insert handle [`Resource`]s for deserialized data.
 ///
 /// These serve as handles for the actual data.
-fn insert_handle_resources(mut commands: Commands, assets: Res<AssetServer>) {
+fn insert_handle_resources(mut commands: Commands, asset_server: Res<AssetServer>) {
     // `AnimationData`
     commands.insert_resource(AnimationHandle::<Player>(
-        assets.load("data/characters/human/male.animation.ron"),
+        asset_server.load("data/characters/human/male.animation.ron"),
     ));
     commands.insert_resource(AnimationHandle::<Slime>(
-        assets.load("data/characters/npc/slime.animation.ron"),
+        asset_server.load("data/characters/npc/slime.animation.ron"),
     ));
 
     // `CollisionData`
     commands.insert_resource(CollisionHandle::<Player>(
-        assets.load("data/characters/human/male.collision.ron"),
+        asset_server.load("data/characters/human/male.collision.ron"),
     ));
     commands.insert_resource(CollisionHandle::<Slime>(
-        assets.load("data/characters/npc/slime.collision.ron"),
+        asset_server.load("data/characters/npc/slime.collision.ron"),
     ));
 
     commands.insert_resource(LayerHandle::<Player>(
-        assets.load("data/characters/player/male.layers.ron"),
+        asset_server.load("data/characters/player/male.layers.ron"),
     ));
     commands.insert_resource(LayerHandle::<Slime>(
-        assets.load("data/characters/npc/slime.layers.ron"),
+        asset_server.load("data/characters/npc/slime.layers.ron"),
     ));
 
     // `CreditsData`
-    commands.insert_resource(CreditsHandle(assets.load("data/menus/credits.ron")));
+    commands.insert_resource(CreditsHandle(asset_server.load("data/menus/credits.ron")));
 
     // `TileData`
     commands.insert_resource(TileHandle::<OverworldProcGen>(
-        assets.load("data/levels/overworld.tiles.ron"),
+        asset_server.load("data/levels/overworld.tiles.ron"),
     ));
 
     // `ParticleHandle` not needing a custom data struct
     commands.insert_resource(ParticleHandle::<BloodParticle> {
-        handle: assets.load("data/particles/blood.particle.ron"),
+        handle: asset_server.load("data/particles/blood.particle.ron"),
         ..default()
     });
     commands.insert_resource(ParticleHandle::<DeathParticle> {
-        handle: assets.load("data/particles/death.particle.ron"),
+        handle: asset_server.load("data/particles/death.particle.ron"),
         ..default()
     });
     commands.insert_resource(ParticleHandle::<DustTrailParticle> {
-        handle: assets.load("data/particles/dust-trail.particle.ron"),
+        handle: asset_server.load("data/particles/dust-trail.particle.ron"),
         ..default()
     });
     commands.insert_resource(ParticleHandle::<MeleeParticle> {
-        handle: assets.load("data/particles/melee.particle.ron"),
+        handle: asset_server.load("data/particles/melee.particle.ron"),
         ..default()
     });
 
     // `UiFontHandle` not needing a custom data struct
-    commands.insert_resource(UiFontHandle(assets.load("fonts/Pixeloid/PixeloidSans.ttf")));
+    commands.insert_resource(UiFontHandle(
+        asset_server.load("fonts/Pixeloid/PixeloidSans.ttf"),
+    ));
 }
 
 /// Cache data from [`AnimationData`] in [`AnimationDataCache`].
@@ -277,16 +279,16 @@ fn cache_credits_data(
 fn cache_layer_data<T>(
     mut commands: Commands,
     mut data: ResMut<Assets<LayerData<T>>>,
-    assets: Res<AssetServer>,
+    asset_server: Res<AssetServer>,
     handle: Res<LayerHandle<T>>,
 ) where
     T: Visible,
 {
     let data = data.remove(handle.0.id()).expect(ERR_LOADING_LAYER_DATA);
-    let base = data.base.iter().map(|l| assets.load(l)).collect();
+    let base = data.base.iter().map(|l| asset_server.load(l)).collect();
     let floating = data
         .floating
-        .map(|layers| layers.iter().map(|l| assets.load(l)).collect());
+        .map(|layers| layers.iter().map(|l| asset_server.load(l)).collect());
     commands.insert_resource(LayerDataCache::<T> {
         floating,
         base,

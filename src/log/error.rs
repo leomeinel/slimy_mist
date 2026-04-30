@@ -1,10 +1,10 @@
 /// Error on invalid attacker [`Entity`](bevy::prelude::Entity).
 pub(crate) const ERR_INVALID_ATTACKER: &str = "Invalid attacker entity. This might be a bug.";
-/// Error on invalid [`bevy::prelude::BoxShadow`].
+/// Error on invalid [`BoxShadow`](bevy::prelude::BoxShadow).
 pub(crate) const ERR_INVALID_BOX_SHADOW: &str = "Invalid box shadow. This might be a bug.";
-/// Error on invalid [`bevy::prelude::Children`].
+/// Error on invalid [`Children`](bevy::prelude::Children).
 pub(crate) const ERR_INVALID_CHILDREN: &str = "Invalid children. This might be a bug.";
-/// Error on invalid domain of [`bevy::prelude::EasingCurve`].
+/// Error on invalid domain of [`EasingCurve`](bevy::prelude::EasingCurve).
 pub(crate) const ERR_INVALID_DOMAIN_EASING: &str =
     "Invalid domain of easing curve. This might be a bug.";
 /// Error on invalid [`Image`](bevy::prelude::Image).

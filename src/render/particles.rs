@@ -1,5 +1,5 @@
 pub(super) mod effects;
-mod materials;
+pub(super) mod materials;
 
 use std::marker::PhantomData;
 
@@ -14,7 +14,13 @@ use crate::{
 pub(super) struct ParticlesPlugin;
 impl Plugin for ParticlesPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(EnokiPlugin);
+        app.add_plugins((
+            EnokiPlugin,
+            Particle2dMaterialPlugin::<BloodParticleMaterial>::default(),
+            Particle2dMaterialPlugin::<DeathParticleMaterial>::default(),
+            Particle2dMaterialPlugin::<DustTrailParticleMaterial>::default(),
+            Particle2dMaterialPlugin::<MeleeParticleMaterial>::default(),
+        ));
 
         app.add_systems(
             OnEnter(Screen::Gameplay),
@@ -30,10 +36,10 @@ impl Plugin for ParticlesPlugin {
             tick_component_timers::<ParticleTimer>.in_set(AppSystems::TickTimers),
         );
 
-        app.add_observer(on_spawn_child_particle_once::<BloodParticle>);
-        app.add_observer(on_spawn_particle_once::<DeathParticle, Overworld>);
+        app.add_observer(on_spawn_child_particle_once::<BloodParticle, BloodParticleMaterial>);
+        app.add_observer(on_spawn_particle_once::<DeathParticle, DeathParticleMaterial, Overworld>);
         app.add_observer(on_toggle_particle::<DustTrailParticle>);
-        app.add_observer(on_spawn_child_particle_once::<MeleeParticle>);
+        app.add_observer(on_spawn_child_particle_once::<MeleeParticle, MeleeParticleMaterial>);
     }
 }
 
@@ -155,15 +161,19 @@ fn on_toggle_particle<T>(
 }
 
 /// Spawn and despawn a [`Particle`] as child once.
-fn on_spawn_child_particle_once<T>(event: On<SpawnChildParticleOnce<T>>, mut commands: Commands)
-where
+fn on_spawn_child_particle_once<T, A>(
+    event: On<SpawnChildParticleOnce<T>>,
+    mut commands: Commands,
+    material: Res<Particle2dMaterialHandle<A>>,
+) where
     T: Particle,
+    A: Particle2dMaterial + Default,
 {
     if let Ok(mut entity_commands) = commands.get_entity(event.entity) {
         entity_commands.with_child((
             T::default(),
             OneShot::Despawn,
-            ParticleSpawner::default(),
+            ParticleSpawner(material.0.clone()),
             NoAutoAabb,
             Transform::from_translation(event.offset),
             ParticleEffectHandle(event.handle.clone()),
@@ -172,18 +182,20 @@ where
 }
 
 /// Spawn and despawn a [`Particle`] once at a specific position.
-fn on_spawn_particle_once<T, A>(
+fn on_spawn_particle_once<T, A, B>(
     event: On<SpawnParticleOnce<T>>,
-    level: Single<Entity, With<A>>,
+    level: Single<Entity, With<B>>,
     mut commands: Commands,
+    material: Res<Particle2dMaterialHandle<A>>,
 ) where
     T: Particle,
-    A: Level,
+    A: Particle2dMaterial + Default,
+    B: Level,
 {
     commands.entity(*level).with_child((
         T::default(),
         OneShot::Despawn,
-        ParticleSpawner::default(),
+        ParticleSpawner(material.0.clone()),
         NoAutoAabb,
         Transform::from_translation(event.pos),
         ParticleEffectHandle(event.handle.clone()),

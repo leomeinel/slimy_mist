@@ -1,7 +1,7 @@
 (
     spawn_rate: 0.1,
-    spawn_amount: 4,
-    emission_shape: Circle(8.0),
+    spawn_amount: 8,
+    emission_shape: Point,
     lifetime: (1.0, 0.0),
     linear_speed: Some((80.0, 0.1)),
     linear_acceleration: None,
@@ -15,11 +15,11 @@
     gravity_speed: None,
     linear_damp: None,
     angular_damp: None,
-    scale_curve: Some((points: [(2.0, 0.0, None), (0.5, 1.0, Some(BackIn))])),
-    color_curve:Some((
+    scale_curve: Some((points: [(3.5, 0.0, None), (1.0, 1.0, Some(QuadraticInOut))])),
+    color_curve: Some((
             points: [
                 ((red: 0.8627451, green: 0.14901961, blue: 0.14901961, alpha: 1.0), 0.0, None), // tailwind::RED_600
-                ((red: 0.8627451, green: 0.14901961, blue: 0.14901961, alpha: 0.5), 1.0, Some(BackIn)), // tailwind::RED_600
+                ((red: 0.8627451, green: 0.14901961, blue: 0.14901961, alpha: 0.5), 1.0, Some(QuadraticInOut)), // tailwind::RED_600
             ]
         )),
     attractors: None,

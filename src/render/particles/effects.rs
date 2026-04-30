@@ -38,7 +38,8 @@ pub(super) fn add_dust_trail<T, const ANIMATION_ACTION: u8>(
     query: Query<&Children, With<T>>,
     mut commands: Commands,
     cel_size: Res<CelSize<T>>,
-    handle: Res<ParticleHandle<DustTrailParticle>>,
+    material: Res<Particle2dMaterialHandle<DustTrailParticleMaterial>>,
+    particle: Res<ParticleHandle<DustTrailParticle>>,
 ) where
     T: Visible,
 {
@@ -54,13 +55,13 @@ pub(super) fn add_dust_trail<T, const ANIMATION_ACTION: u8>(
                 AnimationAction::try_from(ANIMATION_ACTION).expect(ERR_INVALID_ENUM_PRIMITVE),
             ),
             ParticleTimer(Timer::from_seconds(DUST_TRAIL_SECS, TimerMode::Repeating)),
-            ParticleSpawner::default(),
+            ParticleSpawner(material.0.clone()),
             NoAutoAabb,
             ParticleSpawnerState {
                 active: false,
                 ..default()
             },
-            ParticleEffectHandle(handle.handle.clone()),
+            ParticleEffectHandle(particle.handle.clone()),
             Transform::from_translation(Vec3::new(0., -y_offset, -LAYER_Z_DELTA)),
         ));
     }

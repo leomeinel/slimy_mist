@@ -93,7 +93,7 @@ pub(super) fn on_melee_attack<T>(
     mut commands: Commands,
     collision_data: Res<CollisionDataCache<T>>,
     rapier_context: ReadRapierContext,
-    particle_handle: Res<ParticleHandle<MeleeParticle>>,
+    particle: Res<ParticleHandle<MeleeParticle>>,
 ) where
     T: Visible,
 {
@@ -147,7 +147,7 @@ pub(super) fn on_melee_attack<T>(
         commands.trigger(SpawnChildParticleOnce::<MeleeParticle>::new(
             *entity,
             offset.extend(BASE_Z_DELTA),
-            particle_handle.handle.clone(),
+            particle.handle.clone(),
         ));
     }
 }

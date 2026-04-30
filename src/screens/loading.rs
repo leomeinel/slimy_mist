@@ -57,6 +57,7 @@ impl Plugin for LoadingPlugin {
         app.add_systems(
             OnEnter(Screen::Loading),
             (
+                insert_material_handle_resources,
                 // After initial `LoadingState<Screen::Loading>` insert resources with handles for data
                 insert_handle_resources.after(LoadingStateSet(Screen::Loading)),
                 spawn_loading_screen,
@@ -89,6 +90,29 @@ fn spawn_loading_screen(mut commands: Commands, font: Res<UiFontHandle>) {
         root_widget("Loading Screen"),
         DespawnOnExit(Screen::Loading),
         children![label_widget("Loading...", font.0.clone())],
+    ));
+}
+
+/// Insert handle [`Resource`]s for [`Material`]s.
+fn insert_material_handle_resources(
+    mut commands: Commands,
+    mut blood_particle_materials: ResMut<Assets<BloodParticleMaterial>>,
+    mut death_particle_materials: ResMut<Assets<DeathParticleMaterial>>,
+    mut dust_trail_particle_materials: ResMut<Assets<DustTrailParticleMaterial>>,
+    mut melee_particle_materials: ResMut<Assets<MeleeParticleMaterial>>,
+) {
+    // `Particle2dMaterialHandle`
+    commands.insert_resource(Particle2dMaterialHandle::<BloodParticleMaterial>(
+        blood_particle_materials.add(BloodParticleMaterial::default()),
+    ));
+    commands.insert_resource(Particle2dMaterialHandle::<DeathParticleMaterial>(
+        death_particle_materials.add(DeathParticleMaterial::default()),
+    ));
+    commands.insert_resource(Particle2dMaterialHandle::<DustTrailParticleMaterial>(
+        dust_trail_particle_materials.add(DustTrailParticleMaterial::default()),
+    ));
+    commands.insert_resource(Particle2dMaterialHandle::<MeleeParticleMaterial>(
+        melee_particle_materials.add(MeleeParticleMaterial::default()),
     ));
 }
 

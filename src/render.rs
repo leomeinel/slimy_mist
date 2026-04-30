@@ -16,6 +16,10 @@ pub(crate) mod prelude {
     pub(crate) use super::particles::effects::{
         BloodParticle, DeathParticle, DustTrailParticle, MeleeParticle,
     };
+    pub(crate) use super::particles::materials::{
+        BloodParticleMaterial, DeathParticleMaterial, DustTrailParticleMaterial,
+        MeleeParticleMaterial, Particle2dMaterialHandle,
+    };
     pub(crate) use super::particles::{
         Particle, ParticleHandle, ParticleTimer, SpawnChildParticleOnce, SpawnParticleOnce,
         ToggleParticle,

@@ -3,8 +3,8 @@ LayerData (
         "images/characters/human/male/floating/skin/hands/default.webp",
     ]),
     base: [
-        "images/characters/human/male/top/hair/head/short-flat-blonde.webp",
-        "images/characters/human/male/top/skin/eyes/blue.webp",
+        "images/characters/human/male/top/hair/head/bowl-cut-dark.webp",
+        "images/characters/human/male/top/skin/eyes/brown.webp",
         "images/characters/human/male/top/skin/head/default.webp",
         "images/characters/human/male/bottom/skin/torso/default.webp",
         "images/characters/human/male/bottom/skin/legs/default.webp",

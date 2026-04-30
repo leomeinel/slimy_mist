@@ -30,8 +30,8 @@ AnimationData (
     walk_clips: Some((
         AnimationClip (
             state: AnimationState((Walk, South)),
-            sprite_coords: [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0)],
-            audio_indexes: [0, 3],
+            sprite_coords: [(0, 3), (1, 3), (2, 3), (3, 3), (4, 3), (5, 3)],
+            audio_indexes: [1, 4],
             frame_duration_ms: 150,
             // NOTE: Apply y offset because the real-world center of the character is not the sprite's lowest pixel.
             y_offset: Some(-1.)
@@ -39,7 +39,7 @@ AnimationData (
         AnimationClip (
             state: AnimationState((Walk, North)),
             sprite_coords: [(0, 1), (1, 1), (2, 1), (3, 1), (4, 1), (5, 1)],
-            audio_indexes: [0, 3],
+            audio_indexes: [1, 4],
             frame_duration_ms: 150,
             // NOTE: Apply y offset because the real-world center of the character is not the sprite's lowest pixel.
             y_offset: Some(-1.)
@@ -47,7 +47,7 @@ AnimationData (
         AnimationClip (
             state: AnimationState((Walk, East)),
             sprite_coords: [(0, 2), (1, 2), (2, 2), (3, 2), (4, 2), (5, 2)],
-            audio_indexes: [0, 3],
+            audio_indexes: [1, 4],
             frame_duration_ms: 150,
             // NOTE: Apply y offset because the real-world center of the character is not the sprite's lowest pixel.
             y_offset: Some(-2.)

@@ -5590,6 +5590,7 @@ dependencies = [
  "bevy_rapier2d",
  "bevy_spritesheet_animation",
  "iyes_progress",
+ "num_enum",
  "ordered-float",
  "polyanya",
  "rand 0.10.1",

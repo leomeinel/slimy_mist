@@ -30,6 +30,7 @@ use std::{borrow::Borrow, marker::PhantomData, ops::Range};
 use bevy::{platform::collections::HashMap, prelude::*};
 use bevy_rapier2d::prelude::*;
 use bevy_spritesheet_animation::prelude::*;
+use num_enum::TryFromPrimitive;
 use serde::Deserialize;
 
 use crate::{
@@ -208,7 +209,10 @@ pub(crate) struct AnimationBase;
 pub(crate) struct AnimationYOffset(pub(crate) f32);
 
 /// Animation action.
-#[derive(Deserialize, Clone, Copy, Default, PartialEq, Eq, Hash, Reflect, Debug)]
+#[derive(
+    Deserialize, Clone, Copy, Default, PartialEq, Eq, Hash, Reflect, Debug, TryFromPrimitive,
+)]
+#[repr(u8)]
 pub(crate) enum AnimationAction {
     #[default]
     Idle,

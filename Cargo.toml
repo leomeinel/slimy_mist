@@ -45,6 +45,7 @@ bevy_rapier2d = { version = "0.33.0", default-features = false, features = [
 ] }
 bevy_spritesheet_animation = "6.1.0"
 iyes_progress = "0.16.0"
+num_enum = "0.7.6"
 ordered-float = "5.3.0"
 # FIXME: Wait for new version to be released.
 #        Also see: https://github.com/vleue/polyanya/pull/147

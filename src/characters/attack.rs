@@ -93,7 +93,7 @@ pub(super) fn on_melee_attack<T>(
     mut commands: Commands,
     collision_data: Res<CollisionDataCache<T>>,
     rapier_context: ReadRapierContext,
-    particle_handle: Res<ParticleHandle<ParticleMeleeAttack>>,
+    particle_handle: Res<ParticleHandle<MeleeParticle>>,
 ) where
     T: Visible,
 {
@@ -144,7 +144,7 @@ pub(super) fn on_melee_attack<T>(
         // Apply attack
         let damage = stats.damage_factor * *melee.damage;
         commands.trigger(Damage { targets, damage });
-        commands.trigger(SpawnChildParticleOnce::<ParticleMeleeAttack>::new(
+        commands.trigger(SpawnChildParticleOnce::<MeleeParticle>::new(
             *entity,
             offset.extend(BASE_Z_DELTA),
             particle_handle.handle.clone(),

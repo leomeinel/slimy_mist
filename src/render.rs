@@ -13,9 +13,12 @@ pub(crate) mod prelude {
     pub(crate) use super::light::{DayTimer, DayUpdateTimer, LightWrapper, StreetLight};
     pub(crate) use super::materials::Light2dShadow;
     pub(crate) use super::palette::*;
+    pub(crate) use super::particles::effects::{
+        BloodParticle, DeathParticle, DustTrailParticle, MeleeParticle,
+    };
     pub(crate) use super::particles::{
-        Particle, ParticleBlood, ParticleDeath, ParticleHandle, ParticleMeleeAttack, ParticleTimer,
-        ParticleWalkingDust, SpawnChildParticleOnce, SpawnParticleOnce, ToggleParticle,
+        Particle, ParticleHandle, ParticleTimer, SpawnChildParticleOnce, SpawnParticleOnce,
+        ToggleParticle,
     };
     pub(crate) use super::ysort::{YSort, YSortYOffset};
     pub(crate) use super::z_levels::*;

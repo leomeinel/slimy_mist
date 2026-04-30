@@ -37,8 +37,8 @@ pub(super) fn on_damage(
     event: On<Damage>,
     mut target_query: Query<(&mut Health, &Transform)>,
     mut commands: Commands,
-    particle_blood: Res<ParticleHandle<ParticleBlood>>,
-    particle_death: Res<ParticleHandle<ParticleDeath>>,
+    blood_particle: Res<ParticleHandle<BloodParticle>>,
+    death_particle: Res<ParticleHandle<DeathParticle>>,
 ) {
     for entity in &event.targets {
         let Ok((mut health, transform)) = target_query.get_mut(*entity) else {
@@ -47,17 +47,17 @@ pub(super) fn on_damage(
 
         health.current -= event.damage;
         if health.is_alive() {
-            commands.trigger(SpawnChildParticleOnce::<ParticleBlood>::new(
+            commands.trigger(SpawnChildParticleOnce::<BloodParticle>::new(
                 *entity,
                 Vec3::new(0., 0., -LAYER_Z_DELTA),
-                particle_blood.handle.clone(),
+                blood_particle.handle.clone(),
             ));
         } else {
             // NOTE: Using try here is necessary since the entity might have been despawned elsewhere.
             commands.entity(*entity).try_despawn();
-            commands.trigger(SpawnParticleOnce::<ParticleDeath>::new(
+            commands.trigger(SpawnParticleOnce::<DeathParticle>::new(
                 transform.translation.xy().extend(OVERLAY_Z),
-                particle_death.handle.clone(),
+                death_particle.handle.clone(),
             ));
         }
     }

@@ -7,6 +7,9 @@ pub(crate) const ERR_INVALID_CHILDREN: &str = "Invalid children. This might be a
 /// Error on invalid domain of [`EasingCurve`](bevy::prelude::EasingCurve).
 pub(crate) const ERR_INVALID_DOMAIN_EASING: &str =
     "Invalid domain of easing curve. This might be a bug.";
+/// Error on invalid primitive while using [`TryFromPrimitive`](num_enum::TryFromPrimitive).
+pub(crate) const ERR_INVALID_ENUM_PRIMITVE: &str =
+    "Invalid primitive provided while turning into enum. This might be a bug.";
 /// Error on invalid [`Image`](bevy::prelude::Image).
 pub(crate) const ERR_INVALID_IMAGE: &str = "Invalid image. The config might be invalid.";
 /// Error on invalid [`ProcGenCache::chunk_positions`](crate::procgen::ProcGenCache::chunk_positions).

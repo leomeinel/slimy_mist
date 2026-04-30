@@ -1,12 +1,14 @@
+pub(super) mod effects;
+mod materials;
+
 use std::marker::PhantomData;
 
 use bevy::prelude::*;
 use bevy_enoki::prelude::*;
 
 use crate::{
-    animations::prelude::*, characters::prelude::*, core::prelude::*, images::prelude::*,
-    levels::prelude::*, log::prelude::*, render::prelude::*, screens::prelude::*,
-    utils::prelude::*,
+    animations::prelude::*, characters::prelude::*, core::prelude::*, levels::prelude::*,
+    render::prelude::*, screens::prelude::*, utils::prelude::*,
 };
 
 pub(super) struct ParticlesPlugin;
@@ -16,17 +18,22 @@ impl Plugin for ParticlesPlugin {
 
         app.add_systems(
             OnEnter(Screen::Gameplay),
-            add_walking_dust::<Player>.after(EnterGameplaySystems::Levels),
+            effects::add_dust_trail::<Player, { AnimationAction::WALK }>
+                .after(EnterGameplaySystems::Levels),
+        );
+        app.add_systems(
+            Update,
+            effects::toggle_dust_trail::<Player>.run_if(in_state(Screen::Gameplay)),
         );
         app.add_systems(
             Update,
             tick_component_timers::<ParticleTimer>.in_set(AppSystems::TickTimers),
         );
 
-        app.add_observer(on_toggle_particle::<ParticleWalkingDust>);
-        app.add_observer(on_spawn_child_particle_once::<ParticleBlood>);
-        app.add_observer(on_spawn_child_particle_once::<ParticleMeleeAttack>);
-        app.add_observer(on_spawn_particle_once::<ParticleDeath, Overworld>);
+        app.add_observer(on_spawn_child_particle_once::<BloodParticle>);
+        app.add_observer(on_spawn_particle_once::<DeathParticle, Overworld>);
+        app.add_observer(on_toggle_particle::<DustTrailParticle>);
+        app.add_observer(on_spawn_child_particle_once::<MeleeParticle>);
     }
 }
 
@@ -35,9 +42,6 @@ pub(crate) trait Particle
 where
     Self: Component + Default,
 {
-    fn is_active(&self, _action: AnimationAction) -> bool {
-        true
-    }
 }
 
 trait ParticleSpawnerExt {
@@ -48,30 +52,6 @@ impl ParticleSpawnerExt for ParticleSpawnerState {
         if self.active != new {
             self.active = new;
         }
-    }
-}
-
-/// Marker component for blood particles.
-#[derive(Component, Default)]
-pub(crate) struct ParticleBlood;
-impl Particle for ParticleBlood {}
-
-/// Marker component for death particles.
-#[derive(Component, Default)]
-pub(crate) struct ParticleDeath;
-impl Particle for ParticleDeath {}
-
-/// Marker component for [`Attack::Melee`] particles.
-#[derive(Component, Default)]
-pub(crate) struct ParticleMeleeAttack;
-impl Particle for ParticleMeleeAttack {}
-
-/// Marker component for walking dust particles.
-#[derive(Component, Default)]
-pub(crate) struct ParticleWalkingDust;
-impl Particle for ParticleWalkingDust {
-    fn is_active(&self, action: AnimationAction) -> bool {
-        action == AnimationAction::Walk
     }
 }
 
@@ -162,41 +142,6 @@ where
 #[derive(Component, Debug, Clone, PartialEq, Reflect, Deref, DerefMut)]
 #[reflect(Component)]
 pub(crate) struct ParticleTimer(pub(crate) Timer);
-
-/// Interval for [`ParticleWalkingDust`].
-const WALKING_DUST_SECS: f32 = 0.5;
-
-/// Add [`ParticleWalkingDust`].
-fn add_walking_dust<T>(
-    base_query: Query<(), With<AnimationBase>>,
-    query: Query<&Children, With<T>>,
-    mut commands: Commands,
-    cel_size: Res<CelSize<T>>,
-    handle: Res<ParticleHandle<ParticleWalkingDust>>,
-) where
-    T: Visible,
-{
-    let y_offset = cel_size.size.y as f32 / 2.;
-
-    for children in query {
-        let child = children
-            .iter()
-            .find(|e| base_query.contains(*e))
-            .expect(ERR_INVALID_CHILDREN);
-        commands.entity(child).with_child((
-            ParticleWalkingDust,
-            ParticleTimer(Timer::from_seconds(WALKING_DUST_SECS, TimerMode::Repeating)),
-            ParticleSpawner::default(),
-            NoAutoAabb,
-            ParticleSpawnerState {
-                active: false,
-                ..default()
-            },
-            ParticleEffectHandle(handle.handle.clone()),
-            Transform::from_translation(Vec3::new(0., -y_offset, -LAYER_Z_DELTA)),
-        ));
-    }
-}
 
 /// Enable [`Particle`] on [`ToggleParticle`].
 fn on_toggle_particle<T>(

@@ -12,7 +12,6 @@
 
 mod audio;
 mod jump;
-mod particles;
 mod sprites;
 
 #[allow(unused_imports)]
@@ -81,10 +80,6 @@ impl Plugin for AnimationsPlugin {
                 .chain()
                 .run_if(in_state(Screen::Gameplay))
                 .in_set(AppSystems::Update),
-        );
-        app.add_systems(
-            Update,
-            particles::toggle_walking_dust::<Player>.run_if(in_state(Screen::Gameplay)),
         );
         app.add_systems(
             Update,
@@ -218,6 +213,9 @@ pub(crate) enum AnimationAction {
     Idle,
     Walk,
     Jump,
+}
+impl AnimationAction {
+    pub(crate) const WALK: u8 = Self::Walk as u8;
 }
 
 /// Last [`AnimationAction`] used for transition logic.

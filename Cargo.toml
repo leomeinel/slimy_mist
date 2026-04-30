@@ -57,6 +57,10 @@ tracing = { version = "0.1.44", features = [
  "max_level_debug",
  "release_max_level_warn",
 ] }
+# FIXME: Wait for new version to be released.
+#        Also see:
+#        - https://github.com/SergioRibera/virtual_joystick/pull/50
+#        - https://github.com/SergioRibera/virtual_joystick/pull/51
 virtual_joystick = { git = "https://github.com/leomeinel/virtual_joystick", branch = "current-prs", default-features = false }
 vleue_navigator = "0.15.0"
 

@@ -56,7 +56,7 @@ where
     }
 }
 
-/// [Handle<Mesh>] for light `T`.
+/// [`Handle<Mesh>`] for light `T`.
 #[derive(Resource, Default)]
 pub(crate) struct LightMeshHandle<T>
 where

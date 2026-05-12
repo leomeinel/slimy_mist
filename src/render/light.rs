@@ -11,7 +11,7 @@ use crate::{
 pub(super) struct LightPlugin;
 impl Plugin for LightPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(FastLightPlugin::default());
+        app.add_plugins(FastLightPlugin);
 
         app.add_systems(OnEnter(Screen::Gameplay), init_ambient);
         app.add_systems(OnExit(Screen::Gameplay), reset_ambient);

@@ -17,6 +17,7 @@ mod sprites;
 #[allow(unused_imports)]
 pub(crate) mod prelude {
     pub(crate) use super::audio::{AnimationAudioIndex, AnimationAudioMap};
+    pub(crate) use super::jump::JumpDuration;
     pub(crate) use super::{
         ANIMATION_DELAY_RANGE_SECS, AnimationAction, AnimationBase, AnimationClip, AnimationData,
         AnimationDataCache, AnimationHandle, AnimationOrientation, AnimationRng, AnimationState,
@@ -74,8 +75,10 @@ impl Plugin for AnimationsPlugin {
         app.add_systems(
             Update,
             (
-                jump::move_sprite.before(PhysicsSet::SyncBackend),
-                jump::switch_animation,
+                jump::switch_animation::<Player>,
+                jump::move_sprite::<Player>.before(PhysicsSet::SyncBackend),
+                // NOTE: The timer is inserted last to ensure that `switch_animation` fires and that `move_sprite` finishes.
+                jump::insert_timer::<Player>,
             )
                 .chain()
                 .run_if(in_state(Screen::Gameplay))
@@ -256,7 +259,7 @@ impl AnimationOrientation {
 #[derive(Component, Deserialize, Default, Clone, Copy, PartialEq, Eq, Hash, Reflect, Debug)]
 pub(crate) struct AnimationState(pub(crate) (AnimationAction, AnimationOrientation));
 impl AnimationState {
-    /// Sets a new [`AnimationState`] if it has not already been set.
+    /// Sets a new [`AnimationAction`] if it has not already been set.
     pub(crate) fn set_new_action(&mut self, new: AnimationAction) {
         if self.0.0 != new {
             self.0.0 = new;

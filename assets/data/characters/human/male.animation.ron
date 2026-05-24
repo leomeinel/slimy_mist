@@ -56,25 +56,25 @@ AnimationData (
     jump_clips: Some((
         AnimationClip (
             state: AnimationState((Jump, South)),
-            sprite_coords: [(0, 0)],
+            sprite_coords: [(0, 8), (1, 8), (2, 8), (3, 8)],
             audio_indexes: [],
-            frame_duration_ms: 75,
+            frame_duration_ms: 200,
             // NOTE: Apply y offset because the real-world center of the character is not the sprite's lowest pixel.
             y_offset: Some(-1.)
         ),
         AnimationClip (
             state: AnimationState((Jump, North)),
-            sprite_coords: [(0, 1)],
+            sprite_coords: [(0, 8), (1, 8), (2, 8), (3, 8)],
             audio_indexes: [],
-            frame_duration_ms: 75,
+            frame_duration_ms: 200,
             // NOTE: Apply y offset because the real-world center of the character is not the sprite's lowest pixel.
             y_offset: Some(-1.)
         ),
         AnimationClip (
             state: AnimationState((Jump, East)),
-            sprite_coords: [(0, 2)],
+            sprite_coords: [(0, 8), (1, 8), (2, 8), (3, 8)],
             audio_indexes: [],
-            frame_duration_ms: 75,
+            frame_duration_ms: 200,
             // NOTE: Apply y offset because the real-world center of the character is not the sprite's lowest pixel.
             y_offset: Some(-2.)
         )

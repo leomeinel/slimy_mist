@@ -13,9 +13,7 @@ pub(crate) mod prelude {
         AimDirection, Attack, AttackData, AttackStats, AttackTimer, DelayAttack, InitAttack, punch,
     };
     pub(crate) use super::health::{Damage, Health};
-    pub(crate) use super::movement::{
-        FacingDirection, JUMP_DURATION_SECS, JumpHeight, JumpTimer, WalkSpeed,
-    };
+    pub(crate) use super::movement::{FacingDirection, JumpHeight, JumpTimer, WalkSpeed};
     pub(crate) use super::nav::{NavTarget, Navigator, Path};
     pub(crate) use super::npc::{Npc, Slime, SlimeAssets};
     pub(crate) use super::player::{Player, PlayerAssets};

@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
@@ -20,16 +22,13 @@ pub(crate) struct JumpHeight(pub(crate) f32);
 #[derive(Component)]
 pub(crate) struct WalkSpeed(pub(crate) f32);
 
-/// Jumping duration in seconds
-pub(crate) const JUMP_DURATION_SECS: f32 = 1.;
-
 /// Timer that tracks jumping
 #[derive(Component, Debug, Clone, PartialEq, Reflect, Deref, DerefMut)]
 #[reflect(Component)]
 pub(crate) struct JumpTimer(pub(crate) Timer);
-impl Default for JumpTimer {
-    fn default() -> Self {
-        Self(Timer::from_seconds(JUMP_DURATION_SECS, TimerMode::Once))
+impl JumpTimer {
+    pub(crate) fn from_millis(millis: u64) -> Self {
+        Self(Timer::new(Duration::from_millis(millis), TimerMode::Once))
     }
 }
 

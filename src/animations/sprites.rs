@@ -92,6 +92,10 @@ pub(super) fn setup_animations<T>(
             floating_sheet,
             AnimationRepeat::Times(1),
         );
+
+        let millis =
+            jump_clips[0].sprite_coords.len() as u64 * jump_clips[0].frame_duration_ms as u64;
+        commands.insert_resource(JumpDuration::<T>::from_millis(millis));
     }
 
     commands.insert_resource(sprite_animations);

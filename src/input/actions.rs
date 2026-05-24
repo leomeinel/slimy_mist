@@ -106,22 +106,14 @@ pub(super) fn reset_walk(
     }
 }
 
-/// On a fired [`Jump`], add [`JumpTimer`].
+/// On a fired [`Jump`], set [`AnimationAction::Jump`].
 pub(super) fn set_jump(
     _: On<Fire<Jump>>,
-    player: Single<(Entity, &mut AnimationState), With<Player>>,
-    mut commands: Commands,
+    player: Single<&mut AnimationState, With<Player>>,
     pause: Res<State<Pause>>,
 ) {
-    if pause.get().0 {
-        return;
-    }
-
-    let (entity, mut animation_state) = player.into_inner();
-
-    if animation_state.0.0 != AnimationAction::Jump {
-        // NOTE: Using try here is necessary since the entity might have been despawned elsewhere.
-        commands.entity(entity).try_insert(JumpTimer::default());
+    if !pause.get().0 {
+        let mut animation_state = player.into_inner();
         animation_state.set_new_action(AnimationAction::Jump);
     }
 }

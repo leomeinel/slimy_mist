@@ -64,7 +64,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libwayland-dev
 
       - name: Check documentation
-        run: cargo doc --locked --workspace --profile ci --all-features --document-private-items --no-deps -j default
+        run: cargo doc --locked --workspace --profile ci --all-features --document-private-items --no-deps
 
   # Run Clippy lints.
   clippy-lints:
@@ -153,7 +153,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libwayland-dev
 
       - name: Run tests
-        run: cargo test --locked --workspace --all-targets --profile ci --no-fail-fast -j default
+        run: cargo test --locked --workspace --all-targets --profile ci --no-fail-fast
 
   # Check that the web build compiles.
   check-web:
@@ -185,4 +185,4 @@ jobs:
         run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libwayland-dev
 
       - name: Check web
-        run: cargo check --config 'profile.web.inherits="dev"' --profile ci --no-default-features --features dev --target wasm32-unknown-unknown -j default
+        run: cargo check --config 'profile.web.inherits="dev"' --profile ci --no-default-features --features dev --target wasm32-unknown-unknown

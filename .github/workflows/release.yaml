@@ -265,7 +265,7 @@ jobs:
 
           # Build package
           for target in ${{ matrix.targets }}; do
-            cargo ndk build --lib --no-default-features --release --locked --target="${target}" -o ./mobile/android/app/src/main/jniLibs -j default --link-libcxx-shared
+            cargo ndk build --lib --no-default-features --release --locked --target="${target}" -o ./mobile/android/app/src/main/jniLibs --link-libcxx-shared
           done
           ## Build and sign with gradle
           printf '%s' '${{ secrets.PROD_SIGN_KEYSTORE_BASE64 }}' | openssl base64 -A -d >./mobile/android/app/prod-sign.keystore
@@ -281,7 +281,7 @@ jobs:
         if: ${{ env.is_platform_enabled == 'true' && matrix.platform == 'web' }}
         run: |
           # Build package
-          cargo build --bin '${{ env.app_binary_name }}' --no-default-features --profile web-release --locked --target=${{ matrix.targets }} --features='${{ matrix.features }}' -j default
+          cargo build --bin '${{ env.app_binary_name }}' --no-default-features --profile web-release --locked --target=${{ matrix.targets }} --features='${{ matrix.features }}'
 
           # Install binaryen version 129
           curl -LJO https://github.com/WebAssembly/binaryen/releases/download/version_129/binaryen-version_129-aarch64-linux.tar.gz
@@ -301,7 +301,7 @@ jobs:
         if: ${{ env.is_platform_enabled == 'true' && matrix.platform != 'android' && matrix.platform != 'web' && matrix.platform != 'ios' }}
         run: |
           for target in ${{ matrix.targets }}; do
-            cargo build --bin '${{ env.app_binary_name }}' --no-default-features --release --locked --target="${target}" --features='${{ matrix.features }}' -j default
+            cargo build --bin '${{ env.app_binary_name }}' --no-default-features --release --locked --target="${target}" --features='${{ matrix.features }}'
             mv target/"${target}"/release/'${{ env.app_binary_name }}${{ matrix.binary_ext }}' tmp/binary/"${target}"'${{ matrix.binary_ext }}'
           done
           if [ '${{ matrix.platform }}' = 'macos' ]; then

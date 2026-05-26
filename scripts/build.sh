@@ -9,10 +9,10 @@ BINARY_NAME="$(tomlq -r '.bin.[].name' "${SCRIPT_DIR}"/../Cargo.toml)"
 
 # Build specific build for given argument
 if [[ -z "${1}" ]]; then
-    cargo build --bin "${BINARY_NAME}" --no-default-features --release -j default
+    cargo build --bin "${BINARY_NAME}" --no-default-features --release
 elif [[ "${1}" == "web-release" ]]; then
     rustup target add wasm32-unknown-unknown
-    cargo build --bin "${BINARY_NAME}" --no-default-features --target wasm32-unknown-unknown --profile web-release -j default
+    cargo build --bin "${BINARY_NAME}" --no-default-features --target wasm32-unknown-unknown --profile web-release
     ## Optimize binary
     OUTPUT="${SCRIPT_DIR}"/../target/wasm32-unknown-unknown/web-release/"${BINARY_NAME}".wasm
     tmpfile="$(mktemp /tmp/"${BINARY_NAME}"-XXXXXX.wasm)"
@@ -21,7 +21,7 @@ elif [[ "${1}" == "web-release" ]]; then
     rm -f "${tmpfile}"
 elif [[ "${1}" == "web-dev" ]]; then
     rustup target add wasm32-unknown-unknown
-    cargo build --bin "${BINARY_NAME}" --no-default-features --features dev --target wasm32-unknown-unknown --profile web-dev -j default
+    cargo build --bin "${BINARY_NAME}" --no-default-features --features dev --target wasm32-unknown-unknown --profile web-dev
 else
-    cargo build --bin "${BINARY_NAME}" -j default
+    cargo build --bin "${BINARY_NAME}"
 fi

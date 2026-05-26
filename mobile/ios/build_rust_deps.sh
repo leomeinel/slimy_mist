@@ -59,7 +59,7 @@ for arch in ${ARCHS}; do
         ;;
     esac
 
-    cargo build --bin slimymist --no-default-features --release --locked --target="${TARGET}" -j default
+    cargo build --bin slimymist --no-default-features --release --locked --target="${TARGET}"
     # Collect the executables
     EXECUTABLES+=("${DERIVED_FILE_DIR}/cargo/${TARGET}/release/slimymist")
 done

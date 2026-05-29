@@ -81,12 +81,12 @@ pub(crate) struct JoystickMap(pub(crate) HashMap<u8, Entity>);
 
 /// Spawn joystick with with `const ID`.
 fn spawn_joystick<const ID: u8>(
-    hud_query: Query<(&Hud, Entity)>,
+    hud_query: Query<(Entity, &Hud)>,
     mut commands: Commands,
     mut joystick_map: ResMut<JoystickMap>,
     mut next_state: ResMut<NextState<JoystickState<ID>>>,
 ) {
-    let Some((_, hud_entity)) = hud_query.iter().find(|(h, _)| **h == Hud::BottomLeft) else {
+    let Some((hud_entity, _)) = hud_query.iter().find(|(_, h)| **h == Hud::BottomLeft) else {
         return;
     };
     let entity = commands.spawn(joystick::<ID>()).id();

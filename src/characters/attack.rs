@@ -126,7 +126,7 @@ pub(super) fn on_melee_attack<T>(
         let offset = direction.0 * (extent + shape_half_size.x);
         let shape_pos = pos + offset;
         let shape_rot = direction.0.to_angle();
-        let shape = shape::Cuboid::new(shape_half_size.into());
+        let shape = shape::Cuboid::new(shape_half_size);
         // Filter for anything that is not the source
         let filter = QueryFilter::exclude_dynamic()
             .exclude_sensors()

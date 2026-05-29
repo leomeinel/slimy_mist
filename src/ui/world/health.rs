@@ -7,11 +7,17 @@ use bevy::{platform::collections::HashMap, prelude::*};
 use crate::{characters::prelude::*, log::prelude::*, render::prelude::*, ui::prelude::*};
 
 /// [`Node::width`] for [`WorldUiHealthBar`].
-pub(crate) const WORLD_UI_HEALTH_BAR_WIDTH: Val = Val::Px(42.);
+///
+/// This is measured in actual world pixels.
+pub(crate) const WORLD_UI_HEALTH_BAR_WIDTH: Val = Val::Px(10.5);
 /// [`Node::height`] for [`WorldUiHealthBar`].
-pub(crate) const WORLD_UI_HEALTH_BAR_HEIGHT: Val = Val::Px(12.);
+///
+/// This is measured in actual world pixels.
+pub(crate) const WORLD_UI_HEALTH_BAR_HEIGHT: Val = Val::Px(3.);
 /// [`Node::padding`] [`Val`] for [`WorldUiHealthBar`].
-pub(crate) const WORLD_UI_HEALTH_BAR_PADDING: Val = Val::Px(3.);
+///
+/// This is measured in actual world pixels.
+pub(crate) const WORLD_UI_HEALTH_BAR_PADDING: Val = Val::Px(0.75);
 
 /// World [`Entity`]s mapped to their corresponding [`WorldUiHealthBar`] [`Entity`]s.
 #[derive(Resource, Default)]
@@ -109,6 +115,7 @@ pub(super) fn update_health_bar<T>(
 /// Additionally this scales [`Node::width`], [`Node::height`] and [`Node::padding`] to not have [`Node`]s in [`WorldUi`] affected by [`UiScale`].
 pub(super) fn move_and_scale_health_bar<T>(
     camera: Single<(&Camera, &GlobalTransform), With<CanvasCamera>>,
+    projection: Single<&Projection, With<CanvasCamera>>,
     mut bar_node_query: Query<(&mut Node, &ComputedNode, &Visibility), With<WorldUiHealthBar>>,
     transform_query: Query<(Entity, &GlobalTransform, &WorldUiAnchor), With<T>>,
     map: Res<WorldUiHealthBarMap>,
@@ -117,6 +124,10 @@ pub(super) fn move_and_scale_health_bar<T>(
     T: Visible,
 {
     let (camera, camera_transform) = *camera;
+    let Projection::Orthographic(projection) = &**projection else {
+        return;
+    };
+    let world_ui_scale = 1. / (projection.scale * ui_scale.0);
 
     for (entity, transform, offset) in transform_query {
         let Some(entity) = map.0.get(&entity) else {
@@ -135,10 +146,11 @@ pub(super) fn move_and_scale_health_bar<T>(
             continue;
         };
 
+        bar_node.width = WORLD_UI_HEALTH_BAR_WIDTH * world_ui_scale;
+        bar_node.height = WORLD_UI_HEALTH_BAR_HEIGHT * world_ui_scale;
+        bar_node.padding = UiRect::all(WORLD_UI_HEALTH_BAR_PADDING * world_ui_scale);
+
         let x_offset = -(computed.size.x * computed.inverse_scale_factor) / 2.;
-        bar_node.width = WORLD_UI_HEALTH_BAR_WIDTH / ui_scale.0;
-        bar_node.height = WORLD_UI_HEALTH_BAR_HEIGHT / ui_scale.0;
-        bar_node.padding = UiRect::all(WORLD_UI_HEALTH_BAR_PADDING / ui_scale.0);
         bar_node.left = px(ui_position.x / ui_scale.0 + x_offset);
         bar_node.top = px(ui_position.y / ui_scale.0);
     }

@@ -12,14 +12,6 @@ pub(crate) struct BarBuilder {
     pub(crate) bar_background: BackgroundColor,
 }
 impl BarBuilder {
-    pub(crate) fn health_medium_world() -> Self {
-        Self {
-            width: WORLD_UI_HEALTH_BAR_WIDTH,
-            height: WORLD_UI_HEALTH_BAR_HEIGHT,
-            padding: UiRect::all(WORLD_UI_HEALTH_BAR_PADDING),
-            ..default()
-        }
-    }
     pub(crate) fn round_big_hud() -> Self {
         Self {
             width: px(HUD_MAX_ELEMENT_WIDTH_PX),
